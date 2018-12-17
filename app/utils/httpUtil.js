@@ -47,4 +47,26 @@ request.post = (url, body, successCallBack, failCallBack) => {
         })
 }
 
+request.ajax = (url, params, successCallBack, failCallBack) => {
+    if (params) {
+        url += '?' + queryString.stringify(params)
+    }
+
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = e => {
+        if (request.readyState !== 4) {
+
+            return failCallBack(request);
+        }
+
+        if (request.status === 200) {
+            alert("aaaaa");
+            return successCallBack(request.responseText)
+        }
+    }
+    request.open("GET", url);
+    request.send();
+}
+
+
 module.exports = request

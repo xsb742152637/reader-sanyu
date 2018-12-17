@@ -4,6 +4,19 @@
  * time: 2018年04月04日14:44:45
  */
 
+// 小说源
+const BookSourceSchema = {
+  name: 'BookSource',
+  primaryKey: 'sourceId',
+  properties: {
+    sourceId: 'string',//源编号
+    sourceName: 'string',//源名称
+    sourceUrl: 'string',//网址
+    searchUrl: 'string',//搜索网址
+    sortNum: 'int'
+  }
+}
+
 // 书架
 const HistoryBookSchema = {
   name: 'HistoryBook',
@@ -54,6 +67,6 @@ const ReaderConfigSchema = {
   }
 }
 
-const schemaArray = [HistoryBookSchema, MyCollectionBookListsSchema, ReaderConfigSchema]
+const schemaArray = [BookSourceSchema,HistoryBookSchema, MyCollectionBookListsSchema, ReaderConfigSchema]
 
 module.exports = schemaArray
