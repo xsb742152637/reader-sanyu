@@ -505,6 +505,55 @@ export default class ReadPlatform extends Component {
      * 进入书籍社区
      */
     _toBookCommunity() {
+        // var request = new XMLHttpRequest();
+        // request.onreadystatechange = e => {
+        //     if (request.readyState !== 4) {
+        //         return;
+        //     }
+        //
+        //     if (request.status === 200) {
+        //         let str = request.responseText.split('<div class="container">')[1].split('</div><div class="footer">')[0].split('<ul>')[1].split('</ul>')[0];
+        //         let strs = str.split('</li>');
+        //         for(let i in strs){
+        //             let s = strs[i]
+        //             let u = s.match(/href=\"(\S*)\">/);
+        //             if(u != null && u.length > 1){
+        //                 u = u[1];
+        //             }else{
+        //                 u = "";
+        //             }
+        //             let type = s.match(/#999;\">(\S*)</);//连载、已完结等
+        //             if(type != null && type.length > 1){
+        //                 type = type[1];
+        //             }else{
+        //                 type = "";
+        //             }
+        //             let u2 = s.match(/<a.href=\"(.*)\">/);
+        //             if(u2 != null && u2.length > 1){
+        //                 u2 = u2[1];
+        //             }else{
+        //                 u2 = "";
+        //             }
+        //             let nzj = s.match(/html\">(.*)</);
+        //             if(nzj != null && nzj.length > 1){
+        //                 nzj = nzj[1];
+        //             }else{
+        //                 nzj = "";
+        //             }
+        //             console.log(u);
+        //             console.log(type);
+        //             console.log(u2);
+        //             console.log(nzj);
+        //         }
+        //
+        //
+        //     } else {
+        //         alert("error");
+        //     }
+        // };
+        //
+        // request.open("GET", "http://m.zzdxsw.org/wap.php?action=search&wd=牧神记");
+        // request.send();
         this.setState({showListModal: false, showControlStation: false})
         this.props.navigator.push({
             name: 'bookCommunity',
