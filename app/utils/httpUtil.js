@@ -47,27 +47,44 @@ request.post = (url, body, successCallBack, failCallBack) => {
         })
 }
 
-request.ajax = (url, params, successCallBack,failCallBack) => {
+/**
+ *
+ * @param url 请求路径
+ * @param params 请求参数
+ * @param async 是否异步
+ * @param successCallBack 成功回调
+ * @param failCallBack 失败回调
+ * @returns {Promise.<T>|*}
+ */
+request.ajax = (url, params,async, successCallBack,failCallBack) => {
     if (params) {
         url += '?' + queryString.stringify(params)
     }
 
-    alert(url);
-    return new Promise(function(resolve,reject){
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = e => {
-            if (request.readyState === 4 && request.status === 200) {
-                resolve(request);
+    if(async){
+        //异步
+        return new Promise(function(resolve,reject){
+            var request = new XMLHttpRequest();
+            request.onreadystatechange = e => {
+                if (request.readyState === 4 && request.status === 200) {
+                    // alert(url);
+                    resolve(request.responseText);
+                }
             }
-        }
-        request.open("GET", url);
+            request.open("GET", url);
+            request.send();
+        }).then((data) => {
+            successCallBack(data);
+        }).catch((err) => {
+            failCallBack(err);
+        });
+    }else{
+        //同步
+        var request = new XMLHttpRequest();
+        request.open("GET", url, async);  // 同步请求
         request.send();
-    }).then((data) => {
-        successCallBack(data);
-    }).catch((err) => {
-        failCallBack(err);
-    });
-}
+        return request.responseText;
+    }
+};
 
-
-module.exports = request
+module.exports = request;

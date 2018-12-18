@@ -34,7 +34,6 @@ import MsgBox from '../msgBox'
 import ToolBar from '../../weight/toolBar'
 import HtmlAnalysisBase from './htmlAnalysisBase'
 
-var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
 var last_time = new Date().getTime()
 
@@ -43,8 +42,7 @@ export default class Bookshelves extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            bookSourceList: [],
-            datasource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
+            bookSourceList: new Array(),
             isRefreshing: false,
             appState: AppState.currentState,
             downloadDlg: false
@@ -53,6 +51,23 @@ export default class Bookshelves extends Component {
         this.chapterNum = this.props.chapterNum;//小说目前已看章节数
     }
 
+    componentWillUpdate(){
+        for(let key in HtmlAnalysisBase.api){
+            HtmlAnalysisBase.searchBook(this.bookName,key).then((data)=> {
+                // alert("aaaaaa"+key);
+                // alert(JSON.stringify(data));
+                if(data != undefined && data != null){
+                    // alert("bbb:"+data.bookName);
+                    this.setState({bookSourceList: this.state.bookSourceList.push(data)})
+                    // this.state.bookSourceList.push(data);
+                    // alert(JSON.stringify(this.state.bookSourceList));
+                }
+            }).then((err) => {
+                console.log(err);
+            });
+        }
+    }
+    //渲染后触发
     componentDidMount() {
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount")
@@ -63,11 +78,13 @@ export default class Bookshelves extends Component {
         AppState.addEventListener('change', this._handleAppStateChange.bind(this));
     }
 
+    //组件移除之前调用
     componentWillUnmount() {
         AppState.removeEventListener('change', this._handleAppStateChange(this));
         this.timer && clearTimeout(this.timer);
     }
 
+    //组件接收到新的props时调用，并将其作为参数nextProps使用，可在此更改组件state
     componentWillReceiveProps() {
         console.log("componentWillReceiveProps");
         this._onRefresh();
@@ -106,10 +123,8 @@ export default class Bookshelves extends Component {
     //加载小说源列表
     _getBookSourceList(){
 
-        let s = new Array();
-        for(let a in HtmlAnalysisBase.api){
-            s.push(a);
-        }
+        alert(this.state.bookSourceList.length);
+
         // HtmlAnalysisBase.searchBook(this.bookName).then((data)=> {
         //     alert("c");
         //     alert(data.bookName+"    \n作者："+data.author);
@@ -122,10 +137,6 @@ export default class Bookshelves extends Component {
         //     this._setBookSourceList();
         //     bookSources = realm.objects("BookSource").sorted('sortNum');
         // }
-        this.setState({
-            bookSourceList: s,
-            datasource: ds.cloneWithRows(s)
-        })
     }
 
     //向数据库写入小说源
@@ -167,30 +178,24 @@ export default class Bookshelves extends Component {
             }
         })
     }
-    renderBookSource(key) {
-        if (key == undefined) {
+    renderBookSource(data) {
+
+        alert("ffffff+++"+JSON.stringify(data));
+        if (data == undefined) {
             return null
         }
+        alert(JSON.stringify(data));
         //根据这个源，得到该小说，如果没找到，则不显示该源
-
-        alert("aaa："+key);
-        HtmlAnalysisBase.searchBook(this.bookName,key).then((data)=> {
-            alert(data.bookName);
-            return (
-                <TouchableOpacity activeOpacity={0.5} onPress={() => this._getNewBook(data.bookName)}>
-                    <View style={styles.item}>
-                        <View style={styles.itemBody}>
-                            <Text style={styles.itemTitle}>{data.webName}</Text>
-                            <Text style={styles.itemDesc}>{'最近更新：'+data.newChapter}</Text>
-                        </View>
+        return (
+            <TouchableOpacity activeOpacity={0.5} onPress={() => this._getNewBook(data.bookName)}>
+                <View style={styles.item}>
+                    <View style={styles.itemBody}>
+                        <Text style={styles.itemTitle}>{data.webName}</Text>
+                        <Text style={styles.itemDesc}>{'最近更新：'+data.newChapter}</Text>
                     </View>
-                </TouchableOpacity>
-            )
-        }).then((err) => {
-            console.log(err);
-        });
-
-        return null;
+                </View>
+            </TouchableOpacity>
+        )
     }
 
     /**
@@ -207,7 +212,10 @@ export default class Bookshelves extends Component {
     _back() {
         this.props.navigator.pop()
     }
+
+    //渲染函数
     render() {
+        alert("渲染");
         return (
             <View style={styles.container}>
                 <ToolBar leftClick={this._back.bind(this)} title={this.bookName+this.chapterNum+'换源'}/>
@@ -215,7 +223,7 @@ export default class Bookshelves extends Component {
                 {this.state.bookSourceList && this.state.bookSourceList.length > 0 ?
                     <ListView
                         enableEmptySections={true}
-                        dataSource={this.state.datasource}
+                        dataSource={this.state.bookSourceList}
                         renderRow={this.renderBookSource.bind(this)}
                         refreshControl={<RefreshControl
                             refreshing={this.state.isRefreshing}
