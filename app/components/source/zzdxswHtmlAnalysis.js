@@ -5,7 +5,10 @@
  */
 import request from '../../utils/httpUtil'
 import HtmlAnalysisBase from './htmlAnalysisBase'
-const API_BASE_URL = 'http://m.zzdxsw.org';
+
+const WEB_NAME_SHORT = '猪猪岛';//简称
+const WEB_NAME = '猪猪岛小说网';//全名
+const API_BASE_URL = 'http://m.zzdxsw.org';//网址
 
 var api = {
     HTML_STR: "",
@@ -13,41 +16,38 @@ var api = {
 };
 var myModule = {};
 myModule.searchBook = (str) => {
-    let p = new Promise(function(resolve,reject){
-        request.ajax(api.SEARCH_BOOK_URL + str, null,
-            (data) => {
-                let htmls = data.split('<div class="container">')[1].split('</div><div class="footer">')[0].split('<ul>')[1].split('</ul>')[0].split('</li>');
-                var book = {};
-                for(let i in htmls) {
-                    if(i == htmls.length -1){
-                        continue;
-                    }
-                    let s = htmls[i]
-                    book.bookUrl = HtmlAnalysisBase.getMatchStr(s.match(/href=\"(\S*)\">/));//小说路径
-                    book.bookName = HtmlAnalysisBase.getMatchStr(s.match(/<a.class=\"name\".href.*>(.*)<\/a>/));//小说名称
-
-                    if(str != book.bookName){
-                        //名称不同，说明不是同一本小说
-                        continue;
-                    }
-                    book.bookType = HtmlAnalysisBase.getMatchStr(s.match(/#999;\">(\S*)</));//连载、已完结等
-                    book.newChapterUrl = HtmlAnalysisBase.getMatchStr(s.match(/<a.href=\"(.*)\">/));//最新章节路径
-                    book.newChapter = HtmlAnalysisBase.getMatchStr(s.match(/html\">(.*)</));//最新章节
-                    book.author = HtmlAnalysisBase.getMatchStr(s.match(/作者：(.*)<span/));//作者
-                    book.wordNum = HtmlAnalysisBase.getMatchStr(s.match(/字数：(.*)</));//字数
-
-                    alert("小说路径："+book.bookUrl+"    小说名称："+book.bookName+"    状态："+book.bookType+"    \n最新章节路径："+book.newChapterUrl+"    最新章节："+book.newChapter+"    \n作者："+book.author+"    字数："+book.wordNum);
-                    //如果已经找到一个，就不再循环
-                    break;
+    return new Promise(function(resolve,reject){
+        request.ajax(api.SEARCH_BOOK_URL + str, null,(data) => {
+            let htmls = data.responseText.split('<div class="container">')[1].split('</div><div class="footer">')[0].split('<ul>')[1].split('</ul>')[0].split('</li>');
+            var book = {};
+            book.webName = WEB_NAME_SHORT;
+            for(let i in htmls) {
+                if(i == htmls.length -1){
+                    continue;
                 }
-                resolve(book);
-            },
-            (error) => {
-                // Toast.toastShort('加载失败,请重试')
-                reject(error)
-        })
-    })
-    return p;
+                let s = htmls[i]
+                book.bookUrl = HtmlAnalysisBase.getMatchStr(s.match(/href=\"(\S*)\">/));//小说路径
+                book.bookName = HtmlAnalysisBase.getMatchStr(s.match(/<a.class=\"name\".href.*>(.*)<\/a>/));//小说名称
+
+                if(str != book.bookName){
+                    //名称不同，说明不是同一本小说
+                    continue;
+                }
+                book.bookType = HtmlAnalysisBase.getMatchStr(s.match(/#999;\">(\S*)</));//连载、已完结等
+                book.newChapterUrl = HtmlAnalysisBase.getMatchStr(s.match(/<a.href=\"(.*)\">/));//最新章节路径
+                book.newChapter = HtmlAnalysisBase.getMatchStr(s.match(/html\">(.*)</));//最新章节
+                book.author = HtmlAnalysisBase.getMatchStr(s.match(/作者：(.*)<span/));//作者
+                book.wordNum = HtmlAnalysisBase.getMatchStr(s.match(/字数：(.*)</));//字数
+
+                // alert("小说路径："+book.bookUrl+"    小说名称："+book.bookName+"    状态："+book.bookType+"    \n最新章节路径："+book.newChapterUrl+"    最新章节："+book.newChapter+"    \n作者："+book.author+"    字数："+book.wordNum);
+                //如果已经找到一个，就不再循环
+                break;
+            }
+            resolve(book);
+        },(err) => {
+            reject(err);
+        });
+    });
 }
 
 module.exports = myModule;

@@ -32,7 +32,7 @@ const TimerMixin = require('react-timer-mixin');
 import Search from '../search'
 import MsgBox from '../msgBox'
 import ToolBar from '../../weight/toolBar'
-import Zzdxsw from './zzdxswHtmlAnalysis'
+import HtmlAnalysisBase from './htmlAnalysisBase'
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
@@ -105,20 +105,27 @@ export default class Bookshelves extends Component {
 
     //加载小说源列表
     _getBookSourceList(){
-        Zzdxsw.searchBook("牧神记").then(function(book){
-            alert("ffffff");
-            alert(book.bookName+"    \n作者："+book.author);
-        });
+
+        let s = new Array();
+        for(let a in HtmlAnalysisBase.api){
+            s.push(a);
+        }
+        // HtmlAnalysisBase.searchBook(this.bookName).then((data)=> {
+        //     alert("c");
+        //     alert(data.bookName+"    \n作者："+data.author);
+        // }).then((err) => {
+        //     console.log(err);
+        // });
         // var bookSources = realm.objects("BookSource").sorted('sortNum');
         //
         // if(bookSources.length < 1){
         //     this._setBookSourceList();
         //     bookSources = realm.objects("BookSource").sorted('sortNum');
         // }
-        // this.setState({
-        //     bookSourceList: bookSources,
-        //     datasource: ds.cloneWithRows(bookSources)
-        // })
+        this.setState({
+            bookSourceList: s,
+            datasource: ds.cloneWithRows(s)
+        })
     }
 
     //向数据库写入小说源
@@ -160,44 +167,30 @@ export default class Bookshelves extends Component {
             }
         })
     }
-    renderBookSource(rowData) {
-        if (rowData == undefined) {
-            return null
-        }
-        if(rowData.sortNum == 2) {
+    renderBookSource(key) {
+        if (key == undefined) {
             return null
         }
         //根据这个源，得到该小说，如果没找到，则不显示该源
 
-        var url = rowData.sourceUrl + rowData.searchUrl + this.bookName;
-        alert(url);
-        fetch(url,{
-            method: 'GET',
-            mode: 'cors',
-        }).then(res => {
-            return res.json();
-        }).then(json => {
-
-            alert(JSON.stringify(json));
-            alert("正确");
-            return json;
-        }).catch(err => {
-            alert(JSON.stringify(err));
-            alert("错误");
-        })
-
-        return (
-            <TouchableOpacity activeOpacity={0.5} onPress={() => this._getNewBook(rowData.sourceId)}>
-                <View style={styles.item}>
-                    <View style={styles.itemBody}>
-                        <Text style={styles.itemTitle}>{rowData.sourceName}</Text>
-                        <Text style={styles.itemDesc}>{'阅读进度：第 0 章' }</Text>
-                        <Text style={styles.itemDesc}>{'最近更新：'}</Text>
+        alert("aaa："+key);
+        HtmlAnalysisBase.searchBook(this.bookName,key).then((data)=> {
+            alert(data.bookName);
+            return (
+                <TouchableOpacity activeOpacity={0.5} onPress={() => this._getNewBook(data.bookName)}>
+                    <View style={styles.item}>
+                        <View style={styles.itemBody}>
+                            <Text style={styles.itemTitle}>{data.webName}</Text>
+                            <Text style={styles.itemDesc}>{'最近更新：'+data.newChapter}</Text>
+                        </View>
                     </View>
-                </View>
-            </TouchableOpacity>
-        )
+                </TouchableOpacity>
+            )
+        }).then((err) => {
+            console.log(err);
+        });
 
+        return null;
     }
 
     /**
