@@ -30,9 +30,8 @@ import request from '../../utils/httpUtil'
 import Icon from 'react-native-vector-icons/Ionicons'
 const TimerMixin = require('react-timer-mixin');
 import Search from '../search'
-import MsgBox from '../msgBox'
 import ToolBar from '../../weight/toolBar'
-import HtmlAnalysisBase from './htmlAnalysisBase'
+import HtmlAnalysis from './htmlAnalysis'
 
 
 var last_time = new Date().getTime()
@@ -51,22 +50,6 @@ export default class Bookshelves extends Component {
         this.chapterNum = this.props.chapterNum;//小说目前已看章节数
     }
 
-    componentWillUpdate(){
-        for(let key in HtmlAnalysisBase.api){
-            HtmlAnalysisBase.searchBook(this.bookName,key).then((data)=> {
-                // alert("aaaaaa"+key);
-                // alert(JSON.stringify(data));
-                if(data != undefined && data != null){
-                    // alert("bbb:"+data.bookName);
-                    this.setState({bookSourceList: this.state.bookSourceList.push(data)})
-                    // this.state.bookSourceList.push(data);
-                    // alert(JSON.stringify(this.state.bookSourceList));
-                }
-            }).then((err) => {
-                console.log(err);
-            });
-        }
-    }
     //渲染后触发
     componentDidMount() {
         InteractionManager.runAfterInteractions(()=> {
@@ -122,8 +105,20 @@ export default class Bookshelves extends Component {
 
     //加载小说源列表
     _getBookSourceList(){
-
-        alert(this.state.bookSourceList.length);
+        for(let key in HtmlAnalysis.api){
+            HtmlAnalysis.searchBook(this.bookName,key).then((data)=> {
+                // alert("asdf:"+JSON.stringify(data));
+                if(data != undefined && data != null){
+                    // alert("bbb:"+data.bookName);
+                    this.setState({bookSourceList: this.state.bookSourceList.push(data)})
+                    // this.state.bookSourceList.push(data);
+                    // alert(JSON.stringify(this.state.bookSourceList));
+                }
+            }).then((err) => {
+                console.log(err);
+            });
+        }
+        // alert(this.state.bookSourceList.length);
 
         // HtmlAnalysisBase.searchBook(this.bookName).then((data)=> {
         //     alert("c");
@@ -215,10 +210,10 @@ export default class Bookshelves extends Component {
 
     //渲染函数
     render() {
-        alert("渲染");
+        // alert("渲染");
         return (
             <View style={styles.container}>
-                <ToolBar leftClick={this._back.bind(this)} title={this.bookName+this.chapterNum+'换源'}/>
+                <ToolBar leftClick={this._back.bind(this)} title={'选择来源'}/>
 
                 {this.state.bookSourceList && this.state.bookSourceList.length > 0 ?
                     <ListView
