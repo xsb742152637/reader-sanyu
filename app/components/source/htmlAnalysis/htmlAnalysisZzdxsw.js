@@ -15,6 +15,10 @@ myModule._search_html = (htmlStr,bookName) => {
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<ul>','</ul>');
 
     let htmls = htmlStr.split('</li>');//根据li结束标签截取为数组，最后一个元素不循环。
+    if(htmls.length < 2){
+        // alert("没有找到这本书");
+        return null;
+    }
     let book = {};
     for(let i in htmls) {
         if(i == htmls.length -1){

@@ -13,6 +13,11 @@ myModule._search_html = (htmlStr,bookName) => {
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="result-list">','</div><div class="search-result-page">');
 
     let htmls = htmlStr.split('<div class="result-item result-game-item">');//根据class=result-item result-game-item的div开始标签截取为数组，第一个元素不循环。
+    if(htmls.length < 2){
+        // alert("没有找到这本书");
+        return null;
+    }
+
     let book = {};
     for(let i in htmls) {
         if(i == 0){

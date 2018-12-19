@@ -1,7 +1,7 @@
 /*
- * description: 换源列表
+ * description: 章节列表
  * author: 谢
- * time: 2018年12月16日
+ * time: 2018年12月19日
  */
 
 import React, { Component } from 'react'
@@ -32,28 +32,26 @@ const TimerMixin = require('react-timer-mixin');
 import Search from '../search'
 import ToolBar from '../../weight/toolBar'
 import HtmlAnalysis from './htmlAnalysis'
-import ChapterList from './source/chapterList'
 
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 var last_time = new Date().getTime();
 
-export default class SourceList extends Component {
+export default class ChapterList extends Component {
 
     constructor(props) {
         super(props)
         this.state = {
-            dataList: new Array(),
+            dataList: [],
             datasource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             isRefreshing: false,
             appState: AppState.currentState,
             downloadDlg: false
         };
-        this.bookName = this.props.bookName;//小说名称，用于在其它源进行搜索
+        this.book = this.props.book;//小说信息
         this.chapterNum = this.props.chapterNum;//小说目前已看章节数
     }
 
-    //渲染后触发
     componentDidMount() {
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount")
@@ -64,13 +62,11 @@ export default class SourceList extends Component {
         AppState.addEventListener('change', this._handleAppStateChange.bind(this));
     }
 
-    //组件移除之前调用
     componentWillUnmount() {
         AppState.removeEventListener('change', this._handleAppStateChange(this));
         this.timer && clearTimeout(this.timer);
     }
 
-    //组件接收到新的props时调用，并将其作为参数nextProps使用，可在此更改组件state
     componentWillReceiveProps() {
         console.log("componentWillReceiveProps");
         this._onRefresh();
@@ -99,60 +95,38 @@ export default class SourceList extends Component {
         }
     }
 
-    //刷新页面
     _onRefresh = () => {
         console.log("刷新页面");
-        //加载小说源列表
+        //加载列表
         this._getDataList();
     }
 
-    //加载小说源列表
     _getDataList(){
-        var li = new Array();
-        var i = 0;
-        var apiLen = 0;
-        let bookName = this.bookName;
-        for(let key in HtmlAnalysis.api){
-            apiLen++;
-        }
-        new Promise(function(resolve,reject){
-            for(let key in HtmlAnalysis.api){
-                HtmlAnalysis.searchBook(bookName,key).then((data)=> {
-                    // alert("asdf:"+JSON.stringify(data));
-                    if(data != undefined && data != null){
-                        li.push(data);
-                        i++;
-                        if(i == apiLen){
-                            resolve(li);
-                        }
-                    }
-                }).then((err) => {
-                    console.log(err);
-                });
+        HtmlAnalysis.getChapter(this.book).then((data)=> {
+            // alert("asdf:"+JSON.stringify(data));
+            if(data != undefined && data != null){
+                this.setState({
+                    dataList: data,
+                    datasource: ds.cloneWithRows(data)
+                })
             }
-        }).then((data) => {
-            this.setState({
-                dataList: data,
-                datasource: ds.cloneWithRows(data)
-            })
+        }).then((err) => {
+            console.log(err);
         });
-
     }
 
-    //进入源
     _clickItem(book){
-        this.props.navigator.push({
-            name: 'chapterList',
-            component: ChapterList,
-            params: {
-                book: book,
-                chapterNum: this.state.chapterNum,
-                page: 0
-            }
-        })
+        alert(JSON.stringify(book));
+        // this.props.navigator.push({
+        //     name: 'readPlatform',
+        //     component: ReadPlatform,
+        //     params: {
+        //         sourceId: sourceId
+        //     }
+        // })
     }
-    renderBookSource(data) {
 
+    renderBookSource(data) {
         if (data == undefined) {
             return null
         }
@@ -168,12 +142,10 @@ export default class SourceList extends Component {
         )
     }
 
-    //返回上一页
     _back() {
         this.props.navigator.pop()
     }
 
-    //渲染函数
     render() {
         return (
             <View style={styles.container}>

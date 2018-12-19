@@ -1,5 +1,5 @@
 /*
- * description: html解析
+ * description: html解析的公共类
  * author: 谢
  * time: 2018年12月17日
  */

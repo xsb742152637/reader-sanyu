@@ -14,35 +14,78 @@ var myModule = {
 }
 myModule.api = HtmlAnalysisBase.api;
 
-myModule.searchBook = (str,key) => {
-    myModule.bookName = str;
+myModule.getChapter = (book) => {
+    return new Promise(function(resolve,reject){
+        let url = book.bookUrl;
+        if(book.urlType){
+            url = book.baseUrl + book.bookUrl;
+        }
+        alert(book.webName+"获取目录："+url);
+        request.ajax(url, null,true,(data) => {
+            let ha = myModule._get_type(book.key);
+            if(ha != null){
+                let chapter = ha._chapter_html(data);
+                if(chapter != undefined && chapter != null){
+
+                }
+                resolve(chapter);
+            }else{
+                reject("无法识别的类型："+key);
+            }
+
+        },(err) => {
+            reject(err);
+        });
+    });
+}
+
+/**
+ * 搜索小说
+ * @param str 小说名称
+ * @param key 来源类型
+ * @returns {*}
+ */
+myModule.searchBook = (bookName,key) => {
+    if(bookName == undefined || bookName == null || bookName == ""){
+        alert("小说名称是什么？")
+        return;
+    }
+    myModule.bookName = bookName;
     let source = myModule.api[key];
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
         request.ajax(url, null,true,(data) => {
-            let book = myModule._search_html(key,data);
-            if(data != undefined && data != null){
-                book.webName = source.webNameShort;//小说网站简称
+            let ha = myModule._get_type(key);
+            if(ha != null){
+                let book = ha._search_html(data,myModule.bookName);
+                if(book != undefined && book != null){
+                    book.webName = source.webNameShort;//小说网站简称
+                    book.baseUrl = source.baseUrl;//小说网站
+                    book.key = key;//小说网站
+                }
+                resolve(book);
+            }else{
+                reject("无法识别的类型："+key);
             }
-            resolve(book);
+
         },(err) => {
             reject(err);
         });
     });
 };
 
-//搜索页面
-myModule._search_html = (key,data) => {
-    let book = {};
-    // alert("aaa");
-    if("zzdxsw" == key){
-        book = HtmlAnalysisZzdxsw._search_html(data,myModule.bookName);
-    }else if("bqg" == key){
-        book = HtmlAnalysisBqg._search_html(data,myModule.bookName);
+//根据类型得到相应的对象
+myModule._get_type = (key) => {
+    let ha = null;
+    switch (key){
+        case "zzdxsw":
+            ha = HtmlAnalysisZzdxsw;
+            break;
+        case "bqg":
+            ha = HtmlAnalysisBqg;
+            break;
     }
-
-    // alert("ccc");
-    return book;
+    return ha;
 };
 
 
