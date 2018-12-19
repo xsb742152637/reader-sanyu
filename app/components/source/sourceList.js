@@ -34,7 +34,8 @@ import ToolBar from '../../weight/toolBar'
 import HtmlAnalysis from './htmlAnalysis'
 
 
-var last_time = new Date().getTime()
+var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+var last_time = new Date().getTime();
 
 export default class Bookshelves extends Component {
 
@@ -42,6 +43,7 @@ export default class Bookshelves extends Component {
         super(props)
         this.state = {
             bookSourceList: new Array(),
+            datasource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             isRefreshing: false,
             appState: AppState.currentState,
             downloadDlg: false
@@ -110,7 +112,11 @@ export default class Bookshelves extends Component {
                 // alert("asdf:"+JSON.stringify(data));
                 if(data != undefined && data != null){
                     // alert("bbb:"+data.bookName);
-                    this.setState({bookSourceList: this.state.bookSourceList.push(data)})
+                    // this.setState({bookSourceList: this.state.bookSourceList.push(data)})
+                    this.setState({
+                        bookSourceList: this.state.bookSourceList.push(data),
+                        datasource: ds.cloneWithRows(this.state.bookSourceList)
+                    })
                     // this.state.bookSourceList.push(data);
                     // alert(JSON.stringify(this.state.bookSourceList));
                 }
@@ -175,11 +181,10 @@ export default class Bookshelves extends Component {
     }
     renderBookSource(data) {
 
-        alert("ffffff+++"+JSON.stringify(data));
         if (data == undefined) {
             return null
         }
-        alert(JSON.stringify(data));
+        // alert(JSON.stringify(data));
         //根据这个源，得到该小说，如果没找到，则不显示该源
         return (
             <TouchableOpacity activeOpacity={0.5} onPress={() => this._getNewBook(data.bookName)}>
@@ -210,7 +215,6 @@ export default class Bookshelves extends Component {
 
     //渲染函数
     render() {
-        // alert("渲染");
         return (
             <View style={styles.container}>
                 <ToolBar leftClick={this._back.bind(this)} title={'选择来源'}/>
@@ -218,7 +222,7 @@ export default class Bookshelves extends Component {
                 {this.state.bookSourceList && this.state.bookSourceList.length > 0 ?
                     <ListView
                         enableEmptySections={true}
-                        dataSource={this.state.bookSourceList}
+                        dataSource={this.state.datasource}
                         renderRow={this.renderBookSource.bind(this)}
                         refreshControl={<RefreshControl
                             refreshing={this.state.isRefreshing}
