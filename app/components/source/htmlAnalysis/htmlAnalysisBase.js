@@ -10,14 +10,22 @@ var myModule = {
         zzdxsw:{
             webNameShort: '猪猪岛',//简称
             webName: '猪猪岛小说网',//全名
+            charset: 'text/html;charset=gbk',//编码
             baseUrl: 'http://m.zzdxsw.org',//网址
-            searchUrl: '/wap.php?action=search&wd='//搜索路径及key
+            searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
+            chapterUrlFirst: false,//章节路径的第一页不加路径
+            chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
+            chapterUrlAfter: '.html'//后续章节需要添加的后面部分
         },
         bqg:{
             webNameShort: '笔趣阁',
             webName: '笔趣阁',
+            charset: 'text/html;charset=gb2312',//编码
             baseUrl: 'https://m.biqubao.com',
-            searchUrl: '/search.php?keyword='
+            searchUrl: '/search.php?keyword=',
+            chapterUrlFirst: false,
+            chapterUrlBefor: 'index_',
+            chapterUrlAfter: '.html'
         }
     }
 }

@@ -600,8 +600,24 @@ export default class ReadPlatform extends Component {
     }
 
     //选择来源
-    _clickSourceListModalItem(data) {
-        alert(JSON.stringify(data));
+    _clickSourceListModalItem(book) {
+        // alert(JSON.stringify(data));
+        let source;
+        for(let key in HtmlAnalysis.api){
+            if(key == book.key){
+                source = HtmlAnalysis.api[key];
+            }
+        }
+        let pageNum = 1;
+
+        HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
+            // alert("asdf:"+JSON.stringify(data));
+            alert(JSON.stringify(data));
+        }).catch((err) => {
+
+            alert("出错了："+JSON.stringify(err));
+        });
+
     }
 
     //关闭来源

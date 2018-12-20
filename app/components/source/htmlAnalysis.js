@@ -14,21 +14,19 @@ var myModule = {
 }
 myModule.api = HtmlAnalysisBase.api;
 
-myModule.getChapter = (book) => {
+myModule.getChapter = (source,book,pageNum) => {
     return new Promise(function(resolve,reject){
-        let url = book.bookUrl;
-        if(book.urlType){
-            url = book.baseUrl + book.bookUrl;
+        //路径类型：true(相对路径,还需要加上网址）、false(绝对路径,直接可以使用)
+        let url = data.urlType? source.baseUrl + data.bookUrl : data.bookUrl;
+        if((pageNum == 1 && source.chapterUrlFirst) || pageNum != 1){
+            url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
         }
         alert(book.webName+"获取目录："+url);
         request.ajax(url, null,true,(data) => {
             let ha = myModule._get_type(book.key);
             if(ha != null){
-                let chapter = ha._chapter_html(data);
-                if(chapter != undefined && chapter != null){
-
-                }
-                resolve(chapter);
+                let dataList = ha._chapter_html(source,book,data);
+                resolve(dataList);
             }else{
                 reject("无法识别的类型："+key);
             }
@@ -58,14 +56,13 @@ myModule.searchBook = (bookName,key) => {
         request.ajax(url, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
-                let book = ha._search_html(data,myModule.bookName);
-                if(book != undefined && book != null){
-                    book.webName = source.webNameShort;//小说网站简称
-                    book.baseUrl = source.baseUrl;//小说网站
-                    book.key = key;//小说网站
+                let data = ha._search_html(data,myModule.bookName);
+                if(data != undefined && data != null){
+                    data.webName = source.webNameShort;//小说网站简称
+                    data.key = key;//小说网站
                 }
                 // alert(JSON.stringify(book));
-                resolve(book);
+                resolve(data);
             }else{
                 // alert("无法识别的类型："+key);
                 reject("无法识别的类型："+key);
