@@ -22,7 +22,7 @@ myModule.getChapter = (source,book,pageNum) => {
             url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
         }
         alert(book.webName+"获取目录："+url);
-        request.ajax(url, null,true,(data) => {
+        request.ajax(url,source.charset, null,true,(data) => {
             let ha = myModule._get_type(book.key);
             if(ha != null){
                 let dataList = ha._chapter_html(source,book,data);
@@ -53,7 +53,7 @@ myModule.searchBook = (bookName,key) => {
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
         // alert("url:"+url);
-        request.ajax(url, null,true,(data) => {
+        request.ajax(url, null, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
                 let data = ha._search_html(data,myModule.bookName);

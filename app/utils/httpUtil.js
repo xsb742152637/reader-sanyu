@@ -56,7 +56,7 @@ request.post = (url, body, successCallBack, failCallBack) => {
  * @param failCallBack 失败回调
  * @returns {Promise.<T>|*}
  */
-request.ajax = (url, params,async, successCallBack,failCallBack) => {
+request.ajax = (url,charset, params,async, successCallBack,failCallBack) => {
     if (params) {
         url += '?' + queryString.stringify(params)
     }
@@ -65,6 +65,9 @@ request.ajax = (url, params,async, successCallBack,failCallBack) => {
         //异步
         return new Promise(function(resolve,reject){
             var request = new XMLHttpRequest();
+            if(charset != null && charset != ""){
+                request.overrideMimeType(charset);//设定以gb2312编码识别数据
+            }
             request.onreadystatechange = e => {
                 if (request.readyState === 4 && request.status === 200) {
                     // alert(url);
