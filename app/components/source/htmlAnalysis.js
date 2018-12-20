@@ -14,6 +14,13 @@ var myModule = {
 }
 myModule.api = HtmlAnalysisBase.api;
 
+/**
+ *
+ * @param source 小说来源对应的api数据
+ * @param book 当前小说的数据
+ * @param pageNum 当前请求的目录页数
+ * @returns {Promise}
+ */
 myModule.getChapter = (source,book,pageNum) => {
     return new Promise(function(resolve,reject){
         //路径类型：true(相对路径,还需要加上网址）、false(绝对路径,直接可以使用)
