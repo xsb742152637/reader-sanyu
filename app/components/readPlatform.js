@@ -36,6 +36,7 @@ import Toast from '../weight/toast'
 import Loading from '../weight/loading'
 import api from '../common/api'
 import config from '../common/config'
+import HtmlAnalysis from './source/htmlAnalysis'
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
@@ -48,11 +49,14 @@ export default class ReadPlatform extends Component {
             showControlStation: false,
             showSaveModal: false,
             showListModal: false,
+            showSourceListModal: false,
             bookChapter: null,
+            currentSource:null,//当前选择的源
             chapterDetail: [],
             chapterPage: 0,      //读到某一章第几页
             chapterNum: 0,      //读到第几章
             chapterLength: 0,  //总章节数
+            listModalData: [],
             listModalDataSource: [],
             listModalOrder: 0,
             time: '',
@@ -128,17 +132,31 @@ export default class ReadPlatform extends Component {
         })
     }
 
+    _initBookChapterContent(bookId, num) {
+        this._getBookChapterListSync(bookId).then((bookChapter)=> {
+            this._appendChapter(num - 1).then((data)=> {
+                this._appendChapter(num).then((data1)=> {
+                    setTimeout(()=> {
+                        this._scrollToIndex(data.length + this.state.chapterPage)
+                    }, 100)
+                })
+            })
+        })
+    }
+
+    //得到当前数据的章节列表
     _getBookChapterListSync(bookId) {
         let q = new Promise((resolve, reject)=> {
             request.get(api.READ_BOOK_CHAPTER_LIST(bookId), null,
                 (data) => {
                     if (data.ok) {
+                        // alert(JSON.stringify(data));
                         let bookChapter = data.mixToc
                         this.setState({
                             bookChapter: bookChapter,
                             chapterLength: bookChapter.chapters.length,
                             time: timeFormat(),
-                            listModalDataSource: bookChapter.chapters.slice(0)
+                            listModalData: bookChapter.chapters.slice(0)
                         })
                         resolve(bookChapter)
                     } else {
@@ -156,6 +174,7 @@ export default class ReadPlatform extends Component {
         return q
     }
 
+    //得到没章页数
     _getBookChapterDetailSync(bookChapter, chapterNum) {
         let q = new Promise((resolve, reject)=> {
             let tempUrl = bookChapter.chapters[chapterNum].link.replace(/\//g, '%2F').replace('?', '%3F')
@@ -172,18 +191,6 @@ export default class ReadPlatform extends Component {
                 })
         })
         return q
-    }
-
-    _initBookChapterContent(bookId, num) {
-        this._getBookChapterListSync(bookId).then((bookChapter)=> {
-            this._appendChapter(num - 1).then((data)=> {
-                this._appendChapter(num).then((data1)=> {
-                    setTimeout(()=> {
-                        this._scrollToIndex(data.length + this.state.chapterPage)
-                    }, 100)
-                })
-            })
-        })
     }
 
     _formatChapter(content, num, title) {
@@ -206,7 +213,6 @@ export default class ReadPlatform extends Component {
         return _arr
     }
 
-
     _scrollToIndex(index) {
         console.log('_scrollToIndex', index)
         let maxIndex = this.state.chapterDetail.length - 1
@@ -215,6 +221,29 @@ export default class ReadPlatform extends Component {
         }
         let scrollView = this.refs.scrollView
         scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
+    }
+
+    //上一章
+    _prev_chapter() {
+        if (this.state.chapterNum < 1) {
+            return
+        }
+        this.x = 0
+        this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
+        this._appendChapter(this.state.chapterNum - 1).then((data)=> {
+            this.setState({chapterNum: this.state.chapterNum - 1, chapterPage: 0})
+        })
+    }
+
+    //下一章
+    _next_chapter() {
+        if (this.state.chapterNum + 1 >= this.state.chapterLength) {
+            return
+        }
+        this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
+        this._appendChapter(this.state.chapterNum + 1).then((data)=> {
+            this.setState({chapterNum: this.state.chapterNum + 1, chapterPage: 0})
+        })
     }
 
     _appendChapter(chapterNum) {
@@ -355,6 +384,11 @@ export default class ReadPlatform extends Component {
     }
 
     _back() {
+        if (this.state.showSourceListModal) {
+            this.setState({showSourceListModal: false})
+            return
+        }
+
         if (this.state.showListModal) {
             this.setState({showListModal: false})
             return
@@ -418,6 +452,7 @@ export default class ReadPlatform extends Component {
         }
     }
 
+    //夜间模式
     _dayNight(color) {
         var new_daynight = '#ffffff'
         var color_table = {
@@ -473,49 +508,12 @@ export default class ReadPlatform extends Component {
         }
     }
 
-    _prev_chapter() {
-        if (this.state.chapterNum < 1) {
-            return
-        }
-        this.x = 0
-        this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
-        this._appendChapter(this.state.chapterNum - 1).then((data)=> {
-            this.setState({chapterNum: this.state.chapterNum - 1, chapterPage: 0})
-        })
-    }
-
-    _next_chapter() {
-        if (this.state.chapterNum + 1 >= this.state.chapterLength) {
-            return
-        }
-        this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
-        this._appendChapter(this.state.chapterNum + 1).then((data)=> {
-            this.setState({chapterNum: this.state.chapterNum + 1, chapterPage: 0})
-        })
-    }
-
     _closeModal() {
         this.setState({showSaveModal: false})
     }
 
     _toPop() {
         this.props.navigator.pop()
-    }
-
-    /**
-     * 进入备用源列表
-     */
-    _toSourceList() {
-        this.setState({showListModal: false, showControlStation: false})
-        this.props.navigator.push({
-            name: 'sourceList',
-            component: SourceList,
-            params: {
-                bookName: this.state.bookName,
-                chapterNum: this.state.chapterNum,
-                page: 0
-            }
-        })
     }
 
     /**
@@ -547,11 +545,85 @@ export default class ReadPlatform extends Component {
         })
     }
 
+    //显示来源列表
+    _showSourceListModal() {
+        var li = new Array();
+        var i = 0;
+        var apiLen = 0;
+        let bookName = this.state.bookName;
+        for(let key in HtmlAnalysis.api){
+            apiLen++;
+        }
+        new Promise(function(resolve,reject){
+            for(let key in HtmlAnalysis.api){
+                HtmlAnalysis.searchBook(bookName,key).then((data)=> {
+                    // alert("asdf:"+JSON.stringify(data));
+                    if(data != undefined && data != null){
+                        li.push(data);
+                        i++;
+                        if(i == apiLen){
+                            resolve(li);
+                        }
+                    }
+                }).then((err) => {
+                    console.log(err);
+                });
+            }
+        }).then((data) => {
+            // alert(JSON.stringify(data));
+            this.setState({
+                showListModal: false,
+                showControlStation: false,
+                showSourceListModal: true,
+                listModalDataSource: data
+            });
+        });
 
-    _closeListModal() {
-        this.setState({showListModal: false})
     }
 
+    //选择来源
+    _clickSourceListModalItem(data) {
+        alert(JSON.stringify(data));
+    }
+
+    //关闭来源
+    _closeSourceListModal() {
+        this.setState({showSourceListModal: false})
+    }
+
+    //显示目录列表
+    _showListModal() {
+        this.setState({
+            showListModal: true,
+            showControlStation: false,
+            listModalData: this.state.bookChapter.chapters,
+            listModalOrder: 0
+        });
+
+        //列表导航到当前章节
+        setTimeout(()=> {
+            if (this.catalogListView) {
+                this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+            }
+        }, 50)
+
+    }
+
+    //目录排序
+    _sortListModal() {
+        if (this.catalogListView && this.state.bookChapter) {
+            //this.catalogListView.scrollTo({x:20000, y:20000});
+            var cs = this.state.bookChapter.chapters.slice(0);
+            if (this.state.listModalOrder == 0) {
+                cs.reverse()
+                this.setState({listModalData: cs, listModalOrder: 1})
+            } else {
+                this.setState({listModalData: cs, listModalOrder: 0})
+            }
+        }
+    }
+
+    //选择目录中的新章节
     _clickListModalItem(title) {
         console.log('_clickListModalItem')
         for (var i = 0; i < this.state.bookChapter.chapters.length; ++i) {
@@ -569,6 +641,11 @@ export default class ReadPlatform extends Component {
                 break
             }
         }
+    }
+
+    //关闭目录
+    _closeListModal() {
+        this.setState({showListModal: false})
     }
 
     _showControlStation(evt) {
@@ -589,6 +666,7 @@ export default class ReadPlatform extends Component {
         }
     }
 
+    //显示控制台
     _showControlStation_LR(evt) {
         console.log('_showControlStation_LR', evt.nativeEvent.pageX, evt.nativeEvent.pageY)
         var pageX = evt.nativeEvent.pageX
@@ -609,6 +687,7 @@ export default class ReadPlatform extends Component {
         }
     }
 
+    //更新阅读进度
     _updateHistoryBookChapter(bookId, chapterNum, chapterPage) {
         var books = realm.objects('HistoryBook').sorted('sortNum')
         var book = realm.objectForPrimaryKey('HistoryBook', bookId)
@@ -633,59 +712,7 @@ export default class ReadPlatform extends Component {
         }
     }
 
-    _showListModal() {
-        this.setState({
-            showListModal: true,
-            showControlStation: false,
-            listModalDataSource: this.state.bookChapter.chapters,
-            listModalOrder: 0
-        });
-
-        setTimeout(()=> {
-            if (this.catalogListView) {
-                this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
-            }
-        }, 50)
-
-    }
-
-    _sortListModal() {
-        if (this.catalogListView && this.state.bookChapter) {
-            //this.catalogListView.scrollTo({x:20000, y:20000});
-            var cs = this.state.bookChapter.chapters.slice(0);
-            if (this.state.listModalOrder == 0) {
-                cs.reverse()
-                this.setState({listModalDataSource: cs, listModalOrder: 1})
-            } else {
-                this.setState({listModalDataSource: cs, listModalOrder: 0})
-            }
-        }
-    }
-
-    renderListModal(rowData) {
-        return (
-            <TouchableOpacity
-                style={{height:40}}
-                activeOpacity={1}
-                onPress={() => this._clickListModalItem(rowData.item.title)}>
-                {
-                    this.state.bookChapter.chapters[this.state.chapterNum].title !== rowData.item.title ?
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, color: config.css.fontColor.title}]}>
-                            {rowData.item.title}
-                        </Text>
-                        :
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, fontWeight: 'bold'}]}>
-                            {rowData.item.title}
-                        </Text>
-                }
-            </TouchableOpacity>
-        )
-    }
-
+    //章节明细，每一章分为多页显示
     renderListView() {
         return (
             <ListView
@@ -701,6 +728,7 @@ export default class ReadPlatform extends Component {
         )
     }
 
+    //每页
     renderRow(rowData) {
         return (
             <View>
@@ -713,6 +741,7 @@ export default class ReadPlatform extends Component {
         )
     }
 
+    //当前页正文
     renderContent(rowData) {
         return (
 
@@ -747,6 +776,7 @@ export default class ReadPlatform extends Component {
         )
     }
 
+    //控制台：点击屏幕中间显示
     renderControlStation() {
         return (
             <View
@@ -762,7 +792,7 @@ export default class ReadPlatform extends Component {
                         size={25}
                         color={config.css.color.white}
                         onPress={this._back.bind(this)}/>
-                    <Text style={styles.controlHeaderTitle} onPress={this._toSourceList.bind(this)}>换源</Text>
+                    <Text style={styles.controlHeaderTitle} onPress={this._showSourceListModal.bind(this)}>换源</Text>
                     <Text style={styles.controlHeaderTitle} onPress={this._toBookCommunity.bind(this)}>社区</Text>
                     <Text style={styles.controlHeaderTitle} onPress={this._toBookDetail.bind(this)}>简介</Text>
                 </View>
@@ -894,12 +924,66 @@ export default class ReadPlatform extends Component {
         )
     }
 
+    //来源列表
+    renderSourceListModal(rowData) {
+        return (
+            <TouchableOpacity
+                style={{height:40}}
+                activeOpacity={1}
+                onPress={() => this._clickSourceListModalItem(rowData.item)}>
+                <View style={styles.itemSource}>
+                    <View style={styles.itemSourceBody}>
+                        <Text style={styles.itemSourceTitle}>{rowData.item.webName}</Text>
+                        <Text style={styles.itemSourceDesc}>{rowData.item.newChapter}</Text>
+                    </View>
+                    <View style={styles.itemSourceBody}>
+                        {
+                            this.state.currentSource == null || this.state.currentSource.key !== rowData.item.key ?
+                                <Text style={styles.itemXZ}>{'当前选择1'}</Text>
+                                :
+                                <Text style={styles.itemXZ}>{'当前选择'}</Text>
+                        }
+
+                    </View>
+                </View>
+
+
+            </TouchableOpacity>
+        )
+    }
+
+    //目录列表
+    renderListModal(rowData) {
+        return (
+            <TouchableOpacity
+                style={{height:40}}
+                activeOpacity={1}
+                onPress={() => this._clickListModalItem(rowData.item.title)}>
+                {
+                    this.state.bookChapter.chapters[this.state.chapterNum].title !== rowData.item.title ?
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, color: config.css.fontColor.title}]}>
+                            {rowData.item.title}
+                        </Text>
+                        :
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, fontWeight: 'bold'}]}>
+                            {rowData.item.title}
+                        </Text>
+                }
+            </TouchableOpacity>
+        )
+    }
+
+
     render() {
         return (
-            <Image style={{width: Dimen.window.width, height:Dimen.window.height, flex:1}}
-                   source={require('../imgs/read_bg.jpg')}>
+            <Image style={{width: Dimen.window.width, height:Dimen.window.height, flex:1}} source={require('../imgs/read_bg.jpg')}>
+
                 <StatusBar
-                    hidden={!(this.state.showControlStation || this.state.showListModal)}
+                    hidden={!(this.state.showControlStation || this.state.showSourceListModal || this.state.showListModal)}
                     backgroundColor={"#333333"}
                     translucent={true}
                     showHideTransition={'slide'}
@@ -929,6 +1013,38 @@ export default class ReadPlatform extends Component {
                     transparent={true}
                     onRequestClose={this._back.bind(this)}>
                     {this.renderControlStation()}
+                </Modal>
+
+                <Modal
+                    visible={this.state.showSourceListModal}
+                    animationType={'slide'}
+                    transparent={false}
+                    onRequestClose={this._back.bind(this)}>
+                    <TouchableOpacity
+                        style={styles.listModal}
+                        activeOpacity={1}>
+                        <View>
+                            <View style={styles.listModalHeader}>
+                                <Icon
+                                    name='ios-arrow-back-outline'
+                                    style={[styles.listModalSort, {marginLeft: 14}]}
+                                    size={35}
+                                    color={config.css.fontColor.white}
+                                    onPress={this._back.bind(this)}
+                                />
+                                <Text style={styles.listModalTitle}>{'选择来源 ('+this.state.bookName+')'}</Text>
+
+                            </View>
+                        </View>
+
+                        <FlatList ref={(scrollView) => {this.catalogListView = scrollView}}
+                            keyExtrator={"title"}
+                            style={styles.innerListView}
+                            getItemLayout={(data,index)=>({length: 40, offset: 40 * index, index})}
+                            data={this.state.listModalDataSource}
+                            renderItem={this.renderSourceListModal.bind(this)}
+                        />
+                    </TouchableOpacity>
                 </Modal>
 
                 <Modal
@@ -976,7 +1092,7 @@ export default class ReadPlatform extends Component {
                             getItemLayout={(data,index)=>(
                                 {length: 40, offset: 40 * index, index}
                             )}
-                            data={this.state.listModalDataSource}
+                            data={this.state.listModalData}
                             renderItem={this.renderListModal.bind(this)}
                         />
                     </TouchableOpacity>
@@ -1101,5 +1217,38 @@ const styles = StyleSheet.create({
         paddingLeft: 20,
         borderBottomWidth: 1,
         borderColor: config.css.color.line
+    },
+    itemSource: {
+        alignItems: 'center',
+        marginLeft:5,
+        marginRight:5,
+        height:154,
+        borderWidth:1,
+        backgroundColor:'#999999',
+        flexDirection:'row'
+    },
+    itemSourceBody: {
+        height:150,
+        flexDirection: 'column',
+        borderBottomColor: config.css.color.line,
+        borderBottomWidth: 1,
+        color: '#604733',
+        padding: 10
+    },
+    itemSourceTitle: {
+        fontSize: config.css.fontSize.title - 2,
+        color: config.css.fontColor.title,
+        fontWeight: 'bold',
+        marginBottom: 3
+    },
+    itemSourceDesc: {
+        fontSize: 12,
+        color: config.css.fontColor.desc,
+        marginTop: 3
+    },
+    itemXZ: {
+        fontSize: 12,
+        color: '#604733',
+        textAlign: 'right'
     }
 })

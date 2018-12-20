@@ -47,13 +47,14 @@ myModule.getChapter = (book) => {
  */
 myModule.searchBook = (bookName,key) => {
     if(bookName == undefined || bookName == null || bookName == ""){
-        alert("小说名称是什么？")
+        alert("小说名称是什么？");
         return;
     }
     myModule.bookName = bookName;
     let source = myModule.api[key];
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
+        // alert("url:"+url);
         request.ajax(url, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
@@ -63,8 +64,10 @@ myModule.searchBook = (bookName,key) => {
                     book.baseUrl = source.baseUrl;//小说网站
                     book.key = key;//小说网站
                 }
+                // alert(JSON.stringify(book));
                 resolve(book);
             }else{
+                // alert("无法识别的类型："+key);
                 reject("无法识别的类型："+key);
             }
 

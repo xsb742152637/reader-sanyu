@@ -32,7 +32,7 @@ const TimerMixin = require('react-timer-mixin');
 import Search from '../search'
 import ToolBar from '../../weight/toolBar'
 import HtmlAnalysis from './htmlAnalysis'
-import ChapterList from './source/chapterList'
+import ChapterList from './chapterList'
 
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
