@@ -26,8 +26,8 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons'
 import { connect } from 'react-redux'
 
+import CommonText from '../weight/commonText'
 import BookDetail from './bookDetail'
-import SourceList from './source/sourceList'
 import BookCommunity from './book/bookCommunity'
 import request from '../utils/httpUtil'
 import Dimen from '../utils/dimensionsUtil'
@@ -50,6 +50,7 @@ export default class ReadPlatform extends Component {
             showSaveModal: false,
             showListModal: false,
             showSourceListModal: false,
+            isLoadSourceEnd: true,//加载来源是否结束
             bookChapter: null,
             currentSource:null,//当前选择的源
             chapterDetail: [],
@@ -547,6 +548,13 @@ export default class ReadPlatform extends Component {
 
     //显示来源列表
     _showSourceListModal() {
+        this.setState({
+            showListModal: false,
+            showControlStation: false,
+            isLoadSourceEnd: false,
+            showSourceListModal: true,
+            listModalDataSource: []
+        });
         var li = new Array();
         var i = 0;
         var apiLen = 0;
@@ -574,9 +582,19 @@ export default class ReadPlatform extends Component {
             this.setState({
                 showListModal: false,
                 showControlStation: false,
+                isLoadSourceEnd: true,
                 showSourceListModal: true,
                 listModalDataSource: data
             });
+        }).catch((err) => {
+            this.setState({
+                showListModal: false,
+                showControlStation: false,
+                isLoadSourceEnd: true,
+                showSourceListModal: true,
+                listModalDataSource: []
+            });
+            alert("出错了："+JSON.stringify(err));
         });
 
     }
@@ -928,18 +946,18 @@ export default class ReadPlatform extends Component {
     renderSourceListModal(rowData) {
         return (
             <TouchableOpacity
-                style={{height:40}}
+                style={{height:60}}
                 activeOpacity={1}
                 onPress={() => this._clickSourceListModalItem(rowData.item)}>
                 <View style={styles.itemSource}>
-                    <View style={styles.itemSourceBody}>
+                    <View style={styles.itemSourceBodyLeft}>
                         <Text style={styles.itemSourceTitle}>{rowData.item.webName}</Text>
                         <Text style={styles.itemSourceDesc}>{rowData.item.newChapter}</Text>
                     </View>
-                    <View style={styles.itemSourceBody}>
+                    <View style={styles.itemSourceBodyRight}>
                         {
                             this.state.currentSource == null || this.state.currentSource.key !== rowData.item.key ?
-                                <Text style={styles.itemXZ}>{'当前选择1'}</Text>
+                                <Text style={styles.itemXZ}></Text>
                                 :
                                 <Text style={styles.itemXZ}>{'当前选择'}</Text>
                         }
@@ -1032,18 +1050,24 @@ export default class ReadPlatform extends Component {
                                     color={config.css.fontColor.white}
                                     onPress={this._back.bind(this)}
                                 />
-                                <Text style={styles.listModalTitle}>{'选择来源 ('+this.state.bookName+')'}</Text>
+                                <Text style={styles.listModalTitle}>{'选择来源'}</Text>
 
                             </View>
                         </View>
 
-                        <FlatList ref={(scrollView) => {this.catalogListView = scrollView}}
-                            keyExtrator={"title"}
-                            style={styles.innerListView}
-                            getItemLayout={(data,index)=>({length: 40, offset: 40 * index, index})}
-                            data={this.state.listModalDataSource}
-                            renderItem={this.renderSourceListModal.bind(this)}
-                        />
+
+                        {this.state.listModalDataSource && this.state.listModalDataSource.length > 0 ?
+                            <FlatList ref={(scrollView) => {this.catalogListView = scrollView}}
+                                      keyExtrator={"title"}
+                                      style={styles.innerListView}
+                                      getItemLayout={(data,index)=>({length: 40, offset: 40 * index, index})}
+                                      data={this.state.listModalDataSource}
+                                      renderItem={this.renderSourceListModal.bind(this)}
+                            />
+                            :
+                            <CommonText text={this.state.isLoadSourceEnd ? '没有找到合适的来源~~' : '正在加载~~'}/>
+                        }
+
                     </TouchableOpacity>
                 </Modal>
 
@@ -1219,26 +1243,26 @@ const styles = StyleSheet.create({
         borderColor: config.css.color.line
     },
     itemSource: {
+        flex: 1,
         alignItems: 'center',
-        marginLeft:5,
-        marginRight:5,
-        height:154,
-        borderWidth:1,
-        backgroundColor:'#999999',
-        flexDirection:'row'
-    },
-    itemSourceBody: {
-        height:150,
-        flexDirection: 'column',
+        paddingLeft: 10,
+        paddingRight: 10,
         borderBottomColor: config.css.color.line,
         borderBottomWidth: 1,
-        color: '#604733',
-        padding: 10
+        flexDirection:'row'
+    },
+    itemSourceBodyLeft: {
+        flex: 1,
+        textAlign: 'left',
+        flexDirection: 'column'
+    },
+    itemSourceBodyRight: {
+
     },
     itemSourceTitle: {
-        fontSize: config.css.fontSize.title - 2,
-        color: config.css.fontColor.title,
+        fontSize: 12,
         fontWeight: 'bold',
+        color: config.css.fontColor.title,
         marginBottom: 3
     },
     itemSourceDesc: {
