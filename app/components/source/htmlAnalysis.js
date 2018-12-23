@@ -24,11 +24,12 @@ myModule.api = HtmlAnalysisBase.api;
 myModule.getChapter = (source,book,pageNum) => {
     return new Promise(function(resolve,reject){
         //路径类型：true(相对路径,还需要加上网址）、false(绝对路径,直接可以使用)
-        let url = data.urlType? source.baseUrl + data.bookUrl : data.bookUrl;
+        let url = book.urlType? source.baseUrl + book.bookUrl : book.bookUrl;
         if((pageNum == 1 && source.chapterUrlFirst) || pageNum != 1){
             url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
         }
-        alert(book.webName+"获取目录："+url);
+
+        // alert(book.webName+"获取目录："+url);
         request.ajax(url,source.charset, null,true,(data) => {
             let ha = myModule._get_type(book.key);
             if(ha != null){
@@ -59,17 +60,19 @@ myModule.searchBook = (bookName,key) => {
     let source = myModule.api[key];
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
-        // alert("url:"+url);
+        // alert("url:"+url+"+++"+key);
         request.ajax(url, null, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
-                let data = ha._search_html(data,myModule.bookName);
-                if(data != undefined && data != null){
-                    data.webName = source.webNameShort;//小说网站简称
-                    data.key = key;//小说网站
+                // alert("aaa");
+                let book = ha._search_html(data,myModule.bookName);
+                // alert("bbb");
+                if(book != undefined && book != null){
+                    book.webName = source.webName;//小说网站简称
+                    book.key = key;//小说网站
                 }
                 // alert(JSON.stringify(book));
-                resolve(data);
+                resolve(book);
             }else{
                 // alert("无法识别的类型："+key);
                 reject("无法识别的类型："+key);

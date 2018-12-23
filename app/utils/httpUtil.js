@@ -66,7 +66,7 @@ request.ajax = (url,charset, params,async, successCallBack,failCallBack) => {
         return new Promise(function(resolve,reject){
             var request = new XMLHttpRequest();
             if(charset != null && charset != ""){
-                request.overrideMimeType(charset);//设定以gb2312编码识别数据
+                // request.overrideMimeType(charset);//设定以gb2312编码识别数据
             }
             request.onreadystatechange = e => {
                 if (request.readyState === 4 && request.status === 200) {

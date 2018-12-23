@@ -40,7 +40,8 @@
             </intent-filter>
         </activity>
         <activity android:name="com.axiamireader.MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+                  android:exported="false"/>
         <activity android:name="com.facebook.react.devsupport.DevSettingsActivity"
             android:screenOrientation="portrait"/>
 

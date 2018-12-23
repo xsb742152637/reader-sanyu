@@ -609,13 +609,48 @@ export default class ReadPlatform extends Component {
             }
         }
         let pageNum = 1;
-
-        HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
+        let dataList = new Array();
+        new Promise(function(resolve,reject){
+            this._getOnePageChapter(source,book,pageNum,dataList).then((data) => {
+                resolve(data);
+            });
+        }).then((data)=> {
             // alert("asdf:"+JSON.stringify(data));
             alert(JSON.stringify(data));
+            this.setState({
+                showListModal: true,
+                showControlStation: false,
+                listModalData: data,
+                listModalOrder: 0
+            });
+
+            //列表导航到当前章节
+            setTimeout(()=> {
+                if (this.catalogListView) {
+                    this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+                }
+            }, 50)
         }).catch((err) => {
 
-            alert("出错了："+JSON.stringify(err));
+            alert("出错了2："+JSON.stringify(err));
+        });
+
+    }
+
+    _getOnePageChapter(source,book,pageNum,dataList){
+        alert(pageNum);
+        return new Promise(function(resolve,reject){
+            HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
+                if(data.length > 0 && pageNum < 5){
+                    dataList = dataList.concat(data);
+                    this._getOnePageChapter(source,book,++pageNum,dataList).then((data) => {
+                        resolve(dataList)
+                    });
+                }
+            }).catch((err) => {
+
+                alert("出错了1："+JSON.stringify(err));
+            });
         });
 
     }
@@ -827,7 +862,7 @@ export default class ReadPlatform extends Component {
                         color={config.css.color.white}
                         onPress={this._back.bind(this)}/>
                     <Text style={styles.controlHeaderTitle} onPress={this._showSourceListModal.bind(this)}>换源</Text>
-                    <Text style={styles.controlHeaderTitle} onPress={this._toBookCommunity.bind(this)}>社区</Text>
+                    <Text style={styles.controlHeaderTitle} onPress={this._toBookCommunity.bind(this)}>社区1</Text>
                     <Text style={styles.controlHeaderTitle} onPress={this._toBookDetail.bind(this)}>简介</Text>
                 </View>
 

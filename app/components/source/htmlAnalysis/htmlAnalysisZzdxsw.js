@@ -17,7 +17,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
         // alert("没有后续章节了");
         return null;
     }
-    
+
     let dataList = new Array();
     for(let i in htmls) {
         if(i == htmls.length -1){
@@ -28,13 +28,13 @@ myModule._chapter_html = (source,book,htmlStr) => {
             let data = {};
             //<li><a href="8090455.html">卷 第二百四十六章 似幻还真</a>
             //<li><a.href="(.*)">(.*)<\/a>
-            let ar = HtmlAnalysisBase.getMatchStr(htmls[0].match(/<a.href="(.*)">(.*)<\/a>/),2);
+            let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<a.href="(.*)">(.*)<\/a>/),2);
 
-            data.chapterUrl = source.baseUrl + book.bookUrl + ar[0];//章节路径
-            data.chapterName = ar[1];//章节名称
+            data.link = source.baseUrl + book.bookUrl + ar[0];//章节路径
+            data.title = ar[1];//章节名称
 
             dataList.push(data);
-            // alert("章节名称："+data.chapterName+"\n章节路径："+data.chapterUrl);
+            // alert("章节名称："+data.title+"\n章节路径："+data.link);
         }catch (e){
             alert("截取章节HTML出错了");
         }

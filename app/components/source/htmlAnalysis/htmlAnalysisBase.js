@@ -10,7 +10,7 @@ var myModule = {
         zzdxsw:{
             webNameShort: '猪猪岛',//简称
             webName: '猪猪岛小说网',//全名
-            charset: 'text/html;charset=gbk',//编码
+            charset: null,//编码
             baseUrl: 'http://m.zzdxsw.org',//网址
             searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
             chapterUrlFirst: false,//章节路径的第一页不加路径

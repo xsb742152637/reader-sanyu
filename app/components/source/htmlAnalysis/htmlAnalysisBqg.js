@@ -29,13 +29,13 @@ myModule._chapter_html = (source,book,htmlStr) => {
             //<li><a href="/book/18569/7789990.html">第二章 四灵血</a>
             //<li><a href="/book/18569/7789990.html">第二章 四灵血</a>
             //<li><a.href="(.*)">(.*)<\/a>
-            let ar = HtmlAnalysisBase.getMatchStr(htmls[0].match(/<a.href="(.*)">(.*)<\/a>/),2);
+            let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<a.href="(.*)">(.*)<\/a>/),2);
 
-            data.chapterUrl = source.baseUrl + ar[0];//章节路径
-            data.chapterName = ar[1];//章节名称
+            data.link = source.baseUrl + ar[0];//章节路径
+            data.title = ar[1];//章节名称
 
             dataList.push(data);
-            // alert("章节名称："+data.chapterName+"\n章节路径："+data.chapterUrl);
+            // alert("章节名称："+data.title+"\n章节路径："+data.link);
         }catch (e){
             alert("截取章节HTML出错了");
         }
