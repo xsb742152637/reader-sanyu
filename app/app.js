@@ -49,7 +49,7 @@ var storage = new Storage({
 })
 
 global.storage = storage
-global.realm = new Realm({schema: schemaArray, schemaVersion: 4})
+global.realm = new Realm({schema: schemaArray, schemaVersion: 3})
 global.hardback = 0
 
 export default class App extends Component {

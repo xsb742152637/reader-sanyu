@@ -29,7 +29,7 @@ myModule.getChapter = (source,book,pageNum) => {
             url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
         }
 
-        // alert(book.webName+"获取目录："+url);
+        alert(book.webName+"获取目录："+url);
         request.ajax(url,source.charset, null,true,(data) => {
             let ha = myModule._get_type(book.key);
             if(ha != null){

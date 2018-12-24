@@ -16,17 +16,18 @@ var myModule = {
             chapterUrlFirst: false,//章节路径的第一页不加路径
             chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
             chapterUrlAfter: '.html'//后续章节需要添加的后面部分
-        },
-        bqg:{
-            webNameShort: '笔趣阁',
-            webName: '笔趣阁',
-            charset: 'text/html;charset=gb2312',//编码
-            baseUrl: 'https://m.biqubao.com',
-            searchUrl: '/search.php?keyword=',
-            chapterUrlFirst: false,
-            chapterUrlBefor: 'index_',
-            chapterUrlAfter: '.html'
         }
+        // ,
+        // bqg:{
+        //     webNameShort: '笔趣阁',
+        //     webName: '笔趣阁',
+        //     charset: 'text/html;charset=gb2312',//编码
+        //     baseUrl: 'https://m.biqubao.com',
+        //     searchUrl: '/search.php?keyword=',
+        //     chapterUrlFirst: false,
+        //     chapterUrlBefor: 'index_',
+        //     chapterUrlAfter: '.html'
+        // }
     }
 }
 
