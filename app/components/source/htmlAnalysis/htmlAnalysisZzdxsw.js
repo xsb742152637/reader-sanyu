@@ -19,6 +19,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
     }
 
     let dataList = new Array();
+    let beforNum = 0;
     for(let i in htmls) {
         if(i == htmls.length -1){
             continue;
@@ -32,7 +33,11 @@ myModule._chapter_html = (source,book,htmlStr) => {
 
             data.link = source.baseUrl + book.bookUrl + ar[0];//章节路径
             data.title = ar[1];//章节名称
+            let zj = HtmlAnalysisBase.getMatchStr(data.title.match(/第(.*)章/));
+            data.num = HtmlAnalysisBase.getChapterNumByCH(zj,beforNum);//当前章节的数字
 
+            // alert("aaaaa+++"+zj+"++"+data.num)
+            beforNum = data.num;
             dataList.push(data);
             // alert("章节名称："+data.title+"\n章节路径："+data.link);
         }catch (e){

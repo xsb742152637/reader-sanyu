@@ -29,8 +29,9 @@ myModule.getChapter = (source,book,pageNum) => {
             url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
         }
 
-        alert(book.webName+"获取目录："+url);
-        request.ajax(url,source.charset, null,true,(data) => {
+        // alert(book.webName+"获取目录："+url);
+        //超时时间为4秒
+        request.ajax(url,4,source.charset, null,true,(data) => {
             let ha = myModule._get_type(book.key);
             if(ha != null){
                 let dataList = ha._chapter_html(source,book,data);
@@ -61,7 +62,8 @@ myModule.searchBook = (bookName,key) => {
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
         // alert("url:"+url+"+++"+key);
-        request.ajax(url, null, null,true,(data) => {
+        //超时时间为6秒
+        request.ajax(url,6, null, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
                 // alert("aaa");
@@ -97,8 +99,5 @@ myModule._get_type = (key) => {
     }
     return ha;
 };
-
-
-
 
 module.exports =  myModule;

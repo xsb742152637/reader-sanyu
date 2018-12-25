@@ -385,18 +385,22 @@ export default class ReadPlatform extends Component {
     }
 
     _back() {
-        if (this.state.showSourceListModal) {
-            this.setState({showSourceListModal: false})
+        if (this.state.showListModal) {
+            this.setState({showListModal: false});
             return
         }
 
-        if (this.state.showListModal) {
-            this.setState({showListModal: false})
+        if (this.state.showSourceListModal) {
+            this.setState({
+                showSourceListModal: false,
+                isLoadSourceEnd: true,//已经加载完来源
+            });
             return
         }
+
 
         if (this.state.showControlStation) {
-            this.setState({showControlStation: false})
+            this.setState({showControlStation: false});
             return
         }
 
@@ -608,38 +612,62 @@ export default class ReadPlatform extends Component {
                 source = HtmlAnalysis.api[key];
             }
         }
-        let pageNum = 1;
+        //根据章节得到当前目录页数，并从前3页开始加载，共加载7页
+        let pageNum = Math.ceil (this.state.chapterNum / source.chapterRowNum) - 3;
+        if(pageNum < 1){
+            pageNum = 1;
+        }
+
         let dataList = new Array();
-        this._getOnePageChapter(source,book,pageNum,dataList).then((data) => {
-            alert(JSON.stringify(data));
-            this.setState({
-                showListModal: true,
-                showControlStation: false,
-                listModalData: data,
-                listModalOrder: 0
-            });
-            //列表导航到当前章节
-            setTimeout(()=> {
-                if (this.catalogListView) {
-                    this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+        this._getOnePageChapter(source,book,pageNum,pageNum,dataList,this).then((data) => {
+            // alert(JSON.stringify(data));
+            if(data != null && data.length > 0){
+                this.setState({
+                    showListModal: true,
+                    showControlStation: false,
+                    listModalData: data,
+                    listModalOrder: 0
+                });
+
+                let newNum = 0;//由于只加载部分目录，所以需要计算当前目录所在位置
+                for(let i in data){
+                    let d = data[i];
+                    if(d.num == this.state.chapterNum){
+                        newNum = i;
+                        break;
+                    }
                 }
-            }, 50)
+                // alert(JSON.stringify(data));
+
+                //列表导航到当前章节
+                setTimeout(()=> {
+                    if (this.catalogListView) {
+                        this.catalogListView.scrollToIndex({index: newNum, viewPosition: 0, animated: true})
+                    }
+                }, 50)
+            }else{
+                alert("没有找到章节！")
+            }
+
         });
 
     }
 
-    _getOnePageChapter(source,book,pageNum,dataList){
-        alert(pageNum);
-        let thisFun = this._getOnePageChapter;
+    _getOnePageChapter(source,book,startPageNum,pageNum,dataList,e){
+
+        // alert(pageNum+"++"+dataList.length+"++"+(typeof e));
+
         return new Promise(function(resolve,reject){
             HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
-                if(data.length > 0 && pageNum < 5){
+                let loadPageNum = pageNum - startPageNum;
+                if(data != null && data.length > 0 && loadPageNum < 7){
                     dataList = dataList.concat(data);
-                    alert("结果："+dataList.length);
-                    thisFun(source,book,++pageNum,dataList).then((data) => {
+                    // alert("结果："+dataList.length);
+                    e._getOnePageChapter(source,book,startPageNum,++pageNum,dataList,e).then((data) => {
                         resolve(data)
                     });
                 }else{
+                    // alert("没有了");
                     resolve(dataList);
                 }
             }).catch((err) => {
@@ -1024,7 +1052,7 @@ export default class ReadPlatform extends Component {
                 activeOpacity={1}
                 onPress={() => this._clickListModalItem(rowData.item.title)}>
                 {
-                    this.state.bookChapter.chapters[this.state.chapterNum].title !== rowData.item.title ?
+                    this.state.chapterNum !== rowData.item.num ?
                         <Text
                             numberOfLines={1}
                             style={[styles.listModalText, {fontSize: config.css.fontSize.title, color: config.css.fontColor.title}]}>

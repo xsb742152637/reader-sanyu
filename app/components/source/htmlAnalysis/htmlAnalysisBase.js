@@ -3,6 +3,8 @@
  * author: 谢
  * time: 2018年12月17日
  */
+const CH_DW = {"十": 10,"百": 100,"千": 1000,"万":10000};//中文数字单位
+const CH_SZ = {"一": 1,"二": 2,"三": 3,"四": 4,"五": 5,"六": 6,"七": 7,"八": 8,"九": 9,"零": 0};//中文数字
 
 var myModule = {
     bookName:"",
@@ -15,7 +17,8 @@ var myModule = {
             searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
             chapterUrlFirst: false,//章节路径的第一页不加路径
             chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
-            chapterUrlAfter: '.html'//后续章节需要添加的后面部分
+            chapterUrlAfter: '.html',//后续章节需要添加的后面部分
+            chapterRowNum: 25//每页目录行数
         }
         // ,
         // bqg:{
@@ -71,6 +74,27 @@ myModule.getMatchStr = (data,lens = 1) => {
     return "";
 };
 
-
+//根据中文大写数字转阿拉伯数字,如果无法识别当前章节数量就使用上一个章节数量+1
+myModule.getChapterNumByCH = (ch,beforNum) => {
+    let r = 0;
+    if(ch != null && ch != ""){
+        let b_n = 0;
+        for(let c in ch){
+            let c1 = ch[c];
+            if(CH_SZ[c1]){
+                b_n = CH_SZ[c1];
+                // alert("数字："+c1+"+++"+b_n);
+            }else if(CH_DW[c1]){
+                r += b_n * CH_DW[c1];
+                b_n = 0;
+                // alert("结果："+c1+"+++"+CH_DW[c1]+"+++"+r);
+            }
+        }
+        r += b_n;
+    }else{
+        r = beforNum + 1;
+    }
+    return r;
+}
 
 module.exports =  myModule;
