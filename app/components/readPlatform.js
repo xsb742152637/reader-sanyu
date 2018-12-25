@@ -51,6 +51,7 @@ export default class ReadPlatform extends Component {
             showListModal: false,
             showSourceListModal: false,
             isLoadSourceEnd: true,//加载来源是否结束
+            isLoadEnd: true,//加载目录是否结束
             bookChapter: null,
             currentSource:null,//当前选择的源
             chapterDetail: [],
@@ -386,23 +387,28 @@ export default class ReadPlatform extends Component {
 
     _back() {
         if (this.state.showListModal) {
-            this.setState({showListModal: false});
+            this.setState({
+                showListModal: false,
+                isLoadEnd : true,
+                showControlStation: false
+            });
             return
         }
 
         if (this.state.showSourceListModal) {
             this.setState({
                 showSourceListModal: false,
-                isLoadSourceEnd: true,//已经加载完来源
+                isLoadSourceEnd: true,
+                showControlStation: false
             });
             return
         }
 
 
-        if (this.state.showControlStation) {
-            this.setState({showControlStation: false});
-            return
-        }
+        // if (this.state.showControlStation) {
+        //     this.setState({showControlStation: false});
+        //     return
+        // }
 
         let bookId = this.props.bookId
         let book = realm.objectForPrimaryKey('HistoryBook', bookId)
@@ -577,8 +583,13 @@ export default class ReadPlatform extends Component {
                             resolve(li);
                         }
                     }
-                }).then((err) => {
-                    console.log(err);
+                }).catch((err) => {
+                    //这个源如果请求超时了，就直接抛弃，继续去下一个源查找
+                    // alert("出错了2："+JSON.stringify(err));
+                    i++;
+                    if(i == apiLen){
+                        resolve(li);
+                    }
                 });
             }
         }).then((data) => {
@@ -606,6 +617,13 @@ export default class ReadPlatform extends Component {
     //选择来源
     _clickSourceListModalItem(book) {
         // alert(JSON.stringify(data));
+        this.setState({
+            showListModal: true,
+            isLoadEnd: false,
+            listModalData: [],
+            listModalOrder: 0
+        });
+
         let source;
         for(let key in HtmlAnalysis.api){
             if(key == book.key){
@@ -613,7 +631,7 @@ export default class ReadPlatform extends Component {
             }
         }
         //根据章节得到当前目录页数，并从前3页开始加载，共加载7页
-        let pageNum = Math.ceil (this.state.chapterNum / source.chapterRowNum) - 3;
+        let pageNum = Math.ceil (this.state.chapterNum / source.chapterRowNum) - 2;
         if(pageNum < 1){
             pageNum = 1;
         }
@@ -621,14 +639,13 @@ export default class ReadPlatform extends Component {
         let dataList = new Array();
         this._getOnePageChapter(source,book,pageNum,pageNum,dataList,this).then((data) => {
             // alert(JSON.stringify(data));
+            this.setState({
+                showListModal: true,
+                isLoadEnd: true,
+                listModalData: data,
+                listModalOrder: 0
+            });
             if(data != null && data.length > 0){
-                this.setState({
-                    showListModal: true,
-                    showControlStation: false,
-                    listModalData: data,
-                    listModalOrder: 0
-                });
-
                 let newNum = 0;//由于只加载部分目录，所以需要计算当前目录所在位置
                 for(let i in data){
                     let d = data[i];
@@ -660,7 +677,7 @@ export default class ReadPlatform extends Component {
         return new Promise(function(resolve,reject){
             HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
                 let loadPageNum = pageNum - startPageNum;
-                if(data != null && data.length > 0 && loadPageNum < 7){
+                if(data != null && data.length > 0 && loadPageNum < 6){
                     dataList = dataList.concat(data);
                     // alert("结果："+dataList.length);
                     e._getOnePageChapter(source,book,startPageNum,++pageNum,dataList,e).then((data) => {
@@ -687,7 +704,7 @@ export default class ReadPlatform extends Component {
     _showListModal() {
         this.setState({
             showListModal: true,
-            showControlStation: false,
+            isLoadEnd: true,
             listModalData: this.state.bookChapter.chapters,
             listModalOrder: 0
         });
@@ -1180,19 +1197,22 @@ export default class ReadPlatform extends Component {
                             </View>
                         </View>
 
-                        <FlatList
-                            ref={(scrollView) => {
-                                        this.catalogListView = scrollView
-                                    }
-                                 }
-                            keyExtrator={"title"}
-                            style={styles.innerListView}
-                            getItemLayout={(data,index)=>(
-                                {length: 40, offset: 40 * index, index}
-                            )}
-                            data={this.state.listModalData}
-                            renderItem={this.renderListModal.bind(this)}
-                        />
+
+                        {this.state.listModalData && this.state.listModalData.length > 0 ?
+                            <FlatList
+                                ref={(scrollView) => {this.catalogListView = scrollView}}
+                                keyExtrator={"title"}
+                                style={styles.innerListView}
+                                getItemLayout={(data,index)=>(
+                                    {length: 40, offset: 40 * index, index}
+                                )}
+                                data={this.state.listModalData}
+                                renderItem={this.renderListModal.bind(this)}
+                            />
+                            :
+                            <CommonText text={this.state.isLoadEnd ? '没有找到任何一章~~' : '正在加载~~'}/>
+                        }
+
                     </TouchableOpacity>
                 </Modal>
             </Image>

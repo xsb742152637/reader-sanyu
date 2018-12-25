@@ -62,8 +62,8 @@ myModule.searchBook = (bookName,key) => {
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
         // alert("url:"+url+"+++"+key);
-        //超时时间为6秒
-        request.ajax(url,6, null, null,true,(data) => {
+        //超时时间为10秒
+        request.ajax(url,10, null, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
                 // alert("aaa");
