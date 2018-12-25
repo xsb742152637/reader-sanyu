@@ -405,10 +405,10 @@ export default class ReadPlatform extends Component {
         }
 
 
-        // if (this.state.showControlStation) {
-        //     this.setState({showControlStation: false});
-        //     return
-        // }
+        if (this.state.showControlStation) {
+            this.setState({showControlStation: false});
+            // return
+        }
 
         let bookId = this.props.bookId
         let book = realm.objectForPrimaryKey('HistoryBook', bookId)
