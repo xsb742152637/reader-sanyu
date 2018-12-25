@@ -54,6 +54,7 @@ export default class ReadPlatform extends Component {
             isLoadEnd: true,//加载目录是否结束
             bookChapter: null,
             currentSource:null,//当前选择的源
+            isRefreshing: false,
             chapterDetail: [],
             chapterPage: 0,      //读到某一章第几页
             chapterNum: 0,      //读到第几章
@@ -654,7 +655,7 @@ export default class ReadPlatform extends Component {
                         break;
                     }
                 }
-                // alert(JSON.stringify(data));
+                // alert(newNum+"++++"+this.state.chapterNum+"\n"+JSON.stringify(data));
 
                 //列表导航到当前章节
                 setTimeout(()=> {
@@ -730,6 +731,20 @@ export default class ReadPlatform extends Component {
                 this.setState({listModalData: cs, listModalOrder: 0})
             }
         }
+    }
+
+    _header = () => {
+        return <Text style={[styles.txt, { backgroundColor: 'white' }]}>这是头部</Text>;
+    }
+    _footer = () => {
+        return <Text style={[styles.txt, { backgroundColor: 'white' }]}>这是尾部</Text>;
+    }
+
+    _onRefreshPrev() {
+        alert('正在加载上一章.... ');
+    }
+    _onRefreshNext() {
+        alert('正在加载下一章.... ');
     }
 
     //选择目录中的新章节
@@ -1208,6 +1223,13 @@ export default class ReadPlatform extends Component {
                                 )}
                                 data={this.state.listModalData}
                                 renderItem={this.renderListModal.bind(this)}
+
+                                refreshing={this.state.isRefreshing}
+                                ListHeaderComponent={this._header}
+                                ListFooterComponent={this._footer}
+                                onRefresh={this._onRefreshPrev}
+                                onEndReachedThreshold={0.1}
+                                onEndReached={this._onRefreshNext}
                             />
                             :
                             <CommonText text={this.state.isLoadEnd ? '没有找到任何一章~~' : '正在加载~~'}/>

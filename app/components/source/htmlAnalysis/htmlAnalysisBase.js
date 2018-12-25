@@ -85,6 +85,9 @@ myModule.getChapterNumByCH = (ch,beforNum) => {
                 b_n = CH_SZ[c1];
                 // alert("数字："+c1+"+++"+b_n);
             }else if(CH_DW[c1]){
+                if(b_n == 0){
+                    b_n = 1;
+                }
                 r += b_n * CH_DW[c1];
                 b_n = 0;
                 // alert("结果："+c1+"+++"+CH_DW[c1]+"+++"+r);
