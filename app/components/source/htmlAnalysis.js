@@ -30,8 +30,8 @@ myModule.getChapter = (source,book,pageNum) => {
         }
 
         // alert(book.webName+"获取目录："+url);
-        //超时时间为4秒
-        request.ajax(url,4,source.charset, null,true,(data) => {
+        //超时时间为
+        request.ajax(url,10,source.charset, null,true,(data) => {
             let ha = myModule._get_type(book.key);
             if(ha != null){
                 let dataList = ha._chapter_html(source,book,data);
@@ -62,8 +62,8 @@ myModule.searchBook = (bookName,key) => {
     return new Promise(function(resolve,reject){
         let url = source.baseUrl + source.searchUrl + myModule.bookName;
         // alert("url:"+url+"+++"+key);
-        //超时时间为10秒
-        request.ajax(url,10, null, null,true,(data) => {
+        //超时时间为20秒
+        request.ajax(url,20, null, null,true,(data) => {
             let ha = myModule._get_type(key);
             if(ha != null){
                 // alert("aaa");
