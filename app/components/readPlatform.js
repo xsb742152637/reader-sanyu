@@ -791,7 +791,7 @@ export default class ReadPlatform extends Component {
         if(this.state.loadIndexEnd == -1){
             return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#f00'}}>....我的底线...</Text></View>;
         }
-        return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#fff'}}>....正在拼命加载...</Text></View>;
+        return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#fff',textAlign:'center'}}>....正在拼命加载...</Text></View>;
     }
 
     _onRefreshPrev() {
