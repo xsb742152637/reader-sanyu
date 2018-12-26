@@ -818,11 +818,12 @@ export default class ReadPlatform extends Component {
     }
 
     //选择目录中的新章节
-    _clickListModalItem(title) {
+    _clickListModalItem(item) {
         console.log('_clickListModalItem');
+        alert(JSON.stringify(item));
         for (var i = 0; i < this.state.bookChapter.chapters.length; ++i) {
             var chapter = this.state.bookChapter.chapters[i]
-            if (chapter.title == title) {
+            if (chapter.title == item.title) {
                 this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
                 this._appendChapter(i).then((data)=> {
                     this.setState({
@@ -1152,7 +1153,7 @@ export default class ReadPlatform extends Component {
             <TouchableOpacity
                 style={{height:40}}
                 activeOpacity={1}
-                onPress={() => this._clickListModalItem(rowData.item.title)}>
+                onPress={() => this._clickListModalItem(rowData.item)}>
                 {
                     this.state.chapterNum !== rowData.item.num ?
                         <Text

@@ -32,7 +32,8 @@ const HistoryBookSchema = {
     saveTime: 'date',
     sortNum: 'int',
     isToShow: 'int', // 0: 不显示 1: 书架 2: 养肥区
-    hasNewChapter: 'int'
+    hasNewChapter: 'int',
+    sourceKey: 'string'//选中的当前源
   }
 }
 
