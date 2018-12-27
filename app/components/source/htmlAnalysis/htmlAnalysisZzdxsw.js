@@ -72,7 +72,7 @@ myModule._search_html = (htmlStr,bookName) => {
         data.bookUrl = ar[0];//小说路径
         data.bookName = ar[1];//小说名称
         data.bookType = ar[2];//连载、已完结等
-        data.newChapterUrl = ar[3];//最新章节路径
+        // data.newChapterUrl = ar[3];//最新章节路径
         data.newChapter = ar[4];//最新章节
         data.author = ar[5];//作者
 

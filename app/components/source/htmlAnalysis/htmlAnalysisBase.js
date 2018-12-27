@@ -10,17 +10,12 @@ var myModule = {
     bookName:"",
     api:{
         zssq:{
+            key:'zssq',
             webNameShort: '追书神器',//简称
-            webName: '追书神器',//全名
-            charset: null,//编码
-            baseUrl: 'http://api.zhuishushenqi.com',//网址
-            searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
-            chapterUrlFirst: false,//章节路径的第一页不加路径
-            chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
-            chapterUrlAfter: '.html',//后续章节需要添加的后面部分
-            chapterRowNum: 0//每页目录行数
+            webName: '追书神器'//全名
         },
         zzdxsw:{
+            key:'zzdxsw',
             webNameShort: '猪猪岛',//简称
             webName: '猪猪岛小说网',//全名
             charset: null,//编码
@@ -33,6 +28,7 @@ var myModule = {
         }
         // ,
         // bqg:{
+        //     key:'bqg',
         //     webNameShort: '笔趣阁',
         //     webName: '笔趣阁',
         //     charset: 'text/html;charset=gb2312',//编码
