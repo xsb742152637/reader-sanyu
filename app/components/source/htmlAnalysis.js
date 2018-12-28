@@ -12,8 +12,33 @@ import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 var myModule = {
     bookName:""
 }
+myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
 
+
+/**
+ * 根据章节信息得到小说内容
+ * @param chapter
+ */
+myModule.getChapterDetail = (source,chapter) => {
+    return new Promise(function(resolve,reject){
+        // alert("得到小说："+JSON.stringify(chapter));
+        //超时时间为
+        request.ajax(chapter.link,10,source.charset, null,true,(data) => {
+            let ha = myModule._get_type(source.key);
+            if(ha != null){
+                data = ha._getChapter_detail(data);
+                resolve(data);
+            }else{
+                reject("无法识别的类型："+key);
+            }
+
+        },(err) => {
+            alert("getChapterDetail\n"+JSON.stringify(err));
+            reject(err);
+        });
+    });
+}
 /**
  *
  * @param source 小说来源对应的api数据
@@ -41,6 +66,7 @@ myModule.getChapter = (source,book,pageNum) => {
             }
 
         },(err) => {
+            alert("getChapter\n"+JSON.stringify(err));
             reject(err);
         });
     });
@@ -60,29 +86,34 @@ myModule.searchBook = (bookName,key) => {
     myModule.bookName = bookName;
     let source = myModule.api[key];
     return new Promise(function(resolve,reject){
-        let url = source.baseUrl + source.searchUrl + myModule.bookName;
-        // alert("url:"+url+"+++"+key);
-        //超时时间为20秒
-        request.ajax(url,20, null, null,true,(data) => {
-            let ha = myModule._get_type(key);
-            if(ha != null){
-                // alert("aaa");
-                let book = ha._search_html(data,myModule.bookName);
-                // alert("bbb");
-                if(book != undefined && book != null){
-                    book.webName = source.webName;//小说网站简称
-                    book.key = key;//小说网站
+        if(source.isMainApi){
+            resolve(source);
+        }else{
+            let url = source.baseUrl + source.searchUrl + myModule.bookName;
+            // alert("url:"+url+"+++"+key);
+            //超时时间为20秒
+            request.ajax(url,20, null, null,true,(data) => {
+                let ha = myModule._get_type(key);
+                if(ha != null){
+                    // alert("aaa");
+                    let book = ha._search_html(data,myModule.bookName);
+                    // alert("bbb");
+                    if(book != undefined && book != null){
+                        book.webName = source.webName;//小说网站简称
+                        book.key = key;//小说网站
+                    }
+                    // alert(JSON.stringify(book));
+                    resolve(book);
+                }else{
+                    // alert("无法识别的类型："+key);
+                    reject("无法识别的类型："+key);
                 }
-                // alert(JSON.stringify(book));
-                resolve(book);
-            }else{
-                // alert("无法识别的类型："+key);
-                reject("无法识别的类型："+key);
-            }
 
-        },(err) => {
-            reject(err);
-        });
+            },(err) => {
+                reject(err);
+            });
+        }
+
     });
 };
 

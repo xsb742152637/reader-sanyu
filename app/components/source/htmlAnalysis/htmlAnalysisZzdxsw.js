@@ -8,6 +8,15 @@ import HtmlAnalysisBase from './htmlAnalysisBase'
 var myModule = {};
 
 //章节页面解析
+myModule._getChapter_detail = (source,book,htmlStr) => {
+    htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
+    htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="mod mod-page" id="ChapterView" >','</div><div class="tuijian">');
+    htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="page-content font-large"><p>','</p>');
+
+    return htmlStr;
+}
+
+//章节页面解析
 myModule._chapter_html = (source,book,htmlStr) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="mod block update chapter-list">','<div class="mod page"><div class="pagelistbox">');
@@ -34,7 +43,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
             data.link = source.baseUrl + book.bookUrl + ar[0];//章节路径
             data.title = ar[1];//章节名称
             let zj = HtmlAnalysisBase.getMatchStr(data.title.match(/第(.*)章/));
-            data.num = HtmlAnalysisBase.getChapterNumByCH(zj,beforNum);//当前章节的数字
+            data.num = HtmlAnalysisBase.getChapterNumByCH(zj,beforNum) - 1;//当前章节的数字
 
             // alert("aaaaa+++"+zj+"++"+data.num)
             beforNum = data.num;

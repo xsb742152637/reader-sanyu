@@ -33,7 +33,7 @@ const HistoryBookSchema = {
     sortNum: 'int',
     isToShow: 'int', // 0: 不显示 1: 书架 2: 养肥区
     hasNewChapter: 'int',
-    sourceKey: 'string'//选中的当前源
+    sourceKey: {type: 'string',default: ''}//选中的当前源
   }
 }
 
