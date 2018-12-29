@@ -37,7 +37,6 @@ import Loading from '../weight/loading'
 import api from '../common/api'
 import config from '../common/config'
 import HtmlAnalysis from './source/htmlAnalysis'
-var Encoding = require('iconv-lite-master');
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
@@ -154,6 +153,7 @@ export default class ReadPlatform extends Component {
         let book = realm.objectForPrimaryKey('HistoryBook', bookId)
         let source;
         let isMainApi = true;
+        // alert("缓存信息：\n"+JSON.stringify(book));
         if(book.sourceKey){
             for(let key in HtmlAnalysis.api){
                 if(key == book.sourceKey){
@@ -187,7 +187,9 @@ export default class ReadPlatform extends Component {
         InteractionManager.runAfterInteractions(()=> {
             let book = this.state.book;
             this._initBookChapterContent(book.bookId, book ? book.historyChapterNum : 0)
-            this._initBookChapter(true);
+            if(!isMainApi){
+                this._initBookChapter(null);
+            }
         });
 
         realm.write(() => {
@@ -224,7 +226,7 @@ export default class ReadPlatform extends Component {
             // alert("临时源：\n"+JSON.stringify(this.state.sourceTemp))
             let source = this.state.sourceTemp;
             if(source == null){
-                source = this.state.source;
+                source = this.state.currentSource;
             }
 
             let pageNum = 0;
@@ -302,8 +304,8 @@ export default class ReadPlatform extends Component {
                         this.setState({
                             bookChapter: bookChapter,
                             chapterLength: bookChapter.chapters.length,
-                            time: timeFormat(),
-                            listModalData: bookChapter.chapters.slice(0)
+                            time: timeFormat()
+                            // listModalData: bookChapter.chapters.slice(0)
                         })
                         resolve(bookChapter)
                     } else {
@@ -349,7 +351,8 @@ export default class ReadPlatform extends Component {
     }
 
     _formatChapter(content, num, title) {
-        console.log('_formatChapter:' + content)
+        // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
+        // console.log('_formatChapter:' + content)
         let _arr = []
         let _content = '\u3000\u3000' + content.replace(/\n/g, '@\u3000\u3000')
         let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
@@ -538,16 +541,25 @@ export default class ReadPlatform extends Component {
         }
     }
 
-    _back() {
+    /**
+     * 退回
+     * @param type true:退回一步，false:直接退回到阅读界面
+     * @private
+     */
+    _back(type = true) {
+        // alert("type:"+type);
+        //隐藏目录列表
         if (this.state.showListModal) {
             this.setState({
                 showListModal: false,
                 isLoadEnd : true,
                 showControlStation: false
             });
-            return
+            if(type)
+                return
         }
 
+        //隐藏换源列表
         if (this.state.showSourceListModal) {
             this.setState({
                 sourceTemp:null,//临时选择的源
@@ -561,11 +573,13 @@ export default class ReadPlatform extends Component {
         }
 
 
+        //隐藏控制台
         if (this.state.showControlStation) {
             this.setState({showControlStation: false});
             // return
         }
 
+        //退出阅读
         let bookId = this.props.bookId
         let book = realm.objectForPrimaryKey('HistoryBook', bookId)
         if (book && book.isToShow !== 0) {
@@ -733,17 +747,18 @@ export default class ReadPlatform extends Component {
         }
         new Promise((resolve,reject) => {
             for(let key in HtmlAnalysis.api){
-                HtmlAnalysis.searchBook(bookName,key).then((data)=> {
+                HtmlAnalysis.searchBook(this.props.bookId,bookName,key).then((data)=> {
+                            // alert("aafff"+JSON.stringify(data))
                     if(data != undefined && data != null){
                         if(data.isMainApi){
 
-                            data.newChapter = this.state.bookChapter.chapters[this.state.bookChapter.chapters.length-1].title
+                            data.lastChapterTitle = this.state.bookChapter.chapters[this.state.bookChapter.chapters.length-1].title
                         }
                         li.push(data);
-                        i++;
-                        if(i == apiLen){
-                            resolve(li);
-                        }
+                    }
+                    i++;
+                    if(i == apiLen){
+                        resolve(li);
                     }
                 }).catch((err) => {
                     //这个源如果请求超时了，就直接抛弃，继续去下一个源查找
@@ -802,43 +817,42 @@ export default class ReadPlatform extends Component {
 
     //显示目录列表
     _showListModal(book) {
-        // alert(this.state.isMainApi+"\n"+JSON.stringify(book))
-        if((book == null && this.state.isMainApi) || (book != null && book.key == HtmlAnalysis.mainKey)){
-            // alert("加载原始目录");
-            this.setState({
-                showListModal: true,
-                isLoadEnd: true,
-                listModalData: this.state.bookChapter.chapters,
-                listModalOrder: 0
-            });
-
-            //列表导航到当前章节
-            setTimeout(()=> {
-                if (this.catalogListView) {
-                    this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
-                }
-            }, 50)
-        }else{
-            let source = null;
-            if(book != null){
-                for(let key in HtmlAnalysis.api){
-                    if(key == book.key){
-                        source = HtmlAnalysis.api[key];
-                    }
+        let source = null;
+        if(book != null){
+            for(let key in HtmlAnalysis.api){
+                if(key == book.sourceKey){
+                    source = HtmlAnalysis.api[key];
                 }
             }
+        }
 
-            // alert("ffff\n"+JSON.stringify(book))
-            this.setState({
-                showListModal: true,
-                isLoadEnd: false,
-                listModalDataTemp: [],
-                isFirstLoad: true,
-                listModalOrder: 0,
-                bookTemp: book,
-                sourceTemp: source
-            });
-            InteractionManager.runAfterInteractions(()=> {
+        // alert("ffff\n"+JSON.stringify(book))
+        this.setState({
+            showListModal: true,
+            isLoadEnd: false,
+            listModalDataTemp: [],
+            isFirstLoad: true,
+            listModalOrder: 0,
+            bookTemp: book,
+            sourceTemp: source
+        });
+
+        InteractionManager.runAfterInteractions(()=> {
+            if((book == null && this.state.isMainApi) || (book != null && book.sourceKey == HtmlAnalysis.mainKey)){
+                // alert("加载原始目录");
+                // alert(JSON.stringify(this.state.bookChapter.chapters))
+                this.setState({
+                    isLoadEnd: true,
+                    listModalDataTemp: this.state.bookChapter.chapters
+                });
+
+                //列表导航到当前章节
+                setTimeout(()=> {
+                    if (this.catalogListView) {
+                        this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+                    }
+                }, 50)
+            }else{
                 // alert("isFirstLoad:"+this.state.isFirstLoad)
                 this._initBookChapter(null).then((d) => {
                     // alert("临时目录："+this.state.listModalDataTemp.length+"\n主目录："+this.state.listModalData.length)
@@ -865,9 +879,8 @@ export default class ReadPlatform extends Component {
                 }).catch((err) => {
                     alert("aaa\n"+JSON.stringify(err))
                 });
-            });
-
-        }
+            }
+        });
     }
 
     //目录排序
@@ -939,30 +952,73 @@ export default class ReadPlatform extends Component {
 
     //选择目录中的新章节
     _clickListModalItem(item) {
+        //点击章节的时候，临时选择的源变成固定源
+        let source = this.state.sourceTemp;
+        if(source == null){
+            source = this.state.currentSource;
+        }
+        let book = this.state.bookTemp;
+        if(book == null){
+            book = this.state.book;
+        }
+        let isMainApi = this.state.isMainApi;
+        if(source.key == HtmlAnalysis.mainKey){
+            isMainApi = true;
+        }else{
+            isMainApi = false;
+        }
+        // alert("source：\n"+JSON.stringify(source)+"book：\n"+JSON.stringify(book))
+        this.setState({
+            book: book,
+            bookTemp: null,
+            currentSource: source,
+            sourceTemp: null,
+            isMainApi: isMainApi,
+            chapterDetail: []
+        });
+
+        // alert("isMainApi:"+isMainApi)
         console.log('_clickListModalItem');
-        if(this.state.isMainApi){
+        if(isMainApi){
             for (var i = 0; i < this.state.bookChapter.chapters.length; ++i) {
                 var chapter = this.state.bookChapter.chapters[i]
                 if (chapter.title == item.title) {
-                    this.setState({
-                        // showListModal: false,
-                        // showControlStation: false,
-                        chapterDetail: []
-                    });
+                    // this.setState({
+                    //     // showListModal: false,
+                    //     // showControlStation: false,
+                    //     chapterDetail: []
+                    // });
+                    // alert("chapter:\n"+JSON.stringify(chapter));
 
                     this._appendChapter(i).then((data)=> {
+                        // alert(JSON.stringify(data));
                         this.setState({
                             chapterNum: data[0].num,
                             chapterPage: 0
                         })
+                        this._back(false)
                         this._updateHistoryBookChapter(this.props.bookId, data[0].num, 0)
-                        this._back()
                     })
                     break
                 }
             }
         }else{
-            alert(JSON.stringify(item));
+            HtmlAnalysis.getChapterDetail(source,item).then((data)=> {
+                let tempArr = this._formatChapter(data, item.num, item.title)
+                alert("新的小说：\n"+JSON.stringify(tempArr))
+                this.setState({
+                    chapterDetail: this.state.chapterDetail.concat(tempArr),
+                    time: timeFormat(),
+                    chapterNum: tempArr[0].num,
+                    chapterPage: 0
+                }, ()=> {
+                    console.log('_appendChapter, page num', tempArr.length)
+                })
+                this._updateHistoryBookChapter(this.props.bookId, tempArr[0].num, 0)
+                this._back(false)
+            }).catch((err) => {
+                alert("_clickListModalItem\n"+JSON.stringify(err));
+            });
         }
 
     }
@@ -1010,21 +1066,26 @@ export default class ReadPlatform extends Component {
     _updateHistoryBookChapter(bookId, chapterNum, chapterPage) {
         var books = realm.objects('HistoryBook').sorted('sortNum')
         var book = realm.objectForPrimaryKey('HistoryBook', bookId)
+        // alert("book:\n"+JSON.stringify(this.state.book));
         if (book) {
             realm.write(() => {
                 if (book.bookId === books[books.length - 1].bookId) {
                     realm.create('HistoryBook', {
                         bookId: book.bookId,
+                        bookUrl: this.state.book.bookUrl,
                         historyChapterNum: chapterNum,
-                        historyChapterPage: chapterPage
+                        historyChapterPage: chapterPage,
+                        sourceKey: this.state.currentSource.key
                     }, true)
                 } else {
                     var sortNum = books[books.length - 1].sortNum + 1
                     realm.create('HistoryBook', {
                         bookId: book.bookId,
+                        bookUrl: this.state.book.bookUrl,
                         sortNum: books[books.length - 1].sortNum + 1,
                         historyChapterNum: chapterNum,
-                        historyChapterPage: chapterPage
+                        historyChapterPage: chapterPage,
+                        sourceKey: this.state.currentSource.key
                     }, true)
                 }
             })
@@ -1253,11 +1314,11 @@ export default class ReadPlatform extends Component {
                 <View style={styles.itemSource}>
                     <View style={styles.itemSourceBodyLeft}>
                         <Text style={styles.itemSourceTitle}>{rowData.item.webName}</Text>
-                        <Text style={styles.itemSourceDesc}>{rowData.item.newChapter}</Text>
+                        <Text style={styles.itemSourceDesc}>{rowData.item.lastChapterTitle}</Text>
                     </View>
                     <View style={styles.itemSourceBodyRight}>
                         {
-                            this.state.currentSource == null || this.state.currentSource.key !== rowData.item.key ?
+                            this.state.currentSource == null || this.state.currentSource.key !== rowData.item.sourceKey ?
                                 <Text style={styles.itemXZ}></Text>
                                 :
                                 <Text style={styles.itemXZ}>{'当前选择'}</Text>
@@ -1279,16 +1340,16 @@ export default class ReadPlatform extends Component {
                 activeOpacity={1}
                 onPress={() => this._clickListModalItem(rowData.item)}>
                 {
-                    this.state.chapterNum !== rowData.item.num ?
+                    (this.state.chapterNum == rowData.item.num) || (this.state.bookChapter.chapters[this.state.chapterNum].title == rowData.item.title) ?
                         <Text
                             numberOfLines={1}
-                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, color: config.css.fontColor.title}]}>
+                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, fontWeight: 'bold'}]}>
                             {rowData.item.title}
                         </Text>
                         :
                         <Text
                             numberOfLines={1}
-                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, fontWeight: 'bold'}]}>
+                            style={[styles.listModalText, {fontSize: config.css.fontSize.title, color: config.css.fontColor.title}]}>
                             {rowData.item.title}
                         </Text>
                 }
@@ -1330,7 +1391,7 @@ export default class ReadPlatform extends Component {
                     visible={this.state.showControlStation}
                     animationType={'fade'}
                     transparent={true}
-                    onRequestClose={this._back.bind(this)}>
+                    onRequestClose={this._back.bind(this,true)}>
                     {this.renderControlStation()}
                 </Modal>
 
@@ -1389,7 +1450,7 @@ export default class ReadPlatform extends Component {
                                     color={config.css.fontColor.white}
                                     onPress={this._back.bind(this)}
                                 />
-                                <Text style={styles.listModalTitle}>{this.state.bookName}</Text>
+                                <Text style={styles.listModalTitle}>{this.state.title}</Text>
 
                                 <TouchableOpacity
                                     onPress={() => {this.setState({showControlStation: false})}}
