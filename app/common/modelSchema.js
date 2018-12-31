@@ -25,6 +25,7 @@ const HistoryBookSchema = {
     bookId: 'string',
     bookName: 'string',
     bookUrl: 'string',
+    bookUrlNew: {type: 'string',default: ''},
     lastChapterTitle: 'string',
     lastChapterTime: 'string',
     historyChapterNum: 'int',

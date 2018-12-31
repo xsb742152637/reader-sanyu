@@ -174,6 +174,7 @@ export default class Bookshelves extends Component {
                 bookId: bookDetail.bookId,
                 bookName: bookDetail.bookName,
                 bookUrl: bookDetail.bookUrl,
+                bookUrlNew: bookDetail.bookUrl,
                 lastChapterTitle: bookDetail.lastChapterTitle,
                 historyChapterNum: 0,
                 historyChapterPage: 0,

@@ -11,7 +11,7 @@ import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 import api from '../../common/api'
 
 var myModule = {
-    title:""
+    bookName:""
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
@@ -51,7 +51,7 @@ myModule.getChapterDetail = (source,chapter) => {
 myModule.getChapter = (source,book,pageNum) => {
     return new Promise((resolve,reject) => {
         //路径类型：true(相对路径,还需要加上网址）、false(绝对路径,直接可以使用)
-        let url = book.bookUrl;
+        let url = book.bookUrlNew;
         if((pageNum == 1 && source.chapterUrlFirst) || pageNum != 1){
             url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
         }
@@ -80,12 +80,12 @@ myModule.getChapter = (source,book,pageNum) => {
  * @param key 来源类型
  * @returns {*}
  */
-myModule.searchBook = (bookId,title,key) => {
-    if((bookId == undefined || bookId == null || bookId == "") && (title == undefined || title == null || title == "")){
+myModule.searchBook = (bookId,bookName,key) => {
+    if((bookId == undefined || bookId == null || bookId == "") && (bookName == undefined || bookName == null || bookName == "")){
         alert("小说名称是什么？");
         return;
     }
-    myModule.title = title;
+    myModule.bookName = bookName;
     let source = myModule.api[key];
     return new Promise((resolve,reject) => {
         if(source.isMainApi){
@@ -93,21 +93,23 @@ myModule.searchBook = (bookId,title,key) => {
                 book.sourceKey = source.key;
                 book.webName = source.webName;//小说网站简称
                 book.isMainApi = true;
-                book.bookUrl = book.cover;
+                book.bookUrlNew = book.cover;
+                book.bookId = book._id;
+                book.bookName = book.title;
                 // alert("searchBook:\n"+JSON.stringify(book));
                 resolve(book);
             }, (err) => {
                 reject(err);
             })
         }else{
-            let url = source.baseUrl + source.searchUrl + myModule.title;
-            alert("url:"+url+"+++"+key);
+            let url = source.baseUrl + source.searchUrl + myModule.bookName;
+            // alert("url:"+url+"+++"+key);
             //超时时间为20秒
             request.ajax(url,20, null, null,true,(data) => {
                 let ha = myModule._get_type(key);
                 if(ha != null){
                     // alert("aaa");
-                    let book = ha._search_html(source,data,myModule.title);
+                    let book = ha._search_html(source,data,myModule.bookName);
                     // alert("bbb");
                     if(book != undefined && book != null){
                         book.webName = source.webName;//小说网站简称

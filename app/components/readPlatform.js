@@ -41,42 +41,33 @@ import HtmlAnalysis from './source/htmlAnalysis'
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
 export default class ReadPlatform extends Component {
-
     constructor(props) {
         super(props)
         this.state = {
-            bookName: '',
-            showControlStation: false,
-            showSaveModal: false,
-            showListModal: false,
-            showSourceListModal: false,
-            isLoadSourceEnd: true,//加载来源是否结束
-            isLoadEnd: true,//加载目录是否结束
-            bookChapter: null,
-
-            book: null,//当前小说信息
             isMainApi: true,//当前小说的源是否为追书神器
-            currentSource:null,//当前选择的源
+            book: null,//当前小说信息
+            bookTemp: null,//临时小说信息
+            bookChapter: null,//章节
+            bookChapterTemp: null,//临时章节
+            source: null,//源
+            sourceTemp: null,//临时源
+            chapterDetail: [],//当前阅读的小说内容
 
-            //换源的时候，只要还没有在新的源中点击章节开始阅读，那么信息都属于临时存放，不影响现有源
+            showControlStation: false,
+            showSourceListModal: false,
+            showListModal: false,
+
             listModalDataSource: [],
-            sourceTemp:null,//临时选择的源
-            bookTemp:null,//临时小说信息
-            listModalDataTemp: [],//临时目录列表
+            listModalData: [],//目录列表
+            listModalOrder: 0,//目录排序方式，0：正序，1：倒序
+            isLoadEnd: true,//是否加载结束，所以页面共用此变量
+            isRefreshing: false,//是否刷新
 
-            isRefreshing: false,
-            chapterDetail: [],
+            firstLoadPageNum: 5,//第一次加载的目录页数
             chapterPage: 0,      //读到某一章第几页
             chapterNum: 0,      //读到第几章
             chapterLength: 0,  //总章节数
 
-            isFirstLoad:true,//是否为第一次加载
-            firstLoadPageNum: 5,//第一次加载的目录页数
-            loadIndexStart:0,//目录加载开始页
-            loadIndexEnd:0,//目录加载结束页
-
-            listModalData: [],//目录列表
-            listModalOrder: 0,
             time: '',
             background: '#0000',
             fontSize: 18,
@@ -84,16 +75,14 @@ export default class ReadPlatform extends Component {
             lineHeight: 34,
             dayNight: '#000000',
             controlStationViewHeight: Dimen.window.height
-        }
 
+        }
         this.x = 0               // 当前的偏移量
         this.catalogListView = null
         this.lock = false
         this.adVersion = 1
     }
-
     componentDidMount() {
-
         let readerConfig = realm.objects('ReaderConfig')
         if (readerConfig[0]) {
             let rc = readerConfig[0]
@@ -116,44 +105,12 @@ export default class ReadPlatform extends Component {
             })
         }
 
-        this._initBookAndSource()
-    }
-
-    //得到当前小说信息以及选择的来源
-    _initBookAndSource(){
-
-        // try{
-        //     var request = new XMLHttpRequest();
-        //     // alert(typeof(Buffer))
-        //     request.onreadystatechange = e => {
-        //         if (request.readyState === 4 && request.status === 200) {
-        //             if(request.status === 200){
-        //                 var arrBuf = [];
-        //                 var bufLength = 0;
-        //                 var chunk = request.responseText;
-        //                 // var a = new MyIconvLite();
-        //                 // a.constructor
-        //                 // alert(JSON.stringify(request))
-        //                 // MyIconvLite.decode(,'gbk')
-        //                 // arrBuf.push(chunk);
-        //                 // bufLength += chunk.length;
-        //                 //
-        //                 // var chunkAll = Encoding.decode(chunk, 'UTF-8');
-        //                 // alert(chunkAll)
-        //             }
-        //         }
-        //     }
-        //     request.open("GET", 'https://m.biqubao.com/book/18569/');
-        //     request.send();
-        //
-        // }catch (e){
-        //     alert("aaaaaaaaaaaaaaaaa\n"+JSON.stringify(e));
-        // }
         let bookId = this.props.bookId;
-        let book = realm.objectForPrimaryKey('HistoryBook', bookId)
+        let book = realm.objectForPrimaryKey('HistoryBook', bookId);
         let source;
         let isMainApi = true;
         // alert("缓存信息：\n"+JSON.stringify(book));
+        // alert("Aaa:"+book.sourceKey);
         if(book.sourceKey){
             for(let key in HtmlAnalysis.api){
                 if(key == book.sourceKey){
@@ -165,31 +122,28 @@ export default class ReadPlatform extends Component {
             source = HtmlAnalysis.api[HtmlAnalysis.mainKey];
             isMainApi = true;
         }
-        if (this.props.bookDetail) {
-            this.setState({
-                book:book,
-                isMainApi:isMainApi,
-                currentSource:source,
-                bookName: this.props.bookDetail.title,
-                chapterNum: book.historyChapterNum,
-                chapterPage: book.historyChapterPage
-            })
-        } else {
-            this.setState({
-                book:book,
-                isMainApi:isMainApi,
-                currentSource:source,
-                bookName: book.bookName,
-                chapterNum: book.historyChapterNum,
-                chapterPage: book.historyChapterPage
-            })
-        }
+
+        // alert(this.props.bookDetail);
+        this.setState({
+            isMainApi:isMainApi,
+            book:book,
+            source:source,
+            chapterNum: book.historyChapterNum,
+            chapterPage: book.historyChapterPage
+        });
+
         InteractionManager.runAfterInteractions(()=> {
-            let book = this.state.book;
-            this._initBookChapterContent(book.bookId, book ? book.historyChapterNum : 0)
-            if(!isMainApi){
-                this._initBookChapter(null);
-            }
+            //得到章节列表
+            this._initBookChapter(null).then((data) => {
+                // alert("得到章节：\n"+JSON.stringify(this.state.bookChapter));
+                //得到当前阅读章节的内容
+                this._appendChapter(null,this.state.chapterNum).then((data1)=> {
+                    setTimeout(()=> {
+                        //自动滑动到上次阅读的页数
+                        this._scrollToIndex(this.state.chapterPage)
+                    }, 100)
+                })
+            });
         });
 
         realm.write(() => {
@@ -202,19 +156,11 @@ export default class ReadPlatform extends Component {
 
     /**
      * 得到当前小说的章节信息
-     * @param type 获取目录的方式，true：获取下一页章节，false:获取上一页章节
+     * @param type 获取目录的方式,null：第一次获取，true：获取下一页章节，false:获取上一页章节
      * @private
      */
     _initBookChapter(type) {
         return new Promise((resolve,reject) => {
-            let isLoad = true;//是否重新加载目录
-            if(type == null){
-                type = true;
-                if(!this.state.isFirstLoad){
-                    isLoad = false;
-                }
-            }
-            // alert("isFirstLoad:"+this.state.isFirstLoad+"++isLoad:"+isLoad)
             let isTemp = true;
             let book = this.state.bookTemp;
             if(book == null){
@@ -222,90 +168,25 @@ export default class ReadPlatform extends Component {
                 isTemp = false;
             }
 
-            // alert("af\n"+JSON.stringify(this.state.sourceTemp))
-            // alert("临时源：\n"+JSON.stringify(this.state.sourceTemp))
-            let source = this.state.sourceTemp;
-            if(source == null){
-                source = this.state.currentSource;
-            }
-
-            let pageNum = 0;
-            if(this.state.isFirstLoad){
-                //根据章节得到当前目录页数，并从前3页开始加载，共加载7页
-                pageNum = Math.ceil (this.state.chapterNum / source.chapterRowNum) - 2;
-                if(pageNum < 1){
-                    pageNum = 1;
-                }
-            }else if(type){
-                pageNum = this.state.loadIndexEnd + 1;
-            }else{
-                pageNum = this.state.loadIndexStart -1;
-            }
-            // alert("isLoad："+isLoad+"+isTemp："+isTemp);
-            if(isLoad){
-                let dataList = new Array();
-                this._getOnePageChapter(source,book,pageNum,pageNum,dataList).then((data) => {
-                    // alert(JSON.stringify(data));
-
-                    if(data != null && data.length > 0){
-
-                    }else{
-                        // alert("没有找到章节！")
-                        pageNum = -1;//没有后续章节了，所以设置为-1
-                    }
-
-                    // alert(this.state.listModalData.length + "++" + data.length);
-                    //新获取的章节与现有章节的位置问题
-                    let listData = []
-                    if(isTemp){
-                        listData = this.state.listModalDataTemp;
-                    }else{
-                        listData = this.state.listModalData;
-                    }
-                    let new_type = type;
-                    if(this.state.listModalOrder == 1){
-                        new_type = !new_type;
-                        data = data.reverse();
-                    }
-                    if(new_type){
-                        data = listData.concat(data);
-                    }else{
-                        data = data.concat(listData);
-                    }
-                    this.setState({
-                        isLoadEnd: true,
-                        listModalData: isTemp ? this.state.listModalData : data,
-                        listModalDataTemp: isTemp ? data : [],
-                        loadIndexStart: type && !this.state.isFirstLoad ? this.state.loadIndexStart : pageNum,
-                        loadIndexEnd: type ? (this.state.isFirstLoad ? (pageNum + this.state.firstLoadPageNum) : pageNum) : this.state.loadIndexEnd,
-                        isFirstLoad: false
-                    });
-
-
-                    resolve(data);
-                }).catch((err) => {
-                    alert("asdf:\n"+JSON.stringify(err))
-                    reject(err);
-                });
-            }else{
-                alert("再次进入，不重新加载。。")
-                resolve(null);
-            }
-        });
-    }
-
-    _initBookChapterContent(bookId, num) {
-        new Promise((resolve, reject)=> {
-            request.get(api.READ_BOOK_CHAPTER_LIST(bookId), null,
-                (data) => {
+            //得到追书神器中的小说章节
+            if((!isTemp && this.state.isMainApi) || (isTemp && book.sourceKey == HtmlAnalysis.mainKey) ){
+                // alert("aaaaaa:  \n"+JSON.stringify(book));
+                request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
+                    // alert("bbbb:\n"+JSON.stringify(data))
                     if (data.ok) {
-                        // alert(JSON.stringify(data));
-                        let bookChapter = data.mixToc
+                        let bookChapter = data.mixToc.chapters;
+                        for(let i = 0 ; i < bookChapter.length ; i++){
+                            bookChapter[i].num = i;
+                            bookChapter[i].bookName = bookChapter[i].title;
+                        }
+                        // alert(JSON.stringify(bookChapter));
                         this.setState({
-                            bookChapter: bookChapter,
-                            chapterLength: bookChapter.chapters.length,
+                            bookChapter: isTemp ? this.state.bookChapter : bookChapter,
+                            bookChapterTemp: isTemp ? bookChapter : null,
+                            listModalData: bookChapter,
+                            chapterLength: bookChapter.length,
+                            isLoadEnd: true,
                             time: timeFormat()
-                            // listModalData: bookChapter.chapters.slice(0)
                         })
                         resolve(bookChapter)
                     } else {
@@ -313,43 +194,264 @@ export default class ReadPlatform extends Component {
                         this.setState({bookChapter: null})
                         reject()
                     }
-                },
-                (error) => {
+                }, (error) => {
                     Toast.toastShort('加载失败,请重试')
                     this.setState({bookChapter: null})
                     reject()
                 })
-        }).then((bookChapter)=> {
-            this._appendChapter(num - 1).then((data)=> {
-                this._appendChapter(num).then((data1)=> {
-                    setTimeout(()=> {
-                        this._scrollToIndex(data.length + this.state.chapterPage)
-                    }, 100)
-                })
-            })
+            }else{
+                //得到其它源中的小说章节
+                let source = isTemp ? this.state.sourceTemp : this.state.source;
+                let pageNum = 0;
+                let isLoad = true;
+
+                if(type == null && !isTemp && this.state.bookChapter != null){
+                    isLoad = false;
+                }
+                // alert("asdfsadf:\n"+isLoad+"++"+this.state.bookChapter)
+                if(isLoad){
+                    if(type == null){
+                        //根据章节得到当前目录页数，并从前1页开始加载
+                        pageNum = Math.ceil (this.state.chapterNum / source.chapterRowNum) - 1;
+                        if(pageNum < 1){
+                            pageNum = 1;
+                        }
+                    }else if(type){
+                        // alert("得到下一页目录")
+                        pageNum = source.loadIndexEnd + 1;
+                    }else{
+                        // alert("得到上一页目录")
+                        pageNum = source.loadIndexStart -1;
+                    }
+                    // alert("bbbbbb:"+pageNum);
+
+                    let dataList = new Array();
+                    this._getOnePageChapter(source,book,pageNum,pageNum,dataList,type).then((data) => {
+                        // alert(JSON.stringify(data));
+                        // alert("aaaa");
+
+                        if(data == null || data.length < 1){
+                            // alert("没有找到章节！")
+                            pageNum = -1;//没有后续章节了，所以设置为-1
+                        }
+
+                        // alert(this.state.listModalData.length + "++" + data.length);
+                        //新获取的章节与现有章节的位置问题
+                        let new_type = type == null ? true : type;
+                        if(this.state.listModalOrder == 1){
+                            new_type = !new_type;
+                            data = data.reverse();
+                        }
+                        if(!isTemp && this.state.bookChapter != null ){
+                            data = new_type ? this.state.bookChapter.concat(data) : data.concat(this.state.bookChapter);
+                        }else if(isTemp && this.state.bookChapterTemp != null){
+                            data = new_type ? this.state.bookChapterTemp.concat(data) : data.concat(this.state.bookChapterTemp);
+                        }
+                        data = data.sort(this._compare("num"));//排序
+                        // alert("aa\n"+JSON.stringify(data.sort(this._compare("num"))));
+
+                        source.loadIndexStart = type == null ? pageNum : (type ? source.loadIndexStart : pageNum);
+                        source.loadIndexEnd = type == null ? (pageNum + this.state.firstLoadPageNum) : (type ? pageNum : source.loadIndexEnd);
+                        // alert("源：\n"+JSON.stringify(source));
+                        this.setState({
+                            isLoadEnd: true,
+                            bookChapter: isTemp ? this.state.bookChapter : data,
+                            bookChapterTemp: isTemp ? data : null,
+                            listModalData: data,
+                            source: isTemp ? this.state.source : source,
+                            sourceTemp: isTemp ? source : this.state.sourceTemp,
+                            chapterLength: data[data.length - 1].num,
+                            time: timeFormat()
+                        });
+
+
+                        resolve(data);
+                    }).catch((err) => {
+                        alert("asdf:\n"+JSON.stringify(err))
+                        reject(err);
+                    });
+                }else{
+                    // alert("再次进入，不重新加载。。\n"+JSON.stringify(this.state.bookChapter))
+                    this.setState({
+                        isLoadEnd: true,
+                        listModalData: this.state.bookChapter,
+                        time: timeFormat()
+                    });
+                    resolve(null);
+                }
+
+
+            }
+        });
+    }
+
+    _compare(key){
+        return function(a,b){
+            return a[key] - b[key];
+        }
+    }
+
+    _getOnePageChapter(source,book,startPageNum,pageNum,dataList,type){
+        return new Promise((resolve,reject) => {
+            HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
+                let loadPageNum = pageNum - startPageNum;
+                dataList = dataList.concat(data);
+                if(type == null && data != null && data.length > 0 && loadPageNum < this.state.firstLoadPageNum){
+                    // alert("结果："+dataList.length);
+                    this._getOnePageChapter(source,book,startPageNum,++pageNum,dataList,type).then((data) => {
+                        resolve(data)
+                    });
+                }else{
+                    // alert("没有了");
+                    resolve(dataList);
+                }
+            }).catch((err) => {
+                alert("_getOnePageChapter\n"+JSON.stringify(err));
+                reject(err);
+            });
+        });
+
+    }
+
+    //上一章
+    _prev_chapter() {
+        if (this.state.chapterNum < 1) {
+            alert("已经是第一章了！！！");
+            return
+        }
+        // alert(this.state.chapterNum+"++"+this.state.bookChapter[0].num)
+        //对于局部加载的源，提前五章开始加载上一页
+        if(!this.state.isMainApi){
+            if(this.state.chapterNum < this.state.bookChapter[0].num - 5){
+                // this._initBookChapter(false).then((data) => {
+                //     alert("先获取上一页目录");
+                //     this._prev_chapter();
+                // });
+                return;
+            }
+        }
+        // alert(--this.state.chapterNum)
+        // alert(--this.state.chapterNum)
+        this.x = 0;
+        this.setState({isLoadEnd: false,showControlStation: false});
+
+        let num = this.state.chapterNum - 1;
+        this._appendChapter(null,num).then((data)=> {
+            this.setState({isLoadEnd: true,chapterNum: num, chapterPage: 0});
+            this._updateHistoryBookChapter(this.props.bookId, num, 0);
         })
     }
 
+    //下一章
+    _next_chapter() {
+        //对于局部加载的源，提前五章开始加载上一页
+        if(!this.state.isMainApi){
+            if(this.state.chapterNum > this.state.bookChapter[this.state.bookChapter.length - 1].num - 5){
+                this._initBookChapter(true).then((data) => {
+                    alert("先获取下一页目录");
+                    this._next_chapter();
+                });
+                return;
+            }
+        }
+        if (this.state.chapterNum + 1 >= this.state.chapterLength) {
+            return
+        }
 
-    //得到没章页数
-    _getBookChapterDetailSync(bookChapter, chapterNum) {
-        let q = new Promise((resolve, reject)=> {
-            let tempUrl = bookChapter.chapters[chapterNum].link.replace(/\//g, '%2F').replace('?', '%3F')
-            request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null,
-                (data) => {
+        this.setState({isLoadEnd: false,showControlStation: false});
+
+        let num = this.state.chapterNum + 1;
+        this._appendChapter(null,num).then((data)=> {
+            this.setState({isLoadEnd: true,chapterNum: num, chapterPage: 0});
+            this._updateHistoryBookChapter(this.props.bookId, num, 0);
+        })
+    }
+
+    /**
+     * 根据章节数得到章节内容
+     * @param type null:覆盖式加载，true:加载到后面,false:加载到前面
+     * @param chapterNum 章节数
+     * @returns {Promise}
+     * @private
+     */
+    _appendChapter(type,chapterNum) {
+        return new Promise((resolve, reject)=> {
+            if (chapterNum < 0) {
+                resolve([])
+                return
+            }
+            // alert(JSON.stringify(this.state.chapterDetail));
+            //判断是否已经加载了该章节,？？？
+            // if (this.state.chapterDetail.length > 1 ) {
+            //     for(let i = 0 ; i < this.state.chapterDetail.length ; i++){
+            //         if(this.state.chapterDetail[i].num == chapterNum){
+            //             alert("已经加载过了")
+            //             resolve([])
+            //             return
+            //         }
+            //     }
+            //
+            // }
+            // alert("得到章节："+chapterNum);
+
+            this._getBookChapterDetailSync(chapterNum).then((data)=> {
+                // alert("得到一章小说：\n"+JSON.stringify(data));
+                let tempArr = null;
+                if(this.state.isMainApi){
+                    tempArr = this._formatChapter(data.chapter.body, chapterNum, this.state.bookChapter[chapterNum].title)
+                }else{
+                    tempArr = this._formatChapter(data.body, data.chapter.num, data.chapter.title)
+                }
+
+                this.setState({
+                    chapterDetail: type == null ? tempArr : (type ? this.state.chapterDetail.concat(tempArr) : tempArr.concat(this.state.chapterDetail)),
+                    time: timeFormat()
+                }, ()=> {
+                    console.log('_appendChapter, page num', tempArr.length)
+                    resolve(tempArr)
+                })
+            })
+        });
+    }
+
+    _getBookChapterDetailSync(chapterNum) {
+        return new Promise((resolve, reject)=> {
+            // alert("_getBookChapterDetailSync:"+this.state.isMainApi)
+            if(this.state.isMainApi){
+                let tempUrl = this.state.bookChapter[chapterNum].link.replace(/\//g, '%2F').replace('?', '%3F')
+                request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null, (data) => {
                     if (data.ok) {
                         resolve(data)
                     } else {
                         Toast.toastLong('更新章节失败~~检查网络后左右滑动屏幕重试~~')
                     }
-                },
-                (error) => {
+                }, (error) => {
                     Toast.toastLong('更新章节失败~~检查网络后左右滑动屏幕重试~~')
                 })
+            }else{
+                let thisCahpter = null;
+                for(let i = 0 ; i < this.state.bookChapter.length ; i++){
+                    if(this.state.bookChapter[i].num == chapterNum){
+                        thisCahpter = this.state.bookChapter[i];
+                        break;
+                    }
+                }
+                // alert("fffff:\n"+JSON.stringify(this.state.source)+"\n"+JSON.stringify(thisCahpter))
+                HtmlAnalysis.getChapterDetail(this.state.source,thisCahpter).then((data)=> {
+                    let re = {
+                        chapter: thisCahpter,
+                        body: data
+                    }
+                    resolve(re);
+                }).catch((err) => {
+                    alert("_getBookChapterDetailSync\n"+JSON.stringify(err));
+                });
+            }
+
         })
-        return q
     }
 
+    //格式化小说内容
     _formatChapter(content, num, title) {
         // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
         // console.log('_formatChapter:' + content)
@@ -381,111 +483,16 @@ export default class ReadPlatform extends Component {
         scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
     }
 
-    //上一章
-    _prev_chapter() {
-        if (this.state.chapterNum < 1) {
-            return
-        }
-        this.x = 0
-        this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
-        this._appendChapter(this.state.chapterNum - 1).then((data)=> {
-            this.setState({chapterNum: this.state.chapterNum - 1, chapterPage: 0})
-        })
-    }
-
-    //下一章
-    _next_chapter() {
-        if (this.state.chapterNum + 1 >= this.state.chapterLength) {
-            return
-        }
-        this.setState({showListModal: false, showControlStation: false, chapterDetail: []})
-        this._appendChapter(this.state.chapterNum + 1).then((data)=> {
-            this.setState({chapterNum: this.state.chapterNum + 1, chapterPage: 0})
-        })
-    }
-
-    _appendChapter(chapterNum) {
-        console.log('_appendChapter', chapterNum)
-        return new Promise((resolve, reject)=> {
-            if (chapterNum < 0) {
-                resolve([])
-                return
-            }
-            // alert(chapterNum+"\n"+JSON.stringify(this.state.bookChapter));
-            this._getBookChapterDetailSync(this.state.bookChapter, chapterNum).then((data)=> {
-                // alert(data.chapter.body+"\n"+this.state.bookChapter.chapters[chapterNum].title);
-                let tempArr = this._formatChapter(data.chapter.body, chapterNum, this.state.bookChapter.chapters[chapterNum].title)
-                if (this.state.chapterDetail.length > 1) {
-                    let x = this.state.chapterDetail[this.state.chapterDetail.length - 1].num
-                    let y = tempArr[tempArr.length - 1].num
-                    if (x == y) {
-                        console.log('_appendChapter, chapter already existed', chapterNum)
-                        resolve([])
-                        return
-                    }
-                }
-                this.setState({
-                    chapterDetail: this.state.chapterDetail.concat(tempArr),
-                    time: timeFormat()
-                }, ()=> {
-                    console.log('_appendChapter, page num', tempArr.length)
-                    resolve(tempArr)
-                })
-            })
-        })
-    }
-
-    _prependChapter(chapterNum) {
-        console.log('_prependChapter', chapterNum)
-        let q = new Promise((resolve, reject)=> {
-            if (chapterNum < 0) {
-                resolve([])
-                return
-            }
-            this._getBookChapterDetailSync(this.state.bookChapter, chapterNum).then((data)=> {
-                let tempArr = this._formatChapter(data.chapter.body, chapterNum, this.state.bookChapter.chapters[chapterNum].title)
-                if (this.state.chapterDetail.length > 1) {
-                    let x = this.state.chapterDetail[0].num
-                    let y = tempArr[0].num
-                    if (x == y) {
-                        console.log('_prependChapter, chapter already existed', chapterNum)
-                        resolve([])
-                        return
-                    }
-                }
-                this.setState({
-                    chapterDetail: tempArr.concat(this.state.chapterDetail),
-                    time: timeFormat()
-                }, ()=> {
-                    console.log('_prependChapter, page num', tempArr.length)
-                    resolve(tempArr)
-                })
-            })
-        })
-        return q
-    }
-
     _onScrollBeginDrag(e) {
         console.log('_onScrollBeginDrag, x', e.nativeEvent.contentOffset.x)
-        //if (this.x == e.nativeEvent.contentOffset.x && this.x === 0) {
-        //    if (this.state.chapterNum < 1) {
-        //        return
-        //    }
-        //    this.x = 0
-        //    this.setState({chapterDetail: []})
-        //    this._appendChapter(this.state.chapterNum - 1).then((data)=> {
-        //        let scrollView = this.refs.scrollView
-        //        scrollView.scrollToEnd({animated: false})
-        //    })
-        //}
     }
 
     _onMomentumScrollEnd(e) {
         console.log('_onMomentumScrollEnd, x', e.nativeEvent.contentOffset.x)
     }
 
+    //翻页
     _handleScroll(e) {
-
         let ori_right = e.nativeEvent.contentOffset.x > this.x
         this.x = e.nativeEvent.contentOffset.x
         if (this.x % Dimen.window.width > 0) {
@@ -520,25 +527,317 @@ export default class ReadPlatform extends Component {
         }
 
         if (ori_right) {
+            //往后翻页，倒数第六页开始加载下一章
             if (scrollIndex + 6 > scrollCount) {
-                let tmp = this.state.chapterDetail[this.state.chapterDetail.length - 1].num + 1
-
+                let tmp = this.state.chapterDetail[this.state.chapterDetail.length - 1].num
                 setTimeout(()=> {
-                    this._appendChapter(tmp)
+                    this._appendChapter(true,tmp)
                 }, 100)
 
             }
         } else {
+            //往前翻页，第五页前开始加载上一章
             if (scrollIndex < 5) {
-                let tmp = this.state.chapterDetail[0].num - 1
-
-                this._prependChapter(tmp).then((data)=> {
+                let tmp = this.state.chapterDetail[0].num
+                this._appendChapter(false,tmp).then((data)=> {
                     setTimeout(()=> {
                         this._scrollToIndex(data.length + scrollIndex)
                     }, 100)
                 })
             }
         }
+    }
+
+    //显示控制台
+    _showControlStation_LR(evt) {
+        console.log('_showControlStation_LR', evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+        var pageX = evt.nativeEvent.pageX
+        var pageY = evt.nativeEvent.pageY
+        if (pageX > Dimen.window.width / 3 && pageX < Dimen.window.width * 2 / 3
+            && pageY > Dimen.window.height / 3 && pageY < Dimen.window.height * 2 / 3) {
+            this.setState({showControlStation: true})
+        }
+        if (pageX >= Dimen.window.width * 2 / 3) {
+            console.log('_showControlStation_LR x=', this.x)
+            let scrollView = this.refs.scrollView
+            scrollView.scrollTo({x: (this.x + Dimen.window.width)})
+        }
+
+        if (pageX < Dimen.window.width / 3) {
+            let scrollView = this.refs.scrollView
+            scrollView.scrollTo({x: (this.x - Dimen.window.width)})
+        }
+    }
+
+    //显示来源列表
+    _showSourceListModal() {
+        this.setState({
+            listModalDataSource: [],
+            isLoadEnd: false,
+            showSourceListModal: true
+        });
+        var li = new Array();
+        var i = 0;
+        var apiLen = 0;
+        let bookName = this.state.book.bookName;
+        for(let key in HtmlAnalysis.api){
+            apiLen++;
+        }
+        // alert("bookName:"+JSON.stringify(this.state.book));
+        new Promise((resolve,reject) => {
+            for(let key in HtmlAnalysis.api){
+                HtmlAnalysis.searchBook(this.props.bookId,bookName,key).then((data)=> {
+                    // alert("aafff"+JSON.stringify(data))
+                    if(data != undefined && data != null){
+                        if(data.isMainApi){
+                            // if(this.state.isMainApi){
+                            //     data.lastChapterTitle = this.state.bookChapter[this.state.bookChapter.length-1].bookName
+                            // }else{
+                            //
+                            // }
+                            data.lastChapterTitle = "未知"
+                        }
+                        li.push(data);
+                    }
+                    i++;
+                    if(i == apiLen){
+                        resolve(li);
+                    }
+                }).catch((err) => {
+                    //这个源如果请求超时了，就直接抛弃，继续去下一个源查找
+                    // alert("出错了2："+JSON.stringify(err));
+                    i++;
+                    if(i == apiLen){
+                        resolve(li);
+                    }
+                });
+            }
+        }).then((data) => {
+            // alert(JSON.stringify(data));
+            this.setState({
+                isLoadEnd: true,
+                listModalDataSource: data
+            });
+        }).catch((err) => {
+            this.setState({
+                isLoadEnd: true,
+                listModalDataSource: []
+            });
+            alert("出错了："+JSON.stringify(err));
+        });
+
+    }
+
+    //显示目录列表
+    _showListModal(book) {
+        let source = null;
+        if(book != null){
+            for(let key in HtmlAnalysis.api){
+                if(key == book.sourceKey){
+                    source = HtmlAnalysis.api[key];
+                }
+            }
+        }
+
+        // alert("ffff\n"+JSON.stringify(book))
+        this.setState({
+            showListModal: true,
+            isLoadEnd: false,
+            listModalOrder: 0,
+            bookTemp: book,
+            sourceTemp: source,
+            listModalData: [],
+            bookChapterTemp: null
+        });
+        let isMainApi = false;
+        if((book == null && this.state.isMainApi) || (book != null && book.sourceKey == HtmlAnalysis.mainKey)){
+            isMainApi = true;
+        }
+        InteractionManager.runAfterInteractions(()=> {
+            this._initBookChapter(null).then((data) => {
+                // alert("ffffffffffffffff:"+this.state.bookChapter.length);
+                this.setState({
+                    isLoadEnd: true
+                    // listModalData: this.state.bookChapter
+                });
+                if(isMainApi){
+                    //列表导航到当前章节
+
+                    // alert("jjjjj\n"+JSON.stringify(this.state.listModalData))
+                    setTimeout(()=> {
+                        if (this.catalogListView) {
+                            this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+                        }
+                    }, 50)
+                }else{
+                    let newNum = 0;//由于只加载部分目录，所以需要计算当前目录所在位置
+                    for(let i = 0 ; i < this.state.listModalData.length ; i++){
+                        let d = this.state.listModalData[i];
+                        if(d.num == this.state.chapterNum){
+                            newNum = i;
+                            break;
+                        }
+                    }
+                    //列表导航到当前章节
+                    setTimeout(()=> {
+                        if (this.catalogListView) {
+                            this.catalogListView.scrollToIndex({index: newNum, viewPosition: 0, animated: true})
+                        }
+                    }, 50)
+                }
+            })
+        });
+    }
+
+    //选择目录中的新章节
+    _clickListModalItem(item) {
+        //点击章节的时候，临时选择的源变成固定源
+        let source = this.state.sourceTemp;
+        if(source == null){
+            source = this.state.source;
+        }
+        let book = this.state.bookTemp;
+        if(book == null){
+            book = this.state.book;
+        }
+        let bookChapter = this.state.bookChapterTemp;
+        if(bookChapter == null){
+            bookChapter = this.state.bookChapter;
+        }
+        let isMainApi = this.state.isMainApi;
+        if(source.key == HtmlAnalysis.mainKey){
+            isMainApi = true;
+        }else{
+            isMainApi = false;
+        }
+        // alert("bookChapter：\n"+JSON.stringify(bookChapter))
+        this.setState({
+            book: book,
+            bookTemp: null,
+            source: source,
+            sourceTemp: null,
+            bookChapter: bookChapter,
+            bookChapterTemp: null,
+            isMainApi: isMainApi,
+            isLoadEnd: false,
+            chapterDetail: []
+        });
+
+        this._back(false)
+        InteractionManager.runAfterInteractions(()=> {
+            // alert("isMainApi:"+this.state.isMainApi+"++"+isMainApi)
+            console.log('_clickListModalItem');
+            let num = 0;
+            if(isMainApi){
+                for (var i = 0; i < this.state.bookChapter.length; ++i) {
+                    var chapter = this.state.bookChapter[i]
+                    if (chapter.title == item.title) {
+                        num = i;
+                        break;
+                    }
+                }
+            }else{
+                num = item.num;
+            }
+
+            this._appendChapter(null,num).then((data)=> {
+                this.setState({isLoadEnd: true,chapterNum: item.num, chapterPage: 0})
+                this._updateHistoryBookChapter(this.props.bookId, item.num, 0)
+            })
+        });
+
+    }
+
+    //目录排序
+    _sortListModal() {
+        if (this.catalogListView) {
+            this.setState({
+                listModalData: this.state.listModalData.reverse(),
+                listModalOrder: this.state.listModalOrder == 0 ? 1 : 0
+            });
+
+            setTimeout(()=> {
+                if (this.catalogListView) {
+                    this.catalogListView.scrollToIndex({index: 0, viewPosition: 0, animated: true})
+                }
+            }, 50)
+        }
+    }
+
+    //更新阅读进度
+    _updateHistoryBookChapter(bookId, chapterNum, chapterPage) {
+        var books = realm.objects('HistoryBook').sorted('sortNum')
+        var book = realm.objectForPrimaryKey('HistoryBook', bookId)
+        if (book) {
+        // alert("book:\n"+JSON.stringify(this.state.book));
+        // alert("source:\n"+JSON.stringify(this.state.source));
+            realm.write(() => {
+                if (book.bookId === books[books.length - 1].bookId) {
+                    // alert("Aaa:"+this.state.source.key);
+                    realm.create('HistoryBook', {
+                        bookId: book.bookId,
+                        bookUrlNew: this.state.book.bookUrlNew,
+                        historyChapterNum: chapterNum,
+                        historyChapterPage: chapterPage,
+                        sourceKey: this.state.source.key
+                    }, true)
+                } else {
+                    // alert("bbb:"+this.state.source.key);
+                    realm.create('HistoryBook', {
+                        bookId: book.bookId,
+                        bookUrlNew: this.state.book.bookUrlNew,
+                        sortNum: books[books.length - 1].sortNum + 1,
+                        historyChapterNum: chapterNum,
+                        historyChapterPage: chapterPage,
+                        sourceKey: this.state.source.key
+                    }, true)
+                }
+            })
+        }
+    }
+
+    // _header = () => {
+    //     return <Text style={[styles.txt, { backgroundColor: 'white' }]}>这是头部</Text>;
+    // }
+    _footer = () => {
+        if(this.state.loadIndexEnd == -1 || this.state.listModalOrder == 1){
+            return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#C7EDCC',textAlign:'center'}}>....我的底线...</Text></View>;
+        }
+        return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#fff',textAlign:'center'}}>....正在拼命加载...</Text></View>;
+    }
+
+    /**
+     *刷新
+     * @param type false:上拉，true:下拉
+     * @private
+     */
+    _onRefreshChapter(type) {
+        if(!this.state.isLoadEnd){
+            console.log("正在加载，别急！！！");
+            return
+        }
+
+        if(this.state.listModalOrder == 1){
+            type = !type;
+        }
+        let loadIndexStart = this.state.sourceTemp != null ? this.state.sourceTemp.loadIndexStart : this.state.source.loadIndexStart;
+        //第一页、正序上拉、倒序下拉
+        if(loadIndexStart <= 1 && !type){
+            alert('已经是第一章了');
+            return;
+        }
+        let loadIndexEnd = this.state.sourceTemp != null ? this.state.sourceTemp.loadIndexEnd : this.state.source.loadIndexEnd;
+        //最后一页、正序下拉、倒序上拉
+        if(loadIndexEnd == -1 && type){
+            alert('这已经是我的底线了，请住手！！！');
+            return;
+        }
+
+        this.setState({
+            isLoadEnd: false,
+        });
+
+        this._initBookChapter(type);
     }
 
     /**
@@ -555,18 +854,18 @@ export default class ReadPlatform extends Component {
                 isLoadEnd : true,
                 showControlStation: false
             });
-            if(type)
+            if(type || !this.state.showSourceListModal)
                 return
         }
 
         //隐藏换源列表
         if (this.state.showSourceListModal) {
             this.setState({
-                sourceTemp:null,//临时选择的源
-                bookTemp:null,//临时小说信息
-                listModalDataTemp: [],//临时目录列表
+                isLoadEnd: true,
+                bookTemp: null,//临时小说信息
+                sourceTemp: null,//临时源
+                bookChapterTemp: null,//临时章节
                 showSourceListModal: false,
-                isLoadSourceEnd: true,
                 showControlStation: false
             });
             return
@@ -587,6 +886,39 @@ export default class ReadPlatform extends Component {
         } else {
             this.setState({showSaveModal: true})
         }
+    }
+
+    _toPop() {
+        this.props.navigator.pop()
+    }
+
+    /**
+     * 进入书籍社区
+     */
+    _toBookCommunity() {
+        this.setState({showListModal: false, showControlStation: false})
+        this.props.navigator.push({
+            name: 'bookCommunity',
+            component: BookCommunity,
+            params: {
+                bookId: this.props.bookId,
+                page: 0
+            }
+        })
+    }
+
+    /**
+     * 进入书籍详情界面
+     */
+    _toBookDetail() {
+        this.setState({showListModal: false, showControlStation: false})
+        this.props.navigator.push({
+            name: 'bookDetail',
+            component: BookDetail,
+            params: {
+                bookId: this.state.bookChapter.book
+            }
+        })
     }
 
     _addFontSize() {
@@ -689,409 +1021,6 @@ export default class ReadPlatform extends Component {
         }
     }
 
-    _closeModal() {
-        this.setState({showSaveModal: false})
-    }
-
-    _toPop() {
-        this.props.navigator.pop()
-    }
-
-    /**
-     * 进入书籍社区
-     */
-    _toBookCommunity() {
-        this.setState({showListModal: false, showControlStation: false})
-        this.props.navigator.push({
-            name: 'bookCommunity',
-            component: BookCommunity,
-            params: {
-                bookId: this.props.bookId,
-                page: 0
-            }
-        })
-    }
-
-    /**
-     * 进入书籍详情界面
-     */
-    _toBookDetail() {
-        this.setState({showListModal: false, showControlStation: false})
-        this.props.navigator.push({
-            name: 'bookDetail',
-            component: BookDetail,
-            params: {
-                bookId: this.state.bookChapter.book
-            }
-        })
-    }
-
-    //显示来源列表
-    _showSourceListModal() {
-        this.setState({
-            listModalDataSource: [],
-            sourceTemp:null,//临时选择的源
-            bookTemp:null,//临时小说信息
-            listModalDataTemp: [],//临时目录列表
-            showListModal: false,
-            showControlStation: false,
-            isLoadSourceEnd: false,
-            showSourceListModal: true
-        });
-        var li = new Array();
-        var i = 0;
-        var apiLen = 0;
-        let bookName = this.state.bookName;
-        for(let key in HtmlAnalysis.api){
-            apiLen++;
-        }
-        new Promise((resolve,reject) => {
-            for(let key in HtmlAnalysis.api){
-                HtmlAnalysis.searchBook(this.props.bookId,bookName,key).then((data)=> {
-                            // alert("aafff"+JSON.stringify(data))
-                    if(data != undefined && data != null){
-                        if(data.isMainApi){
-
-                            data.lastChapterTitle = this.state.bookChapter.chapters[this.state.bookChapter.chapters.length-1].title
-                        }
-                        li.push(data);
-                    }
-                    i++;
-                    if(i == apiLen){
-                        resolve(li);
-                    }
-                }).catch((err) => {
-                    //这个源如果请求超时了，就直接抛弃，继续去下一个源查找
-                    // alert("出错了2："+JSON.stringify(err));
-                    i++;
-                    if(i == apiLen){
-                        resolve(li);
-                    }
-                });
-            }
-        }).then((data) => {
-            // alert(JSON.stringify(data));
-            this.setState({
-                showListModal: false,
-                showControlStation: false,
-                isLoadSourceEnd: true,
-                showSourceListModal: true,
-                listModalDataSource: data
-            });
-        }).catch((err) => {
-            this.setState({
-                showListModal: false,
-                showControlStation: false,
-                isLoadSourceEnd: true,
-                showSourceListModal: true,
-                listModalDataSource: []
-            });
-            alert("出错了："+JSON.stringify(err));
-        });
-
-    }
-
-    _getOnePageChapter(source,book,startPageNum,pageNum,dataList){
-        // alert(pageNum+"++"+dataList.length);
-
-        return new Promise((resolve,reject) => {
-            HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
-                let loadPageNum = pageNum - startPageNum;
-                dataList = dataList.concat(data);
-                if(this.state.isFirstLoad && data != null && data.length > 0 && loadPageNum < this.state.firstLoadPageNum){
-                    // alert("结果："+dataList.length);
-                    this._getOnePageChapter(source,book,startPageNum,++pageNum,dataList).then((data) => {
-                        resolve(data)
-                    });
-                }else{
-                    // alert("没有了");
-                    resolve(dataList);
-                }
-            }).catch((err) => {
-                alert("_getOnePageChapter\n"+JSON.stringify(err));
-                reject(err);
-            });
-        });
-
-    }
-
-    //显示目录列表
-    _showListModal(book) {
-        let source = null;
-        if(book != null){
-            for(let key in HtmlAnalysis.api){
-                if(key == book.sourceKey){
-                    source = HtmlAnalysis.api[key];
-                }
-            }
-        }
-
-        // alert("ffff\n"+JSON.stringify(book))
-        this.setState({
-            showListModal: true,
-            isLoadEnd: false,
-            listModalDataTemp: [],
-            isFirstLoad: true,
-            listModalOrder: 0,
-            bookTemp: book,
-            sourceTemp: source
-        });
-
-        InteractionManager.runAfterInteractions(()=> {
-            if((book == null && this.state.isMainApi) || (book != null && book.sourceKey == HtmlAnalysis.mainKey)){
-                // alert("加载原始目录");
-                // alert(JSON.stringify(this.state.bookChapter.chapters))
-                this.setState({
-                    isLoadEnd: true,
-                    listModalDataTemp: this.state.bookChapter.chapters
-                });
-
-                //列表导航到当前章节
-                setTimeout(()=> {
-                    if (this.catalogListView) {
-                        this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
-                    }
-                }, 50)
-            }else{
-                // alert("isFirstLoad:"+this.state.isFirstLoad)
-                this._initBookChapter(null).then((d) => {
-                    // alert("临时目录："+this.state.listModalDataTemp.length+"\n主目录："+this.state.listModalData.length)
-                    let data = this.state.listModalDataTemp;
-                    if(data == null || data.length < 1){
-                        data = this.state.listModalData;
-                    }
-                    let newNum = 0;//由于只加载部分目录，所以需要计算当前目录所在位置
-                    for(let i in data){
-                        let d = data[i];
-                        if(d.num == this.state.chapterNum){
-                            newNum = i;
-                            break;
-                        }
-                    }
-                    // alert(newNum+"++++"+this.state.chapterNum+"\n"+JSON.stringify(data));
-
-                    //列表导航到当前章节
-                    setTimeout(()=> {
-                        if (this.catalogListView) {
-                            this.catalogListView.scrollToIndex({index: newNum, viewPosition: 0, animated: true})
-                        }
-                    }, 100)
-                }).catch((err) => {
-                    alert("aaa\n"+JSON.stringify(err))
-                });
-            }
-        });
-    }
-
-    //目录排序
-    _sortListModal() {
-        if (this.catalogListView) {
-            var d1 = this.state.listModalData;
-            var d2 = this.state.listModalDataTemp;
-
-            d1.reverse();
-            d2.reverse();
-
-            this.setState({
-                listModalData: d1,
-                listModalDataTemp: d2,
-                listModalOrder: this.state.listModalOrder == 0 ? 1 : 0
-            });
-
-            setTimeout(()=> {
-                if (this.catalogListView) {
-                    this.catalogListView.scrollToIndex({index: 0, viewPosition: 0, animated: true})
-                }
-            }, 50)
-        }
-    }
-
-    // _header = () => {
-    //     return <Text style={[styles.txt, { backgroundColor: 'white' }]}>这是头部</Text>;
-    // }
-    _footer = () => {
-        // alert("aasdf");
-        if(this.state.loadIndexEnd == -1 || this.state.listModalOrder == 1){
-            return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#C7EDCC',textAlign:'center'}}>....我的底线...</Text></View>;
-        }
-        return <View style={{textAlign:'center' }}><Text style={{ backgroundColor: '#ddd',color:'#fff',textAlign:'center'}}>....正在拼命加载...</Text></View>;
-    }
-
-    //刷新
-    /**
-     *
-     * @param type false:上拉，true:下拉
-     * @private
-     */
-    _onRefreshChapter(type) {
-        if(!this.state.isLoadEnd){
-            console.log("正在加载，别急！！！");
-            return
-        }
-
-        if(this.state.listModalOrder == 1){
-            type = !type;
-        }
-        //第一页、正序上拉、倒序下拉
-        if(this.state.loadIndexStart <= 1 && !type){
-            alert('已经是第一章了');
-            return;
-        }
-        //最后一页、正序下拉、倒序上拉
-        if(this.state.loadIndexEnd == -1 && type){
-            alert('这已经是我的底线了，请住手！！！');
-            return;
-        }
-
-        this.setState({
-            isLoadEnd: false,
-        });
-
-        this._initBookChapter(type);
-    }
-
-    //选择目录中的新章节
-    _clickListModalItem(item) {
-        //点击章节的时候，临时选择的源变成固定源
-        let source = this.state.sourceTemp;
-        if(source == null){
-            source = this.state.currentSource;
-        }
-        let book = this.state.bookTemp;
-        if(book == null){
-            book = this.state.book;
-        }
-        let isMainApi = this.state.isMainApi;
-        if(source.key == HtmlAnalysis.mainKey){
-            isMainApi = true;
-        }else{
-            isMainApi = false;
-        }
-        // alert("source：\n"+JSON.stringify(source)+"book：\n"+JSON.stringify(book))
-        this.setState({
-            book: book,
-            bookTemp: null,
-            currentSource: source,
-            sourceTemp: null,
-            isMainApi: isMainApi,
-            chapterDetail: []
-        });
-
-        // alert("isMainApi:"+isMainApi)
-        console.log('_clickListModalItem');
-        if(isMainApi){
-            for (var i = 0; i < this.state.bookChapter.chapters.length; ++i) {
-                var chapter = this.state.bookChapter.chapters[i]
-                if (chapter.title == item.title) {
-                    // this.setState({
-                    //     // showListModal: false,
-                    //     // showControlStation: false,
-                    //     chapterDetail: []
-                    // });
-                    // alert("chapter:\n"+JSON.stringify(chapter));
-
-                    this._appendChapter(i).then((data)=> {
-                        // alert(JSON.stringify(data));
-                        this.setState({
-                            chapterNum: data[0].num,
-                            chapterPage: 0
-                        })
-                        this._back(false)
-                        this._updateHistoryBookChapter(this.props.bookId, data[0].num, 0)
-                    })
-                    break
-                }
-            }
-        }else{
-            HtmlAnalysis.getChapterDetail(source,item).then((data)=> {
-                let tempArr = this._formatChapter(data, item.num, item.title)
-                alert("新的小说：\n"+JSON.stringify(tempArr))
-                this.setState({
-                    chapterDetail: this.state.chapterDetail.concat(tempArr),
-                    time: timeFormat(),
-                    chapterNum: tempArr[0].num,
-                    chapterPage: 0
-                }, ()=> {
-                    console.log('_appendChapter, page num', tempArr.length)
-                })
-                this._updateHistoryBookChapter(this.props.bookId, tempArr[0].num, 0)
-                this._back(false)
-            }).catch((err) => {
-                alert("_clickListModalItem\n"+JSON.stringify(err));
-            });
-        }
-
-    }
-
-    _showControlStation(evt) {
-        var pageX = evt.nativeEvent.pageX
-        var pageY = evt.nativeEvent.pageY
-        if (pageX > Dimen.window.width / 3 && pageX < Dimen.window.width * 2 / 3
-            && pageY > Dimen.window.height / 3 && pageY < Dimen.window.height * 2 / 3) {
-            this.setState({showControlStation: true})
-        }
-        if (pageY >= Dimen.window.height * 2 / 3) {
-            let scrollView = this.refs.scrollView
-            scrollView.scrollTo({x: (this.x + Dimen.window.width)})
-        }
-
-        if (pageY < Dimen.window.height / 3) {
-            let scrollView = this.refs.scrollView
-            scrollView.scrollTo({x: (this.x - Dimen.window.width)})
-        }
-    }
-
-    //显示控制台
-    _showControlStation_LR(evt) {
-        console.log('_showControlStation_LR', evt.nativeEvent.pageX, evt.nativeEvent.pageY)
-        var pageX = evt.nativeEvent.pageX
-        var pageY = evt.nativeEvent.pageY
-        if (pageX > Dimen.window.width / 3 && pageX < Dimen.window.width * 2 / 3
-            && pageY > Dimen.window.height / 3 && pageY < Dimen.window.height * 2 / 3) {
-            this.setState({showControlStation: true})
-        }
-        if (pageX >= Dimen.window.width * 2 / 3) {
-            console.log('_showControlStation_LR x=', this.x)
-            let scrollView = this.refs.scrollView
-            scrollView.scrollTo({x: (this.x + Dimen.window.width)})
-        }
-
-        if (pageX < Dimen.window.width / 3) {
-            let scrollView = this.refs.scrollView
-            scrollView.scrollTo({x: (this.x - Dimen.window.width)})
-        }
-    }
-
-    //更新阅读进度
-    _updateHistoryBookChapter(bookId, chapterNum, chapterPage) {
-        var books = realm.objects('HistoryBook').sorted('sortNum')
-        var book = realm.objectForPrimaryKey('HistoryBook', bookId)
-        // alert("book:\n"+JSON.stringify(this.state.book));
-        if (book) {
-            realm.write(() => {
-                if (book.bookId === books[books.length - 1].bookId) {
-                    realm.create('HistoryBook', {
-                        bookId: book.bookId,
-                        bookUrl: this.state.book.bookUrl,
-                        historyChapterNum: chapterNum,
-                        historyChapterPage: chapterPage,
-                        sourceKey: this.state.currentSource.key
-                    }, true)
-                } else {
-                    var sortNum = books[books.length - 1].sortNum + 1
-                    realm.create('HistoryBook', {
-                        bookId: book.bookId,
-                        bookUrl: this.state.book.bookUrl,
-                        sortNum: books[books.length - 1].sortNum + 1,
-                        historyChapterNum: chapterNum,
-                        historyChapterPage: chapterPage,
-                        sourceKey: this.state.currentSource.key
-                    }, true)
-                }
-            })
-        }
-    }
-
     //章节明细，每一章分为多页显示
     renderListView() {
         return (
@@ -1183,8 +1112,8 @@ export default class ReadPlatform extends Component {
                     style={{flex: 1}}>
                     <View style={{flex: 1}}>
                         <TouchableOpacity style={{position:'absolute', justifyContent: 'center',alignItems: 'center', height:44, width:44, backgroundColor: 'rgba(0,0,0,0)',
-                    bottom:30, right:10, borderRadius: 5
-                    }} onPress={this._dayNight.bind(this, '#0000')}
+                            bottom:30, right:10, borderRadius: 5
+                        }} onPress={this._dayNight.bind(this, '#0000')}
                                           activeOpacity={0.5}>
                             <Icon
                                 name='ios-eye'
@@ -1318,7 +1247,7 @@ export default class ReadPlatform extends Component {
                     </View>
                     <View style={styles.itemSourceBodyRight}>
                         {
-                            this.state.currentSource == null || this.state.currentSource.key !== rowData.item.sourceKey ?
+                            this.state.source == null || this.state.source.key !== rowData.item.sourceKey ?
                                 <Text style={styles.itemXZ}></Text>
                                 :
                                 <Text style={styles.itemXZ}>{'当前选择'}</Text>
@@ -1340,7 +1269,7 @@ export default class ReadPlatform extends Component {
                 activeOpacity={1}
                 onPress={() => this._clickListModalItem(rowData.item)}>
                 {
-                    (this.state.chapterNum == rowData.item.num) || (this.state.bookChapter.chapters[this.state.chapterNum].title == rowData.item.title) ?
+                    this.state.chapterNum == rowData.item.num ?
                         <Text
                             numberOfLines={1}
                             style={[styles.listModalText, {fontSize: config.css.fontSize.title, fontWeight: 'bold'}]}>
@@ -1356,7 +1285,6 @@ export default class ReadPlatform extends Component {
             </TouchableOpacity>
         )
     }
-
 
     render() {
         return (
@@ -1427,7 +1355,7 @@ export default class ReadPlatform extends Component {
                                       renderItem={this.renderSourceListModal.bind(this)}
                             />
                             :
-                            <CommonText text={this.state.isLoadSourceEnd ? '没有找到合适的来源~~' : '正在加载~~'}/>
+                            <CommonText text={this.state.isLoadEnd ? '没有找到合适的来源~~' : '正在加载~~'}/>
                         }
 
                     </TouchableOpacity>
@@ -1450,7 +1378,7 @@ export default class ReadPlatform extends Component {
                                     color={config.css.fontColor.white}
                                     onPress={this._back.bind(this)}
                                 />
-                                <Text style={styles.listModalTitle}>{this.state.title}</Text>
+                                <Text style={styles.listModalTitle}>{this.state.bookName}</Text>
 
                                 <TouchableOpacity
                                     onPress={() => {this.setState({showControlStation: false})}}
@@ -1469,7 +1397,7 @@ export default class ReadPlatform extends Component {
                         </View>
 
 
-                        {(this.state.sourceTemp == null && this.state.listModalData && this.state.listModalData.length > 0 ) || (this.state.sourceTemp != null && this.state.listModalDataTemp && this.state.listModalDataTemp.length > 0 ) ?
+                        {this.state.listModalData && this.state.listModalData.length > 0  ?
                             <FlatList
                                 ref={(scrollView) => {this.catalogListView = scrollView}}
                                 keyExtrator={"title"}
@@ -1477,7 +1405,7 @@ export default class ReadPlatform extends Component {
                                 getItemLayout={(data,index)=>(
                                     {length: 40, offset: 40 * index, index}
                                 )}
-                                data={this.state.listModalDataTemp && this.state.listModalDataTemp.length > 0 ? this.state.listModalDataTemp : this.state.listModalData}
+                                data={this.state.listModalData}
                                 renderItem={this.renderListModal.bind(this)}
 
                                 refreshing={this.state.isRefreshing}
@@ -1496,6 +1424,8 @@ export default class ReadPlatform extends Component {
             </Image>
         )
     }
+
+
 }
 
 const styles = StyleSheet.create({
@@ -1648,3 +1578,4 @@ const styles = StyleSheet.create({
         textAlign: 'right'
     }
 })
+
