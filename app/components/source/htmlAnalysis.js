@@ -96,6 +96,7 @@ myModule.searchBook = (bookId,bookName,key) => {
                 book.bookUrlNew = book.cover;
                 book.bookId = book._id;
                 book.bookName = book.title;
+                book.lastChapterTitle = book.lastChapter;
                 // alert("searchBook:\n"+JSON.stringify(book));
                 resolve(book);
             }, (err) => {

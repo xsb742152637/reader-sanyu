@@ -100,6 +100,7 @@ export let wordCountFormat = (wordCount) => {
 export let timeFormat = () => {
   let temp = new Date()
   var h = temp.getHours()
+  h = h < 10 ? ('0' + h) : h
   var minute = temp.getMinutes()
   minute = minute < 10 ? ('0' + minute) : minute
   return h + ':' + minute
