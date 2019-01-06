@@ -368,7 +368,7 @@ export default class ReadPlatform extends Component {
     }
     //根据目录排序方式得到目录的序列号
     _getOrderNum(chapterNum){
-        chapterNum = this.state.listModalOrder == 0 ? chapterNum : (this.state.bookChapter.length - chapterNum);
+        chapterNum = this.state.listModalOrder == 0 ? chapterNum : (this.state.bookChapter.length - chapterNum - 1);
         alert("chapterNum:"+chapterNum)
         return chapterNum;
     }
@@ -644,7 +644,7 @@ export default class ReadPlatform extends Component {
 
                 setTimeout(()=> {
                     if (this.catalogListView) {
-                        this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+                        this.catalogListView.scrollToIndex({index: this._getOrderNum(this.state.chapterNum), viewPosition: 0, animated: true})
                     }
                 }, 50)
             })
@@ -707,7 +707,7 @@ export default class ReadPlatform extends Component {
 
             setTimeout(()=> {
                 if (this.catalogListView) {
-                    this.catalogListView.scrollToIndex({index: this.state.listModalOrder == 0 ? this.state.chapterNum : 0, viewPosition: 0, animated: true})
+                    this.catalogListView.scrollToIndex({index: 0, viewPosition: 0, animated: true})
                 }
             }, 50)
         }
