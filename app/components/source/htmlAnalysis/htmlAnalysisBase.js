@@ -14,9 +14,7 @@ var myModule = {
             key:'zssq',
             webNameShort: '追书神器',//简称
             webName: '追书神器',//全名
-            isMainApi: true,
-            loadIndexStart: 1,
-            loadIndexEnd: -1
+            isMainApi: true
         },
         zzdxsw:{
             key:'zzdxsw',
@@ -29,9 +27,7 @@ var myModule = {
             chapterUrlFirst: false,//章节路径的第一页不加路径
             chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
             chapterUrlAfter: '.html',//后续章节需要添加的后面部分
-            chapterRowNum: 25,//每页目录行数
-            loadIndexStart: 1,
-            loadIndexEnd: -1
+            chapterRowNum: 25//每页目录行数
         }
         // ,
         // bqg:{
@@ -52,6 +48,7 @@ var myModule = {
 
 //将br换行标签转换成\n
 myModule.replaceBrTag = (htmlStr) => {
+    htmlStr = htmlStr.replace(/<br.\/><br.\/>/g,'\n')
     return htmlStr.replace(/<br.\/>/g,'\n');
 }
 //通过特别的字符串截取从headStr到footStr之间的html内容
@@ -100,10 +97,21 @@ myModule.getChapterNumByCH = (ch,beforNum) => {
     let r = 0;
     if(ch != null && ch != ""){
         let b_n = 0;
+        let bf = true;//true:上一个是单位，false:上一个是数字
         for(let c in ch){
             let c1 = ch[c];
-            if(CH_SZ[c1]){
-                b_n = CH_SZ[c1];
+            if(CH_SZ[c1] != null){
+                if(bf){
+                    b_n = CH_SZ[c1];
+                }else{
+                    if(r == 0){
+                        r = "";
+                    }
+                    console.log(r + '+='+ b_n+"+"+CH_SZ[c1])
+                    r += b_n+ "" + CH_SZ[c1];
+                    b_n = "";
+                }
+                bf = false;
                 // alert("数字："+c1+"+++"+b_n);
             }else if(CH_DW[c1]){
                 if(b_n == 0){
@@ -111,6 +119,7 @@ myModule.getChapterNumByCH = (ch,beforNum) => {
                 }
                 r += b_n * CH_DW[c1];
                 b_n = 0;
+                bf = true;
                 // alert("结果："+c1+"+++"+CH_DW[c1]+"+++"+r);
             }
         }
@@ -118,7 +127,7 @@ myModule.getChapterNumByCH = (ch,beforNum) => {
     }else{
         r = beforNum + 1;
     }
-    return r;
+    return parseInt(r);
 }
 
 module.exports =  myModule;

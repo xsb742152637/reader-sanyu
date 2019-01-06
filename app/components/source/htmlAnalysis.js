@@ -11,7 +11,8 @@ import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 import api from '../../common/api'
 
 var myModule = {
-    bookName:""
+    bookName:"",
+    cacheChapter:[]
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
@@ -25,7 +26,7 @@ myModule.getChapterDetail = (source,chapter) => {
     return new Promise((resolve,reject) => {
         // alert("得到小说："+JSON.stringify(chapter));
         //超时时间为
-        request.ajax(chapter.link,10,source.charset, null,true,(data) => {
+        request.ajax(chapter.link,20,source.charset, null,true,(data) => {
             let ha = myModule._get_type(source.key);
             // alert("结果："+data);
             if(ha != null){
@@ -36,8 +37,8 @@ myModule.getChapterDetail = (source,chapter) => {
             }
 
         },(err) => {
-            alert("getChapterDetail\n"+JSON.stringify(err));
-            reject(err);
+            // alert("getChapterDetail\n"+JSON.stringify(err));
+            reject("获取小说章节出错");
         });
     });
 }
@@ -58,7 +59,7 @@ myModule.getChapter = (source,book,pageNum) => {
 
         // alert(book.webName+"获取目录："+url);
         //超时时间为
-        request.ajax(url,10,source.charset, null,true,(data) => {
+        request.ajax(url,20,source.charset, null,true,(data) => {
             let ha = myModule._get_type(book.sourceKey);
             if(ha != null){
                 let dataList = ha._chapter_html(book,data);
@@ -69,7 +70,8 @@ myModule.getChapter = (source,book,pageNum) => {
 
         },(err) => {
             alert("getChapter\n"+JSON.stringify(err));
-            reject(err);
+            resolve([]);
+            // reject(err);
         });
     });
 }

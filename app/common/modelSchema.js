@@ -28,7 +28,8 @@ const HistoryBookSchema = {
     bookUrlNew: {type: 'string',default: ''},
     lastChapterTitle: 'string',
     lastChapterTime: 'string',
-    historyChapterNum: 'int',
+    historyChapterTitle: {type: 'string',default: ''},//最后一次阅读的章节名称
+    historyChapterNum: 'int',//最后一次阅读的章节序号
     historyChapterPage: 'int',
     saveTime: 'date',
     sortNum: 'int',

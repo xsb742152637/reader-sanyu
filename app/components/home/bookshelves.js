@@ -348,8 +348,8 @@ export default class Bookshelves extends Component {
                     />
                     <View style={styles.itemBody}>
                         <Text style={styles.itemTitle}>{rowData.bookName}</Text>
-                        <Text style={styles.itemDesc}>{
-                            '阅读进度：第 ' + (rowData.historyChapterNum + 1) + ' 章' }
+                        <Text style={styles.itemDesc}>
+                            {'阅读进度：'+(rowData.historyChapterTitle == '' ? '第 ' + (rowData.historyChapterNum + 1) + ' 章' : rowData.historyChapterTitle)}
                         </Text>
                         <Text
                             style={styles.itemDesc}>{'最近更新：' + dateFormat(rowData.lastChapterTime) + '  ' + rowData.lastChapterTitle}

@@ -100,9 +100,17 @@ def enableProguardInReleaseBuilds = false
 //}
 
 android {
+    signingConfigs {
+        release {
+            keyAlias 'afanna'
+            keyPassword 'afanna'
+            storeFile file('F:/AndroidProject/reader-sanyu/android/app/afanna.jks')
+            storePassword 'afanna'
+        }
+    }
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
-    
+
     dexOptions {
         jumboMode = true
     }
@@ -137,7 +145,7 @@ android {
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-//            signingConfig signingConfigs.release
+            signingConfig signingConfigs.release
         }
     }
 

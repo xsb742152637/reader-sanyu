@@ -45,7 +45,7 @@ public class SplashActivity extends Activity implements SplashADListener {
     private ImageView splashHolder;
     private static final String SKIP_TEXT = "跳过%d";
 
-    public boolean canJump = false;
+    public boolean canJump = true;
 
     /**
      * 为防止无广告时造成视觉上类似于"闪退"的情况，设定无广告时页面跳转根据需要延迟一定时间，demo
@@ -88,7 +88,7 @@ public class SplashActivity extends Activity implements SplashADListener {
 
                 } catch (Exception e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
+//                    e.printStackTrace();
                     startReader();
                 }
 
@@ -265,7 +265,7 @@ public class SplashActivity extends Activity implements SplashADListener {
                 SplashActivity.this.overridePendingTransition(0, 0);
             }
         } catch (NullPointerException ex) {
-            Log.e("afanna", ex.getMessage());
+//            Log.e("afanna", ex.getMessage());
             Intent intent = new Intent();
             intent.setClass(SplashActivity.this, MainActivity.class);
             SplashActivity.this.startActivity(intent);
