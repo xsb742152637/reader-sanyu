@@ -110,8 +110,6 @@ export default class ReadPlatform extends Component {
         let book = realm.objectForPrimaryKey('HistoryBook', bookId);
         let source;
         let isMainApi = true;
-        // alert("缓存信息：\n"+JSON.stringify(book));
-        // alert("Aaa:"+book.sourceKey);
         if(book.sourceKey){
             for(let key in HtmlAnalysis.api){
                 if(key == book.sourceKey){
@@ -124,8 +122,6 @@ export default class ReadPlatform extends Component {
             isMainApi = true;
         }
 
-        // alert(JSON.stringify(HtmlAnalysis.cacheChapter[source.key+book.bookName]));
-        // alert(this.props.bookDetail);
         this.setState({
             isMainApi:isMainApi,
             book:book,
@@ -134,10 +130,10 @@ export default class ReadPlatform extends Component {
             chapterPage: book.historyChapterPage
         });
 
+        // this._deleteAll();
         InteractionManager.runAfterInteractions(()=> {
             //得到章节列表
             this._getBookChapterList().then((data) => {
-                alert("bb")
                 this._getBookChapterDetail(null,this.state.chapterNum).then((data2)=> {
                     setTimeout(()=> {
                         this.setState({chapterTotalPage:data2.length})
@@ -159,6 +155,25 @@ export default class ReadPlatform extends Component {
         })
     }
 
+    _deleteAll(){
+        try{
+
+            realm.write(() => {
+                let allBooks = realm.objects('BookChapterList');
+                realm.delete(allBooks);
+                alert("成功删除BookChapterList")
+            });
+            realm.write(() => {
+                let allBooks = realm.objects('BookChapterDetail');
+                realm.delete(allBooks);
+                alert("成功删除BookChapterDetailSchema")
+            });
+
+        }catch (e){
+            alert("删除表失败：")
+        }
+
+    }
     //得到小说目录
     _getBookChapterList(){
         this.setState({
@@ -170,22 +185,14 @@ export default class ReadPlatform extends Component {
             book = this.state.book;
             isTemp = false;
         }
+        let source = isTemp ? this.state.sourceTemp : this.state.source;
         return new Promise((resolve,reject) => {
-
             //得到其它源中的小说章节
-            let source = isTemp ? this.state.sourceTemp : this.state.source;
-            alert("Aa:"+source.key+this.state.book.bookName)
             try{
-                let chapterListAll = realm.objects('BookChapterList');
-                let chapterList = null;
-                alert("chapterListAll:"+chapterListAll.length)
-                if(chapterListAll != null && chapterListAll.length > 0){
-                    chapterList = chapterListAll.filtered('listKey = '+(source.key+this.state.book.bookName));
-                }
-                alert("Aaa:"+chapterList.length)
+                let chapterList = realm.objects('BookChapterList').filtered('listKey = "'+(this._getKey(source))+'"');
+
                 if(chapterList == null || chapterList.length < 1){
-                    alert("数据库没有数据！")
-//得到追书神器中的小说章节
+                    //得到追书神器中的小说章节
                     if((!isTemp && this.state.isMainApi) || (isTemp && book.sourceKey == HtmlAnalysis.mainKey) ){
                         request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
                             if (data.ok) {
@@ -194,7 +201,6 @@ export default class ReadPlatform extends Component {
                                     chapterList[i].num = i;
                                     chapterList[i].bookName = chapterList[i].title;
                                 }
-                                alert("ASSSSS\n"+JSON.stringify(chapterList))
                                 //保存目录
                                 this._setBookChapterList(source,chapterList).then((data1) => {
                                     resolve(data1);
@@ -212,7 +218,6 @@ export default class ReadPlatform extends Component {
                     }else{
                         let pageNum = 1;
                         let dataList = new Array();
-                        alert("获取其它源数据！")
                         this._getOnePageChapter(source,book,pageNum,dataList).then((data) => {
                             //保存目录
                             this._setBookChapterList(source,data).then((data1) => {
@@ -225,7 +230,7 @@ export default class ReadPlatform extends Component {
                     }
                 }else{
 
-                    alert("数据库有数据！")
+                    alert("缓存目录！")
                     resolve(chapterList);
                 }
             }catch (e){
@@ -246,29 +251,36 @@ export default class ReadPlatform extends Component {
             });
             return data;
         })
-
     }
 
+    _getKey(source){
+        return source.key+"_"+this.state.book.bookName;
+    }
     //保存小说目录
     _setBookChapterList(source,data){
-        new Promise((resolve,reject) => {
-            alert("开始保存小说目录");
+        return new Promise((resolve,reject) => {
             let bcL = new Array();
-            realm.write(() => {
-                for(let i = 0 ; i < data.length ; i++){
-                    let bc = {
-                        listId: generateUUID,
-                        listKey: source.key+this.state.book.bookName,
-                        link: data[i].link,
-                        title: data[i].title,
-                        num: data[i].num,
-                        orderNum: i
-                    };
-                    bcL.push(pc);
-                    realm.create('BookChapterList', bc, true)
-                }
-                resolve(pc);
-            })
+            try{
+                realm.write(() => {
+                    for(let i = 0 ; i < data.length ; i++){
+                        let bc = {
+                            listId: this._getKey(source)+"_"+i,
+                            listKey: this._getKey(source),
+                            link: data[i].link,
+                            title: data[i].title,
+                            num: data[i].num,
+                            orderNum: i
+                        };
+                        bcL.push(bc);
+                        realm.create('BookChapterList', bc, true)
+                    }
+                    resolve(bcL);
+                })
+            }catch (e){
+                alert("保存小说目录出错：\n"+JSON.stringify(e));
+                reject(e);
+            }
+
         }).then((data) => {
             alert("保存小说目录结束！"+data.length);
             return data;
@@ -290,9 +302,10 @@ export default class ReadPlatform extends Component {
                 resolve([])
                 return
             }
+
             new Promise((resolve1, reject1)=> {
-                let chapterDetail = realm.objects('BookChapterDetail').filtered('listId = '+chapter.listId);
-                if(chapterDetail == null){
+                let chapterDetail = realm.objects('BookChapterDetail').filtered('listId = "'+chapter.listId+'"');
+                if(chapterDetail == null || chapterDetail.length < 1 ||chapterDetail[0] == null  ||chapterDetail[0].length < 1 ){
                     if(this.state.isMainApi){
                         let tempUrl = chapter.link.replace(/\//g, '%2F').replace('?', '%3F')
                         request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null, (data) => {
@@ -312,42 +325,37 @@ export default class ReadPlatform extends Component {
                                 resolve1(data1);
                             });
                         }).catch((err) => {
-                            alert("_getBookChapterDetail\n"+JSON.stringify(err));
+                            alert("getChapterDetail\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
                         });
                     }
                 }else{
-                    resolve1(chapterDetail);
+                    alert("缓存小说")
+                    resolve1(chapterDetail[0]);
                 }
             }).then((data)=> {
                 let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
-                // alert(chapterNum+"++"+this.state.chapterDetail.length)
                 this.setState({
                     chapterDetail: type == null ? tempArr : (type ? this.state.chapterDetail.concat(tempArr) : tempArr.concat(this.state.chapterDetail))
-                }, ()=> {
-                    console.log('_getBookChapterDetail, page num', tempArr.length);
-                    resolve(tempArr)
                 })
+                resolve(tempArr)
             })
         });
     }
     //保存小说目录
     _setBookChapterDetail(chapter,content){
-        new Promise((resolve,reject) => {
-            alert("开始保存小说内容");
-            let cd = {
-                bcdId: generateUUID,
-                listId: chapter.listId,
-                content: content,
-                title: bc.title,
-                num: bc.num,
-                orderNum: chapter.orderNum
-            };
+        return new Promise((resolve,reject) => {
             realm.write(() => {
+                let cd = {
+                    bcdId: generateUUID(),
+                    listId: chapter.listId,
+                    content: content,
+                    orderNum: chapter.orderNum
+                };
                 realm.create('BookChapterDetail', cd, true);
                 resolve(cd);
             })
         }).then((data) => {
-            alert("保存小说内容结束！");
+            alert("保存小说内容结束！\n"+JSON.stringify(chapter));
             return data;
         });
     }
@@ -361,6 +369,7 @@ export default class ReadPlatform extends Component {
                     this.setState({
                         loadLen: dataList.length
                     })
+                    // resolve(dataList);
                     this._getOnePageChapter(source,book,++pageNum,dataList).then((data1) => {
                         resolve(data1)
                     });
@@ -620,7 +629,6 @@ export default class ReadPlatform extends Component {
                 });
             }
         }).then((data) => {
-            // alert(JSON.stringify(data));
             this.setState({
                 isLoadEnd: true,
                 listModalDataSource: data
@@ -646,7 +654,6 @@ export default class ReadPlatform extends Component {
             }
         }
 
-        // alert("ffff\n"+JSON.stringify(book))
         this.setState({
             showListModal: true,
             isLoadEnd: false,
@@ -689,7 +696,6 @@ export default class ReadPlatform extends Component {
         }else{
             isMainApi = false;
         }
-        // alert("bookChapter：\n"+JSON.stringify(bookChapter))
         this.setState({
             book: book,
             bookTemp: null,
@@ -704,7 +710,6 @@ export default class ReadPlatform extends Component {
         });
         this.x = 0;
         this._back(false)
-        // alert(JSON.stringify(item));
         InteractionManager.runAfterInteractions(()=> {
             // alert("isMainApi:"+this.state.isMainApi+"++"+isMainApi)
             console.log('_clickListModalItem');
@@ -739,7 +744,6 @@ export default class ReadPlatform extends Component {
         var books = realm.objects('HistoryBook').sorted('sortNum')
         var book = realm.objectForPrimaryKey('HistoryBook', bookId)
         if (book) {
-        // alert("source:\n"+JSON.stringify(this.state.source));
             realm.write(() => {
                 if (book.bookId === books[books.length - 1].bookId) {
                     // alert("Aaa:"+this.state.source.key);
@@ -796,7 +800,6 @@ export default class ReadPlatform extends Component {
      * @private
      */
     _back(type = true) {
-        // alert("type:"+type);
         //隐藏目录列表
         if (this.state.showListModal) {
             this.setState({

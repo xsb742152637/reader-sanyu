@@ -150,18 +150,11 @@ export let contentFormat = (content, font_size, line_height) => {
   return array
 }
 export let cloneObj = (obj) => {
-    var str, newobj = obj.constructor === Array ? [] : {};
-    if(typeof obj !== 'object'){
-        return;
-    } else if(window.JSON){
-        str = JSON.stringify(obj); //序列化对象
-        newobj = JSON.parse(str); //还原
-    } else {
-        for(var i in obj){
-            newobj[i] = typeof obj[i] === 'object' ? cloneObj(obj[i]) : obj[i];
-        }
+    let a = new Array();
+    for(let i = 0 ; i < obj.length ; i++){
+        a.push(JSON.parse(JSON.stringify(obj[i])))
     }
-    return newobj;
+    return a;
 }
 //生成随机UUID
 export let generateUUID =() => {
