@@ -3,17 +3,29 @@
  * author: 神编小码
  * time: 2018年04月04日14:44:45
  */
+//小说章节目录
+const BookChapterListSchema = {
+    name: 'BookChapterList',
+    primaryKey: 'listId',
+    properties: {
+        listId: 'string',
+        listKey: 'string',//源key+bookName
+        link: 'string',//章节连接
+        title: 'string',//章节标题
+        num: 'int',//章节数
+        orderNum: 'int'//章节序号
+    }
+}
 
-// 小说源
-const BookSourceSchema = {
-  name: 'BookSource',
-  primaryKey: 'sourceId',
+// 小说章节明细,跟BookChapterListSchema的listId有联系
+const BookChapterDetailSchema = {
+  name: 'BookChapterDetail',
+  primaryKey: 'bcdId',
   properties: {
-    sourceId: 'string',//源编号
-    sourceName: 'string',//源名称
-    sourceUrl: 'string',//网址
-    searchUrl: 'string',//搜索网址
-    sortNum: 'int'
+    bcdId: 'string',//小说编号
+    listId: 'string',//章节编号
+    content: 'string',//小说内容
+    orderNum: 'int'//小说序号
   }
 }
 
@@ -70,6 +82,6 @@ const ReaderConfigSchema = {
   }
 }
 
-const schemaArray = [BookSourceSchema,HistoryBookSchema, MyCollectionBookListsSchema, ReaderConfigSchema]
+const schemaArray = [BookChapterListSchema,BookChapterDetailSchema,HistoryBookSchema, MyCollectionBookListsSchema, ReaderConfigSchema];
 
-module.exports = schemaArray
+module.exports = schemaArray;

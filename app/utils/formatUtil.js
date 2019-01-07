@@ -149,6 +149,33 @@ export let contentFormat = (content, font_size, line_height) => {
   }
   return array
 }
+export let cloneObj = (obj) => {
+    var str, newobj = obj.constructor === Array ? [] : {};
+    if(typeof obj !== 'object'){
+        return;
+    } else if(window.JSON){
+        str = JSON.stringify(obj); //序列化对象
+        newobj = JSON.parse(str); //还原
+    } else {
+        for(var i in obj){
+            newobj[i] = typeof obj[i] === 'object' ? cloneObj(obj[i]) : obj[i];
+        }
+    }
+    return newobj;
+}
+//生成随机UUID
+export let generateUUID =() => {
+    var d = new Date().getTime();
+    if (window.performance && typeof window.performance.now === "function") {
+        d += performance.now(); //use high-precision timer if available
+    }
+    var uuid = 'xxxx-xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, function (c) {
+        var r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    return uuid;
+}
 
 // export let contentFormat = (content) => {
 //   const length = content.length
