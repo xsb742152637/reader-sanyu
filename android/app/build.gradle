@@ -100,14 +100,6 @@ def enableProguardInReleaseBuilds = false
 //}
 
 android {
-    signingConfigs {
-        release {
-            keyAlias 'afanna'
-            keyPassword 'afanna'
-            storeFile file('F:/AndroidProject/reader-sanyu/android/app/afanna.jks')
-            storePassword 'afanna'
-        }
-    }
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
 
@@ -125,14 +117,15 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
     }
-//    signingConfigs {
-//        release {
-//            storeFile file(MYAPP_RELEASE_STORE_FILE)
-//            storePassword pass
-//            keyAlias MYAPP_RELEASE_KEY_ALIAS
-//            keyPassword pass
-//        }
-//    }
+
+    signingConfigs {
+        release {
+            storeFile file(MYAPP_RELEASE_STORE_FILE)
+            storePassword "afanna"
+            keyAlias MYAPP_RELEASE_KEY_ALIAS
+            keyPassword "afanna"
+        }
+    }
     splits {
         abi {
             reset()

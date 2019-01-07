@@ -190,7 +190,7 @@ export default class ReadPlatform extends Component {
                             HtmlAnalysis.cacheChapter[source.key+book.bookName] = bookChapter;
                             this.setState({
                                 bookChapter: bookChapter,
-                                listModalData: bookChapter,
+                                listModalData: this._cloneObj(bookChapter),
                                 chapterLength: bookChapter.length,
                                 isLoadEnd: true,
                                 time: timeFormat()
@@ -224,7 +224,7 @@ export default class ReadPlatform extends Component {
                         this.setState({
                             isLoadEnd: true,
                             bookChapter: data,
-                            listModalData: data,
+                            listModalData: this._cloneObj(data),
                             source: isTemp ? this.state.source : source,
                             sourceTemp: isTemp ? source : this.state.sourceTemp,
                             chapterLength: data.length,
@@ -241,7 +241,7 @@ export default class ReadPlatform extends Component {
                 this.setState({
                     isLoadEnd: true,
                     bookChapter: cache,
-                    listModalData: cache,
+                    listModalData: this._cloneObj(cache),
                     chapterLength: cache.length,
                     time: timeFormat()
                 });
@@ -351,11 +351,11 @@ export default class ReadPlatform extends Component {
             }
 
             // alert(chapterNum)
-            this._getBookChapterDetailSync(this._getOrderNum(chapterNum)).then((data)=> {
+            this._getBookChapterDetailSync(chapterNum).then((data)=> {
                 if(this.state.listModalOrder == 0){
 
                 }
-                let tempArr = this._formatChapter(data.chapter.body, chapterNum, this.state.bookChapter[this._getOrderNum(chapterNum)].title);
+                let tempArr = this._formatChapter(data.chapter.body, chapterNum, this.state.bookChapter[chapterNum].title);
                 // alert(chapterNum+"++"+this.state.chapterDetail.length)
                 this.setState({
                     chapterDetail: type == null ? tempArr : (type ? this.state.chapterDetail.concat(tempArr) : tempArr.concat(this.state.chapterDetail))
@@ -367,11 +367,11 @@ export default class ReadPlatform extends Component {
         });
     }
     //根据目录排序方式得到目录的序列号
-    _getOrderNum(chapterNum){
-        chapterNum = this.state.listModalOrder == 0 ? chapterNum : (this.state.bookChapter.length - chapterNum - 1);
-        alert("chapterNum:"+chapterNum)
-        return chapterNum;
-    }
+    // _getOrderNum(chapterNum){
+    //     chapterNum = this.state.listModalOrder == 0 ? chapterNum : (this.state.bookChapter.length - chapterNum - 1);
+    //     alert("chapterNum:"+chapterNum)
+    //     return chapterNum;
+    // }
 
     _getBookChapterDetailSync(chapterNum) {
         return new Promise((resolve, reject)=> {
@@ -405,6 +405,21 @@ export default class ReadPlatform extends Component {
         })
     }
 
+    //深度克隆对象
+    _cloneObj(obj){
+        var str, newobj = obj.constructor === Array ? [] : {};
+        if(typeof obj !== 'object'){
+             return;
+        } else if(window.JSON){
+            str = JSON.stringify(obj); //序列化对象
+            newobj = JSON.parse(str); //还原
+        } else {
+             for(var i in obj){
+                 newobj[i] = typeof obj[i] === 'object' ? cloneObj(obj[i]) : obj[i];
+             }
+        }
+        return newobj;
+    }
     //格式化小说内容
     _formatChapter(content, num, title) {
         // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
@@ -644,9 +659,9 @@ export default class ReadPlatform extends Component {
 
                 setTimeout(()=> {
                     if (this.catalogListView) {
-                        this.catalogListView.scrollToIndex({index: this._getOrderNum(this.state.chapterNum), viewPosition: 0, animated: true})
+                        this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
                     }
-                }, 50)
+                }, 150)
             })
         });
     }
