@@ -525,21 +525,45 @@ export default class ReadPlatform extends Component {
     _formatChapter(content, num, title) {
         // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
         // console.log('_formatChapter:' + content)
-        let _arr = []
-        let _content = '\u3000\u3000' + content.replace(/\n/g, '@\u3000\u3000')
-        let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
-        let totalPage = _arrTemp.length
 
-        _arrTemp.forEach(function (element, index) {
-            let _chapterInfo = {
-                title: title,
-                orderNum: num,
-                page: index,
-                totalPage: totalPage,
-                content: element
-            }
-            _arr.push(_chapterInfo)
-        });
+        let _arr = [];
+        try{
+            // if(num > 0){
+            //     _arr.push({
+            //         title: this.state.bookChapter[num - 1].title,
+            //         orderNum: num - 1,
+            //         page: 0,
+            //         totalPage:0,
+            //         content: ['正在加载']
+            //     });
+            // }
+            let _content = '\u3000\u3000' + content.replace(/\n/g, '@\u3000\u3000')
+            let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
+            let totalPage = _arrTemp.length
+
+            _arrTemp.forEach(function (element, index) {
+                let _chapterInfo = {
+                    title: title,
+                    orderNum: num,
+                    page: index,
+                    totalPage: totalPage,
+                    content: element
+                }
+                _arr.push(_chapterInfo)
+            });
+            // if(this.state.chapterNum < (this.state.chapterLength - 1)){
+            //     _arr.push({
+            //         title: this.state.bookChapter[num + 1].title,
+            //         orderNum: num + 1,
+            //         page: 0,
+            //         totalPage: '',
+            //         content: []
+            //     });
+            // }
+        }catch (e){
+            alert("ffff")
+        }
+
         return _arr
     }
 
