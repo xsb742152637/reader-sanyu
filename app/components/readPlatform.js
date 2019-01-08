@@ -83,6 +83,7 @@ export default class ReadPlatform extends Component {
         this.adVersion = 1;
         this.failNum = 0;//请求失败的次数
         this.failNumMax = 3;//请求失败的最大次数
+        this.lock = false;
     }
     componentDidMount() {
         let readerConfig = realm.objects('ReaderConfig')
@@ -124,6 +125,7 @@ export default class ReadPlatform extends Component {
         }
 
         this.setState({
+            isLoadEnd: false,
             isMainApi:isMainApi,
             book:book,
             source:source,
@@ -135,17 +137,21 @@ export default class ReadPlatform extends Component {
         InteractionManager.runAfterInteractions(()=> {
             //得到章节列表
             this._getBookChapterList().then((data) => {
-                this._getBookChapterDetail(null,this.state.chapterNum).then((data2)=> {
-                    setTimeout(()=> {
-                        this.setState({chapterTotalPage:data2.length});
-                        //自动滑动到上次阅读的页数
-                        this._scrollToIndex(this.state.chapterPage)
+                this._getBookChapterDetail(null,this.state.chapterNum - 1).then((data1)=> {
+                    this._getBookChapterDetail(true,this.state.chapterNum).then((data2)=> {
+                        this._getBookChapterDetail(true,this.state.chapterNum + 1).then((data3)=> {
+                            this.setState({
+                                isLoadEnd: true,
+                                chapterTotalPage:data2.length
+                            })
+                            setTimeout(()=> {
+                                //自动滑动到上次阅读的页数
+                                this._scrollToIndex(data1.length + this.state.chapterPage)
 
-                        //加载下一章，不跳转
-                        this._change_chapter(true,false)
-                    }, 100)
-
-                })
+                            }, 100)
+                        });
+                    });
+                });
             });
         });
 
@@ -181,9 +187,6 @@ export default class ReadPlatform extends Component {
     }
     //得到小说目录
     _getBookChapterList(){
-        this.setState({
-            isLoadEnd: false,
-        });
         let isTemp = true;
         let book = this.state.bookTemp;
         if(book == null){
@@ -243,7 +246,6 @@ export default class ReadPlatform extends Component {
 
         }).then((data) => {
             this.setState({
-                isLoadEnd: true,
                 bookChapter: isTemp ? this.state.bookChapter : data,
                 bookChapterTemp: isTemp ? data : null,
                 listModalData: cloneObj(data),
@@ -412,6 +414,13 @@ export default class ReadPlatform extends Component {
      * @private
      */
     _change_chapter(type,type2) {
+        if(type2){
+            this.setState({
+                showControlStation: false,
+                chapterPage: 0
+            });
+        }
+
         return new Promise((resolve,reject) => {
             if(!this.state.isLoadEnd){
                 alert("正在加载");
@@ -427,7 +436,6 @@ export default class ReadPlatform extends Component {
                 }
                 resolve(false);
             }else{
-                alert("开始加载")
                 this.setState({
                     isLoadEnd: false
                 });
@@ -455,12 +463,6 @@ export default class ReadPlatform extends Component {
                 }
 
                 if(!isHave){
-                    if(type2){
-                        this.setState({
-                            showControlStation: false,
-                            chapterPage: 0
-                        });
-                    }
 
                     // alert("新加载第"+(num+1)+"章")
                     this._getBookChapterDetail(type,num).then((data)=> {
@@ -478,7 +480,6 @@ export default class ReadPlatform extends Component {
                             }
                             this._updateHistoryBookChapter(this.props.bookId, num, 0);
 
-                            alert("加载完成")
                         }else{
                             this.setState({
                                 isLoadEnd: true
@@ -498,7 +499,7 @@ export default class ReadPlatform extends Component {
                                     }
                                 }
 
-                                alert("加载完成")
+                                // alert("加载完成")
                                 this._scrollToIndex(oldIndexNum);
                             }
                         }
@@ -513,21 +514,7 @@ export default class ReadPlatform extends Component {
                     //要跳转
                     if(type2){
                         this._scrollToIndex(indexNum);
-                    }else if(!type){
-                        //不跳转，并且是往前加载章节，需要重新设置当前位置
-                        let oldIndexNum = 0;
-                        for(let i = 0 ; i <= this.state.chapterDetail.length ; i++){
-                            let chapter = this.state.chapterDetail[i];
-                            if(chapter == null)
-                                continue;
-                            if(chapter.orderNum == this.state.chapterNum){
-                                oldIndexNum = i + chapter.totalPage - 1;
-                                break;
-                            }
-                        }
-                        this._scrollToIndex(oldIndexNum);
                     }
-                    alert("加载完成")
                     resolve(true);
                 }
             }
@@ -744,9 +731,16 @@ export default class ReadPlatform extends Component {
 
         InteractionManager.runAfterInteractions(()=> {
             this._getBookChapterList().then((data) => {
+                this.setState({
+                    isLoadEnd: true
+                })
                 setTimeout(()=> {
                     if (this.catalogListView) {
-                        this.catalogListView.scrollToIndex({index: this.state.chapterNum, viewPosition: 0, animated: true})
+                        let index = this.state.chapterNum;
+                        if(index > this.state.chapterLength){
+                            index = this.state.chapterLength;
+                        }
+                        this.catalogListView.scrollToIndex({index: index, viewPosition: 0, animated: true})
                     }
                 }, 150)
             })
