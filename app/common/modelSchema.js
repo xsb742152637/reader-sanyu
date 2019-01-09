@@ -10,6 +10,7 @@ const BookChapterListSchema = {
     properties: {
         listId: 'string',
         listKey: 'string',//源key+bookName
+        bookName:'string',
         link: 'string',//章节连接
         title: 'string',//章节标题
         num: 'int',//章节数
@@ -24,6 +25,7 @@ const BookChapterDetailSchema = {
   properties: {
     bcdId: 'string',//小说编号
     listId: 'string',//章节编号
+    bookName:'string',
     content: 'string',//小说内容
     orderNum: 'int'//小说序号
   }

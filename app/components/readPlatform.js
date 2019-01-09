@@ -137,20 +137,8 @@ export default class ReadPlatform extends Component {
         InteractionManager.runAfterInteractions(()=> {
             //得到章节列表
             this._getBookChapterList().then((data) => {
-                this._getBookChapterDetail(null,this.state.chapterNum - 1).then((data1)=> {
-                    this._getBookChapterDetail(true,this.state.chapterNum).then((data2)=> {
-                        this._getBookChapterDetail(true,this.state.chapterNum + 1).then((data3)=> {
-                            this.setState({
-                                isLoadEnd: true,
-                                chapterTotalPage:data2.length
-                            })
-                            setTimeout(()=> {
-                                //自动滑动到上次阅读的页数
-                                this._scrollToIndex(data1.length + this.state.chapterPage)
+                this._getBookChapterDetail(null,null).then((data2)=> {
 
-                            }, 100)
-                        });
-                    });
                 });
             });
         });
@@ -163,28 +151,38 @@ export default class ReadPlatform extends Component {
         })
     }
 
-    _deleteAll(){
-        try{
+    /**
+     * 加载章节
+     * @param type true（下一章），false（上一章）
+     * @private
+     */
+    _change_chapter(type) {
+        if (this.state.chapterNum < 1 && type == false) {
+            alert("已经是第一章了！！！");
+            return;
+        }else if (this.state.chapterNum + 1 >= this.state.chapterLength && type) {
+            alert("已经是最后一章了！！！");
+            return;
+        }else{
+            let chapterNum = this.state.chapterNum;
+            if(type != null){
+                if(type){
+                    chapterNum += 1;
+                }else{
+                    chapterNum -= 1;
+                }
+            }
+            this.setState({
+                chapterPage:0
+            })
 
-            //删除目录缓存
-            realm.write(() => {
-                let allBooks = realm.objects('BookChapterList');
-                realm.delete(allBooks);
-                alert("成功删除BookChapterList")
-            });
+            this._getBookChapterDetail(null,chapterNum).then((data)=> {
+                this._updateHistoryBookChapter(this.props.bookId, chapterNum, 0)
 
-            //删除小说缓存
-            realm.write(() => {
-                let allBooks = realm.objects('BookChapterDetail');
-                realm.delete(allBooks);
-                alert("成功删除BookChapterDetailSchema")
-            });
-
-        }catch (e){
-            alert("删除表失败：")
+            })
         }
-
     }
+
     //得到小说目录
     _getBookChapterList(){
         let isTemp = true;
@@ -258,9 +256,6 @@ export default class ReadPlatform extends Component {
         })
     }
 
-    _getKey(source){
-        return source.key+"_"+this.state.book.bookName;
-    }
     //保存小说目录
     _setBookChapterList(source,data){
         return new Promise((resolve,reject) => {
@@ -271,6 +266,7 @@ export default class ReadPlatform extends Component {
                         let bc = {
                             listId: this._getKey(source)+"_"+i,
                             listKey: this._getKey(source),
+                            bookName:this.state.book.bookName,
                             link: data[i].link,
                             title: data[i].title,
                             num: data[i].num,
@@ -296,11 +292,25 @@ export default class ReadPlatform extends Component {
     /**
      * 根据章节数得到章节内容
      * @param type null:覆盖式加载，true:加载到后面,false:加载到前面
+     * @param type2 true（跳转到第一页），false（跳转到最后一页）
      * @param chapterNum 章节数
      * @returns {Promise}
      * @private
      */
-    _getBookChapterDetail(type,chapterNum) {
+    _getBookChapterDetail(type2,chapterNum) {
+        this.setState({
+            isLoadEnd: false,
+            showControlStation: false,
+            chapterDetail: []
+        });
+
+        if(type2 == null){
+            type2 = true;
+        }
+        if(chapterNum == null){
+            chapterNum = this.state.chapterNum;
+        }
+
         let chapter = this.state.bookChapter[chapterNum];
         return new Promise((resolve, reject)=> {
             if (chapterNum < 0) {
@@ -336,7 +346,7 @@ export default class ReadPlatform extends Component {
                                 alert("获取小说内容失败：\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
                             }else{
                                 alert("获取小说内容失败：第"+this.failNum+"次再次尝试获取");
-                                this._getBookChapterDetail(type,chapterNum).then((data1) => {
+                                this._getBookChapterDetail(type2,chapterNum).then((data1) => {
                                     resolve1(data1);
                                 });
                             }
@@ -348,8 +358,19 @@ export default class ReadPlatform extends Component {
             }).then((data)=> {
                 let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
                 this.setState({
-                    chapterDetail: type == null ? tempArr : (type ? this.state.chapterDetail.concat(tempArr) : tempArr.concat(this.state.chapterDetail))
-                })
+                    chapterDetail: tempArr,
+                    isLoadEnd: true,
+                    chapterTotalPage: tempArr[1].totalPage,
+                    chapterNum: chapterNum
+                });
+                setTimeout(()=> {
+                    //跳转到当前章节第一页，如果是第一章，不用多跳一页
+                    if(type2){
+                        this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
+                    }else{
+                        this._scrollToIndex(tempArr.length - 2);
+                    }
+                }, 50);
                 resolve(tempArr)
             })
         });
@@ -361,6 +382,7 @@ export default class ReadPlatform extends Component {
                 let cd = {
                     bcdId: generateUUID(),
                     listId: chapter.listId,
+                    bookName:this.state.book.bookName,
                     content: content,
                     orderNum: chapter.orderNum
                 };
@@ -372,7 +394,6 @@ export default class ReadPlatform extends Component {
             return data;
         });
     }
-
 
     _getOnePageChapter(source,book,pageNum,dataList){
         return new Promise((resolve,reject) => {
@@ -407,208 +428,6 @@ export default class ReadPlatform extends Component {
 
     }
 
-    /**
-     * 加载章节
-     * @param type true（下一章），false（上一章）
-     * @param type2 true(要跳转到相应章节的第一页)，false（只加载章节，不跳转页面）
-     * @private
-     */
-    _change_chapter(type,type2) {
-        if(type2){
-            this.setState({
-                showControlStation: false,
-                chapterPage: 0
-            });
-        }
-
-        return new Promise((resolve,reject) => {
-            if(!this.state.isLoadEnd){
-                alert("正在加载");
-                resolve(false);
-            }else if (this.state.chapterNum < 1 && !type) {
-                if(type2){
-                    alert("已经是第一章了！！！");
-                }
-                resolve(false);
-            }else if (this.state.chapterNum + 1 >= this.state.chapterLength && type) {
-                if(type2){
-                    alert("已经是最后一章了！！！");
-                }
-                resolve(false);
-            }else{
-                this.setState({
-                    isLoadEnd: false
-                });
-                let num = this.state.chapterNum;
-                if(type){
-                    num += 1;
-                }else{
-                    num -= 1;
-                }
-
-                //chapterDetail中是否存在该章节，如果存在，直接翻到该章节的第一页
-                let isHave = false;
-                let totalPage = 0;
-                let indexNum = 0;
-                for(let i = 0 ; i <= this.state.chapterDetail.length ; i++){
-                    let chapter = this.state.chapterDetail[i];
-                    if(chapter == null)
-                        continue;
-                    if(chapter.orderNum == num){
-                        indexNum = i;
-                        isHave = true;
-                        totalPage = chapter.totalPage;
-                        break;
-                    }
-                }
-
-                if(!isHave){
-
-                    // alert("新加载第"+(num+1)+"章")
-                    this._getBookChapterDetail(type,num).then((data)=> {
-                        //要跳转
-                        if(type2){
-                            this.setState({
-                                isLoadEnd: true
-                            });
-                            //下一章
-                            if(type){
-                                // alert("跳转到："+this.state.chapterDetail.length)
-                                this._scrollToIndex(this.state.chapterDetail.length);
-                            }else{
-                                this._scrollToIndex(0);
-                            }
-                            this._updateHistoryBookChapter(this.props.bookId, num, 0);
-
-                        }else{
-                            this.setState({
-                                isLoadEnd: true
-                            });
-                            //不跳转，并且是往前加载章节，需要重新设置当前位置
-                            if(!type){
-                                // alert("bbb");
-                                let oldIndexNum = 0;
-                                let chapter = null;
-                                for(let i = 0 ; i <= this.state.chapterDetail.length ; i++){
-                                    chapter = this.state.chapterDetail[i];
-                                    if(chapter == null)
-                                        continue;
-                                    if(chapter.orderNum == this.state.chapterNum){
-                                        oldIndexNum = i + chapter.totalPage - 1;
-                                        break;
-                                    }
-                                }
-
-                                // alert("加载完成")
-                                this._scrollToIndex(oldIndexNum);
-                            }
-                        }
-                        resolve(true);
-                    })
-                }else{
-                    this.setState({
-                        isLoadEnd: true,
-                        showControlStation: false
-                    });
-
-                    //要跳转
-                    if(type2){
-                        this._scrollToIndex(indexNum);
-                    }
-                    resolve(true);
-                }
-            }
-        });
-    }
-
-    //格式化小说内容
-    _formatChapter(content, num, title) {
-        // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
-        // console.log('_formatChapter:' + content)
-
-        let _arr = [];
-        try{
-            // if(num > 0){
-            //     _arr.push({
-            //         title: this.state.bookChapter[num - 1].title,
-            //         orderNum: num - 1,
-            //         page: 0,
-            //         totalPage:0,
-            //         content: ['正在加载']
-            //     });
-            // }
-            let _content = '\u3000\u3000' + content.replace(/\n/g, '@\u3000\u3000')
-            let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
-            let totalPage = _arrTemp.length
-
-            _arrTemp.forEach(function (element, index) {
-                let _chapterInfo = {
-                    title: title,
-                    orderNum: num,
-                    page: index,
-                    totalPage: totalPage,
-                    content: element
-                }
-                _arr.push(_chapterInfo)
-            });
-            // if(this.state.chapterNum < (this.state.chapterLength - 1)){
-            //     _arr.push({
-            //         title: this.state.bookChapter[num + 1].title,
-            //         orderNum: num + 1,
-            //         page: 0,
-            //         totalPage: '',
-            //         content: []
-            //     });
-            // }
-        }catch (e){
-            alert("ffff")
-        }
-
-        return _arr
-    }
-
-    _scrollToIndex(index) {
-        console.log('_scrollToIndex', index)
-        let maxIndex = this.state.chapterDetail.length - 1
-        if (index > maxIndex) {
-            return
-        }
-        let scrollView = this.refs.scrollView
-        scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
-    }
-
-    _onScrollBeginDrag(e) {
-        console.log('_onScrollBeginDrag, x', e.nativeEvent.contentOffset.x)
-    }
-
-    _onMomentumScrollEnd(e) {
-        console.log('_onMomentumScrollEnd, x', e.nativeEvent.contentOffset.x)
-    }
-
-    //得到当前页的位置数
-    _getScrollIndex(){
-        return this.x / Dimen.window.width;
-    }
-
-    //翻页时，手指离开屏幕时触发，还没翻到下一页
-    _onScrollEndDrag(e){
-        //第一页，但是不是第一章的情况
-        if (this.x  == 0) {
-            //加载上一章，不跳转
-            this._change_chapter(false,false).then((data) => {
-                if(data){
-                    // this.setState({
-                    //     chapterTotalPage: this.state.chapterDetail[0].totalPage
-                    // });
-                    // alert("往前翻一页"+(this.state.chapterDetail[0].totalPage-1))
-                    //往前翻一页
-                    this.x = this.state.chapterDetail[0].totalPage * Dimen.window.width
-                    this._scrollToIndex(this.state.chapterDetail[0].totalPage-1)
-                }
-            });
-        }
-    }
-
     //翻页完成后触发事件
     _handleScroll(e) {
         try{
@@ -618,7 +437,7 @@ export default class ReadPlatform extends Component {
                 return
             }
 
-            let scrollIndex = this._getScrollIndex();
+            let scrollIndex = this.x / Dimen.window.width;
             let chapterNum = this.state.chapterDetail[scrollIndex].orderNum;
             let chapterPage = this.state.chapterDetail[scrollIndex].page;
             let totalPage = this.state.chapterDetail[scrollIndex].totalPage;
@@ -646,13 +465,9 @@ export default class ReadPlatform extends Component {
                     // 章节发生变化,自动加载上下章
                     if(isChange){
                         // alert("自动加载+"+(this.state.chapterNum+1))
-                        if(ori_right){
-                            //加载下一章，不跳转
-                            this._change_chapter(true,false)
-                        }else{
-                            //加载上一章，不跳转
-                            this._change_chapter(false,false)
-                        }
+                        this._getBookChapterDetail(ori_right,null).then((data)=> {
+
+                        });
                     }
                 });
                 this._updateHistoryBookChapter(this.props.bookId, chapterNum, chapterPage);
@@ -665,7 +480,7 @@ export default class ReadPlatform extends Component {
 
     //屏幕点击事件
     _showControlStation_LR(evt) {
-        console.log('_showControlStation_LR', evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+        // console.log('_showControlStation_LR', evt.nativeEvent.pageX, evt.nativeEvent.pageY)
         var pageX = evt.nativeEvent.pageX;
         var pageY = evt.nativeEvent.pageY;
 
@@ -681,6 +496,107 @@ export default class ReadPlatform extends Component {
                 scrollView.scrollTo({x: (this.x - Dimen.window.width)})
             }
         }
+    }
+
+    //手动设置滑动到某页
+    _scrollToIndex(index) {
+        console.log('_scrollToIndex', index)
+        let maxIndex = this.state.chapterDetail.length - 1
+        if (index > maxIndex) {
+            return
+        }
+        let scrollView = this.refs.scrollView
+        scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
+    }
+
+    //格式化小说内容
+    _formatChapter(content, num, title) {
+        // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
+        // console.log('_formatChapter:' + content)
+
+        let _arr = [];
+        try{
+            if(num > 0){
+                _arr.push({
+                    title: this.state.bookChapter[num - 1].title,
+                    orderNum: num - 1,
+                    page: 0,
+                    totalPage:0,
+                    content: []
+                });
+            }
+            let _content = '\u3000\u3000' + content.replace(/\n/g, '@\u3000\u3000')
+            let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
+            let totalPage = _arrTemp.length
+
+            _arrTemp.forEach(function (element, index) {
+                let _chapterInfo = {
+                    title: title,
+                    orderNum: num,
+                    page: index,
+                    totalPage: totalPage,
+                    content: element
+                }
+                _arr.push(_chapterInfo)
+            });
+            if(this.state.chapterNum < (this.state.chapterLength - 1)){
+                _arr.push({
+                    title: this.state.bookChapter[num + 1].title,
+                    orderNum: num + 1,
+                    page: 0,
+                    totalPage: '',
+                    content: []
+                });
+            }
+        }catch (e){
+            alert("ffff")
+        }
+
+        return _arr
+    }
+
+    _getKey(source){
+        return source.key+"_"+this.state.book.bookName;
+    }
+
+    _deleteAll(){
+        try{
+            // let BookChapterList = realm.objects('BookChapterList');
+            // let delList = realm.objects('BookChapterList').filtered('bookName = "时光和你都很美"');
+            // let BookChapterDetail = realm.objects('BookChapterDetail');
+            // let delList2 = realm.objects('BookChapterDetail').filtered('bookName = "时光和你都很美"');
+            // alert("目录数量："+BookChapterList.length+"\n内容"+BookChapterDetail.length+"\n模糊搜索："+delList.length+"\n模糊搜索2："+delList2.length);
+            //删除目录缓存
+            realm.write(() => {
+                let allBooks = realm.objects('BookChapterList');
+                realm.delete(allBooks);
+                alert("成功删除BookChapterList")
+            });
+
+            // 删除小说缓存
+            realm.write(() => {
+                let allBooks = realm.objects('BookChapterDetail');
+                realm.delete(allBooks);
+                alert("成功删除BookChapterDetailSchema")
+            });
+
+        }catch (e){
+            alert("删除表失败：")
+        }
+
+    }
+
+    _onScrollBeginDrag(e) {
+        // console.log('_onScrollBeginDrag, x', e.nativeEvent.contentOffset.x)
+    }
+
+    _onMomentumScrollEnd(e) {
+        // console.log('_onMomentumScrollEnd, x', e.nativeEvent.contentOffset.x)
+    }
+
+    //翻页时，手指离开屏幕时触发，还没翻到下一页
+    _onScrollEndDrag(e){
+
     }
 
     //显示来源列表
@@ -800,18 +716,16 @@ export default class ReadPlatform extends Component {
             bookChapter: bookChapter,
             bookChapterTemp: null,
             isMainApi: isMainApi,
-            chapterDetail: [],
             chapterPage: 0
         });
-        this.x = 0;
-        this._back(false)
+
+        this._back(false);
         InteractionManager.runAfterInteractions(()=> {
             // alert("isMainApi:"+this.state.isMainApi+"++"+isMainApi)
             console.log('_clickListModalItem');
             let num = item.orderNum;
 
             this._getBookChapterDetail(null,num).then((data)=> {
-                this.setState({chapterNum: num})
                 this._updateHistoryBookChapter(this.props.bookId, num, 0)
             })
         });
@@ -899,7 +813,7 @@ export default class ReadPlatform extends Component {
         //隐藏控制台
         if (this.state.showControlStation) {
             this.setState({showControlStation: false});
-            // return
+            return
         }
 
         //退出阅读
@@ -963,21 +877,11 @@ export default class ReadPlatform extends Component {
                 realm.create('ReaderConfig', {configId: '0', fontSize: new_font}, true);
             })
             this.setState({
-                fontSize: new_font,
-                showControlStation: false,
-                chapterDetail: []
+                fontSize: new_font
             })
-            this._getBookChapterDetail(null,this.state.chapterNum).then((data2)=> {
-                setTimeout(()=> {
-                    this.setState({chapterTotalPage:data2.length});
-                    //自动滑动到上次阅读的页数
-                    this._scrollToIndex(this.state.chapterPage);
+            this._getBookChapterDetail(null,null).then((data)=> {
 
-                    //加载下一章，不跳转
-                    this._change_chapter(true,false)
-                }, 100)
-
-            });
+            })
         } else {
         }
     }
@@ -1165,7 +1069,7 @@ export default class ReadPlatform extends Component {
                             size={25}/>
                         <Text style={styles.controlFooterTitle}>A-</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.controlFooterItem} onPress={this._change_chapter.bind(this,false,true)}>
+                    <TouchableOpacity style={styles.controlFooterItem} onPress={this._change_chapter.bind(this,false)}>
                         <Icon
                             name='md-return-left'
                             //name='ios-moon'
@@ -1173,7 +1077,7 @@ export default class ReadPlatform extends Component {
                             size={25}/>
                         <Text style={styles.controlFooterTitle}>上一章</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.controlFooterItem} onPress={this._change_chapter.bind(this,true,true)}>
+                    <TouchableOpacity style={styles.controlFooterItem} onPress={this._change_chapter.bind(this,true)}>
                         <Icon
                             name='md-return-right'
                             //name='ios-moon'

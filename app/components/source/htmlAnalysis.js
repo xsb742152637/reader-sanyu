@@ -11,8 +11,7 @@ import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 import api from '../../common/api'
 
 var myModule = {
-    bookName:"",
-    cacheChapter:[]
+    bookName:""
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;

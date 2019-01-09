@@ -319,10 +319,17 @@ export default class Bookshelves extends Component {
     _toDelete() {
         let bookDetail = this.state.focusBook
         console.log('_toDelete ' + bookDetail)
-        realm.write(() => {
-            realm.delete(this.state.focusBook)
-        })
 
+        realm.write(() => {
+            //删除数据库中存的目录，所有源
+            let BookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+bookDetail.bookName+'"');
+            realm.delete(BookChapterList);
+            //删除数据库中存的小说内容，所有源
+            let BookChapterDetail = realm.objects('BookChapterDetail').filtered('bookName = "'+bookDetail.bookName+'"');
+            realm.delete(BookChapterDetail);
+
+            realm.delete(this.state.focusBook)
+        });
         this.setState({
             bookshelves: realm.objects('HistoryBook').filtered('isToShow = 1').sorted('sortNum', true),
             toShow: false,
