@@ -211,8 +211,12 @@ export default class Bookshelves extends Component {
         var books = realm.objects('HistoryBook').sorted('sortNum');
         console.log('_updateBookDetail booknum=' + books.length);
 
+        // alert(JSON.stringify(books[0]))
         for (var i = 0; i < books.length; ++i) {
             var book = books[i];
+
+            let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"');
+
             request.get(api.BOOK_DETAIL(book.bookId), null,
                 (data) => {
                     this._saveBookToRealm(data)

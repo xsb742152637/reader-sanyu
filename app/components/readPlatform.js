@@ -690,17 +690,43 @@ export default class ReadPlatform extends Component {
     //选择目录中的新章节
     _clickListModalItem(item) {
         //点击章节的时候，临时选择的源变成固定源
+        let isTemp = true;
         let source = this.state.sourceTemp;
         if(source == null){
             source = this.state.source;
+            isTemp = false;
         }
-        let book = this.state.bookTemp;
-        if(book == null){
-            book = this.state.book;
-        }
-        let bookChapter = this.state.bookChapterTemp;
-        if(bookChapter == null){
-            bookChapter = this.state.bookChapter;
+        let book = isTemp ? this.state.bookTemp : this.state.book;
+        let bookChapter = isTemp ? this.state.bookChapterTemp : this.state.bookChapter;
+
+        //如果为true，表明用户正在换源，删除其余源的缓存数据
+        if(isTemp){
+            realm.write(() => {
+                //删除数据库中存的目录，所有源
+                let BookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"');
+                let listIds = "";
+                let delList = new Array();
+                for(let i = 0 ; i < BookChapterList.length ; i++){
+                    if(BookChapterList[i].listKey.split("_")[0] != source.key){
+                        delList.push(BookChapterList[i]);
+                        listIds += BookChapterList[i].listId + ";";
+                    }
+                }
+
+                //删除数据库中存的小说内容，所有源
+                let BookChapterDetail = realm.objects('BookChapterDetail').filtered('bookName = "'+book.bookName+'"');
+                let delDetail = new Array();
+                for(let i = 0 ; i < BookChapterDetail.length ; i++){
+                    if(listIds.indexOf(BookChapterDetail[i].listId) >= 0){
+                        delDetail.push(BookChapterDetail[i]);
+                    }
+                }
+
+                realm.delete(delList);
+                realm.delete(delDetail);
+
+                // alert("清空目录缓存："+BookChapterList.length+"++"+delList.length+"\n清空小说内容："+BookChapterDetail.length+"++"+delDetail.length);
+            });
         }
         let isMainApi = this.state.isMainApi;
         if(source.key == HtmlAnalysis.mainKey){
