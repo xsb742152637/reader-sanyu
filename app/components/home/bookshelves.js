@@ -34,6 +34,7 @@ import Icon from 'react-native-vector-icons/Ionicons'
 const TimerMixin = require('react-timer-mixin');
 import Search from '../search'
 import MsgBox from '../msgBox'
+import HtmlAnalysis from '../source/htmlAnalysis'
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
 
@@ -214,19 +215,136 @@ export default class Bookshelves extends Component {
         // alert(JSON.stringify(books[0]))
         for (var i = 0; i < books.length; ++i) {
             var book = books[i];
+            try{
+                let key = book.sourceKey;
+                if(key == ""){
+                    key = HtmlAnalysis.mainKey;
+                }
+                //测试代码，删除最新一行缓存
+                // realm.write(() => {
+                //     let allBooks = realm.objects('BookChapterList');
+                //     realm.delete(allBooks[allBooks.length -1]);
+                //     alert("成功删除BookChapterList")
+                // });
+                // break;
 
-            let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"');
+                let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"');
+                let thisBookChapterList = new Array();
+                for(let j = 0 ; j < bookChapterList.length ; j++){
+                    if(bookChapterList[j].listKey.split("_")[0] == key){
+                        thisBookChapterList.push(bookChapterList[j]);
+                    }
+                }
 
-            request.get(api.BOOK_DETAIL(book.bookId), null,
-                (data) => {
-                    this._saveBookToRealm(data)
-                },
-                (error) => {
-                })
+                //根据目录长度计算出最大的目录页数
+                let source = HtmlAnalysis.api[key];
+                let maxPageNum = 1;//缓存目录的最大页数，向上取整
+                let c = 0;//得到无法整除的多余数量，用于后面orderNum的计算
+                if(source.chapterRowNum != -1){
+                    maxPageNum = Math.ceil(thisBookChapterList.length / source.chapterRowNum);
+                    c = thisBookChapterList.length % source.chapterRowNum
+                }
+
+                // alert(maxPageNum+"++"+c+"++"+bookChapterList.length);
+                // break;
+                new Promise((resolve,reject) => {
+                    if(key == HtmlAnalysis.mainKey){
+                        request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
+                            if (data.ok) {
+                                resolve(data.mixToc.chapters);
+                            } else {
+                                resolve(null);
+                            }
+                        })
+                    }else{
+                        this._getOnePageChapter(source,book,maxPageNum,new Array()).then((data) => {
+                            resolve(data);
+                        });
+                    }
+                }).then((data) => {
+                    if(data != null && data.length > 0){
+                        let newChapterList = new Array();
+                        //maxPageNum == 1 ，说明目录是一次性加载的全部，
+                        if(maxPageNum == 1){
+                            //得到数据库中不存在的部分
+                            for(let i = thisBookChapterList.length ; i < data.length ; i++){
+                                if(key == HtmlAnalysis.mainKey){
+                                    data[i].num = i;
+                                    data[i].bookName = data[i].title;
+                                }
+                                newChapterList.push(data[i]);
+                            }
+                        }else{
+                            //得到数据库中不存在的部分
+                            for(let i = c ; i < data.length ; i++){
+                                newChapterList.push(data[i]);
+                            }
+                        }
+
+                        // alert("取值："+data.length+"++"+newChapterList.length);
+                        //如果有新的目录，存入数据库
+                        if(newChapterList.length > 0){
+                            realm.write(() => {
+                                for(let m = 0 ; m < newChapterList.length ; m++){
+                                    let orderNum = m + bookChapterList.length;
+                                    let bc = {
+                                        listId: this._getKey(source,book)+"_"+orderNum,
+                                        listKey: this._getKey(source,book),
+                                        bookName: book.bookName,
+                                        link: newChapterList[m].link,
+                                        title: newChapterList[m].title,
+                                        num: newChapterList[m].num,
+                                        orderNum: orderNum
+                                    };
+                                    // alert(JSON.stringify(bookChapterList[bookChapterList.length -1])+"\n\n"+JSON.stringify(bc))
+                                    realm.create('BookChapterList', bc, true)
+                                }
+
+                                // alert(JSON.stringify(book))
+                                realm.create('HistoryBook', {
+                                    bookId: book.bookId,
+                                    isToShow: 1,
+                                    lastChapterTitle: newChapterList[newChapterList.length - 1].title,
+                                    hasNewChapter: 1,
+                                    saveTime: new Date()
+                                }, true)
+                            });
+
+                            // alert("更新："+newChapterList.length+"\n"+JSON.stringify(newChapterList));
+                        }
+
+                    }else{
+
+                    }
+                });
+            }catch (e){
+                alert("更新错误："+JSON.stringify(book));
+            }
         }
         console.log('_updateBookDetail end');
     }
 
+    _getKey(source,book){
+        return source.key+"_"+book.bookName;
+    }
+    _getOnePageChapter(source,book,pageNum,dataList){
+        return new Promise((resolve,reject) => {
+            HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
+                if(data != null && data.length > 0){
+                    dataList = dataList.concat(data);
+                    this._getOnePageChapter(source,book,(pageNum + 1),dataList).then((data1) => {
+                        resolve(data1)
+                    });
+                }else{
+                    resolve(dataList);
+                }
+            }).catch((err) => {
+                alert("获取目录失败：\n"+JSON.stringify(err)+"\n"+JSON.stringify(source)+"\n"+JSON.stringify(book)+"\npageNum:"+pageNum);
+                reject(err);
+            });
+        });
+
+    }
     _onRefresh = () => {
         console.log("_onRefresh")
         this._updateBookDetail();

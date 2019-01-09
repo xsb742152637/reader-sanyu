@@ -8,8 +8,8 @@ const BookChapterListSchema = {
     name: 'BookChapterList',
     primaryKey: 'listId',
     properties: {
-        listId: 'string',
-        listKey: 'string',//源key+bookName
+        listId: 'string',//格式：key_bookName_orderNum
+        listKey: 'string',//格式：key+bookName
         bookName:'string',
         link: 'string',//章节连接
         title: 'string',//章节标题
