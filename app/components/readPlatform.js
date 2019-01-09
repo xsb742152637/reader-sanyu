@@ -816,18 +816,8 @@ export default class ReadPlatform extends Component {
             return
         }
 
-        //退出阅读
-        let bookId = this.props.bookId
-        let book = realm.objectForPrimaryKey('HistoryBook', bookId)
-        if (book && book.isToShow !== 0) {
-            this._toPop()
-        } else {
-            this.setState({showSaveModal: true})
-        }
-    }
+        // this.props.navigator.pop()
 
-    _toPop() {
-        this.props.navigator.pop()
     }
 
     /**

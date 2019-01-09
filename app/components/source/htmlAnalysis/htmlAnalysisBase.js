@@ -14,7 +14,8 @@ var myModule = {
             key:'zssq',
             webNameShort: '追书神器',//简称
             webName: '追书神器',//全名
-            isMainApi: true
+            isMainApi: true,
+            chapterRowNum: -1//每页目录行数
         },
         zzdxsw:{
             key:'zzdxsw',
@@ -26,7 +27,8 @@ var myModule = {
             searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
             chapterUrlFirst: false,//章节路径的第一页不加路径
             chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
-            chapterUrlAfter: '.html'//后续章节需要添加的后面部分
+            chapterUrlAfter: '.html',//后续章节需要添加的后面部分
+            chapterRowNum: 25//每页目录行数
         }
         // ,
         // bqg:{
