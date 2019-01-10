@@ -196,8 +196,9 @@ export default class ReadPlatform extends Component {
         return new Promise((resolve,reject) => {
             //得到其它源中的小说章节
             try{
-                let chapterList = realm.objects('BookChapterList').filtered('listKey = "'+(this._getKey(source))+'"');
+                let chapterList = realm.objects('BookChapterList').filtered('listKey = "'+(this._getKey(source))+'"').sorted('orderNum');
 
+                // alert(JSON.stringify(chapterList))
                 if(chapterList == null || chapterList.length < 1){
                     //得到追书神器中的小说章节
                     if((!isTemp && this.state.isMainApi) || (isTemp && book.sourceKey == HtmlAnalysis.mainKey) ){

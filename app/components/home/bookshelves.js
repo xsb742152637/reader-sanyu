@@ -228,7 +228,7 @@ export default class Bookshelves extends Component {
                 // });
                 // break;
 
-                let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"');
+                let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"').sorted('orderNum');;
                 let thisBookChapterList = new Array();
                 for(let j = 0 ; j < bookChapterList.length ; j++){
                     if(bookChapterList[j].listKey.split("_")[0] == key){
