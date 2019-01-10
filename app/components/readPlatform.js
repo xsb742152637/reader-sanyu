@@ -138,7 +138,7 @@ export default class ReadPlatform extends Component {
         InteractionManager.runAfterInteractions(()=> {
             //得到章节列表
             this._getBookChapterList().then((data) => {
-                this._getBookChapterDetail(null,null).then((data2)=> {
+                this._getBookChapterDetail(true,null).then((data2)=> {
 
                 });
             });
@@ -177,7 +177,7 @@ export default class ReadPlatform extends Component {
                 chapterPage:0
             })
 
-            this._getBookChapterDetail(null,chapterNum).then((data)=> {
+            this._getBookChapterDetail(true,chapterNum).then((data)=> {
                 this._updateHistoryBookChapter(this.props.bookId, chapterNum, 0)
 
             })
@@ -292,22 +292,20 @@ export default class ReadPlatform extends Component {
 
     /**
      * 根据章节数得到章节内容
-     * @param type null:覆盖式加载，true:加载到后面,false:加载到前面
-     * @param type2 true（跳转到第一页），false（跳转到最后一页）
+     * @param type2 true（跳转到第一页），false（跳转到最后一页）,null（单纯的缓存某章节）
      * @param chapterNum 章节数
      * @returns {Promise}
      * @private
      */
     _getBookChapterDetail(type2,chapterNum) {
-        this.setState({
-            isLoadEnd: false,
-            showControlStation: false,
-            chapterDetail: []
-        });
-
-        if(type2 == null){
-            type2 = true;
+        if(type2 != null){
+            this.setState({
+                isLoadEnd: false,
+                showControlStation: false,
+                chapterDetail: []
+            });
         }
+
         if(chapterNum == null){
             chapterNum = this.state.chapterNum;
         }
@@ -327,6 +325,7 @@ export default class ReadPlatform extends Component {
                         request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null, (data) => {
                             if (data.ok) {
                                 this._setBookChapterDetail(chapter,data.chapter.body).then((data1) => {
+
                                     resolve1(data1);
                                 });
                             } else {
@@ -339,14 +338,17 @@ export default class ReadPlatform extends Component {
                         HtmlAnalysis.getChapterDetail(this.state.source,chapter).then((data)=> {
                             this.failNum = 0;
                             this._setBookChapterDetail(chapter,data).then((data1) => {
+
                                 resolve1(data1);
                             });
                         }).catch((err) => {
                             this.failNum += 1;
-                            if(this.failNum > this.failNumMax){
+                            if(this.failNum > this.failNumMax && type2 != null){
                                 alert("获取小说内容失败：\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
                             }else{
-                                alert("获取小说内容失败：第"+this.failNum+"次再次尝试获取");
+                                if(type2 != null){
+                                    alert("获取小说内容失败：第"+this.failNum+"次再次尝试获取");
+                                }
                                 this._getBookChapterDetail(type2,chapterNum).then((data1) => {
                                     resolve1(data1);
                                 });
@@ -357,22 +359,27 @@ export default class ReadPlatform extends Component {
                     resolve1(chapterDetail[0]);
                 }
             }).then((data)=> {
-                let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
-                this.setState({
-                    chapterDetail: tempArr,
-                    isLoadEnd: true,
-                    chapterTotalPage: tempArr[1].totalPage,
-                    chapterNum: chapterNum
-                });
-                setTimeout(()=> {
-                    //跳转到当前章节第一页，如果是第一章，不用多跳一页
-                    if(type2){
-                        this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
-                    }else{
-                        this._scrollToIndex(tempArr.length - 2);
-                    }
-                }, 50);
-                resolve(tempArr)
+                if(type2 != null){
+                    let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
+                    this.setState({
+                        chapterDetail: tempArr,
+                        isLoadEnd: true,
+                        chapterTotalPage: tempArr[1].totalPage,
+                        chapterNum: chapterNum
+                    });
+                    setTimeout(()=> {
+                        //跳转到当前章节第一页，如果是第一章，不用多跳一页
+                        if(type2){
+                            this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
+                        }else{
+                            this._scrollToIndex(tempArr.length - 2);
+                        }
+                    }, 50);
+                    resolve(tempArr)
+                }else{
+                    resolve([]);
+                }
+
             })
         });
     }
@@ -467,6 +474,15 @@ export default class ReadPlatform extends Component {
                     if(isChange){
                         // alert("自动加载+"+(this.state.chapterNum+1))
                         this._getBookChapterDetail(ori_right,null).then((data)=> {
+                            InteractionManager.runAfterInteractions(()=> {
+                                setTimeout(()=> {
+                                    //自动缓存下一章
+                                    this._getBookChapterDetail(null,this.state.chapterNum + 1).then((data)=> {
+
+                                    });
+                                }, 500);
+
+                            });
 
                         });
                     }
@@ -754,7 +770,7 @@ export default class ReadPlatform extends Component {
             console.log('_clickListModalItem');
             let num = item.orderNum;
 
-            this._getBookChapterDetail(null,num).then((data)=> {
+            this._getBookChapterDetail(true,num).then((data)=> {
                 this._updateHistoryBookChapter(this.props.bookId, num, 0)
             })
         });
@@ -898,7 +914,7 @@ export default class ReadPlatform extends Component {
             this.setState({
                 fontSize: new_font
             })
-            this._getBookChapterDetail(null,null).then((data)=> {
+            this._getBookChapterDetail(true,null).then((data)=> {
 
             })
         } else {
