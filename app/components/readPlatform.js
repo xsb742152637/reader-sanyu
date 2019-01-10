@@ -67,6 +67,7 @@ export default class ReadPlatform extends Component {
             chapterTotalPage: 0,//
             chapterPage: 0,      //读到某一章第几页
             chapterNum: 0,      //读到第几章
+            chapterNumTemp: 0,      //读到第几章
             chapterLength: 0,  //总章节数
 
             time: '',
@@ -651,12 +652,14 @@ export default class ReadPlatform extends Component {
     //显示目录列表
     _showListModal(book) {
         let source = null;
+        let index = this.state.chapterNum;//得到当前想小说阅读章节的序号，如果book不等于空，说明是在换源，那么需要重新得到小说的章节真正的章节数
         if(book != null){
             for(let key in HtmlAnalysis.api){
                 if(key == book.sourceKey){
                     source = HtmlAnalysis.api[key];
                 }
             }
+            index = this.state.bookChapter[index].num;
         }
 
         this.setState({
@@ -666,7 +669,8 @@ export default class ReadPlatform extends Component {
             bookTemp: book,
             sourceTemp: source,
             listModalData: [],
-            loadLen: 0
+            loadLen: 0,
+            chapterNumTemp: index
         });
 
         InteractionManager.runAfterInteractions(()=> {
@@ -676,9 +680,8 @@ export default class ReadPlatform extends Component {
                 })
                 setTimeout(()=> {
                     if (this.catalogListView) {
-                        let index = this.state.chapterNum;
-                        if(index > this.state.chapterLength){
-                            index = this.state.chapterLength;
+                        if(index > this.state.listModalData.length){
+                            index = this.state.listModalData.length - 1;
                         }
                         this.catalogListView.scrollToIndex({index: index, viewPosition: 0, animated: true})
                     }
@@ -1207,7 +1210,7 @@ export default class ReadPlatform extends Component {
                 activeOpacity={1}
                 onPress={() => this._clickListModalItem(rowData.item)}>
                 {
-                    this.state.chapterNum == rowData.item.orderNum ?
+                    this.state.chapterNumTemp == rowData.item.orderNum ?
                         <Text
                             numberOfLines={1}
                             style={[styles.listModalText, {fontSize: config.css.fontSize.title, fontWeight: 'bold'}]}>

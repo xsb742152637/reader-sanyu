@@ -45,7 +45,7 @@ public class SplashActivity extends Activity implements SplashADListener {
     private ImageView splashHolder;
     private static final String SKIP_TEXT = "跳过%d";
 
-    public boolean canJump = true;//是否关闭开屏广告
+    public boolean canJump = false;//是否关闭开屏广告
 
     /**
      * 为防止无广告时造成视觉上类似于"闪退"的情况，设定无广告时页面跳转根据需要延迟一定时间，demo
