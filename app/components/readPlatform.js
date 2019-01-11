@@ -368,14 +368,17 @@ export default class ReadPlatform extends Component {
                         chapterTotalPage: tempArr[1].totalPage,
                         chapterNum: chapterNum
                     });
-                    setTimeout(()=> {
-                        //跳转到当前章节第一页，如果是第一章，不用多跳一页
-                        if(type2){
-                            this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
-                        }else{
-                            this._scrollToIndex(tempArr.length - 2);
-                        }
-                    }, 50);
+                    if(tempArr != null && tempArr.length > 0){
+                        setTimeout(()=> {
+                            //跳转到当前章节第一页，如果是第一章，不用多跳一页
+
+                            if(type2){
+                                this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
+                            }else{
+                                this._scrollToIndex(tempArr.length - 2);
+                            }
+                        }, 50);
+                    }
                     resolve(tempArr)
                 }else{
                     resolve([]);
@@ -518,13 +521,17 @@ export default class ReadPlatform extends Component {
 
     //手动设置滑动到某页
     _scrollToIndex(index) {
-        console.log('_scrollToIndex', index)
-        let maxIndex = this.state.chapterDetail.length - 1
-        if (index > maxIndex) {
-            return
+        try{
+            console.log('_scrollToIndex', index)
+            let maxIndex = this.state.chapterDetail.length - 1
+            if (index > maxIndex) {
+                return
+            }
+            let scrollView = this.refs.scrollView
+            scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
+        }catch (e){
+            alert("自动滚动功能错误：" + JSON.stringify(e));
         }
-        let scrollView = this.refs.scrollView
-        scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
     }
 
     //格式化小说内容
@@ -700,7 +707,15 @@ export default class ReadPlatform extends Component {
                         if(index > this.state.listModalData.length){
                             index = this.state.listModalData.length - 1;
                         }
-                        this.catalogListView.scrollToIndex({index: index, viewPosition: 0, animated: true})
+                        if (this.catalogListView) {
+                            try{
+                                this.catalogListView.scrollToIndex({index: index, viewPosition: 0, animated: true})
+                            }catch (e){
+                                alert("滑动失败：\n"+JSON.stringify(e));
+                            }
+
+                        }
+
                     }
                 }, 150)
             })
@@ -788,7 +803,12 @@ export default class ReadPlatform extends Component {
 
             setTimeout(()=> {
                 if (this.catalogListView) {
-                    this.catalogListView.scrollToIndex({index: 0, viewPosition: 0, animated: true})
+                    try{
+                        this.catalogListView.scrollToIndex({index: 0, viewPosition: 0, animated: true})
+                    }catch (e){
+                        alert("滑动失败2：\n"+JSON.stringify(e));
+                    }
+
                 }
             }, 50)
         }
