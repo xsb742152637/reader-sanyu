@@ -65,6 +65,7 @@ export default class Bookshelves extends Component {
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount")
             this._setDefaultBooks();
+            // alert("componentDidMount")
             this._onRefresh();
 
         })
@@ -73,21 +74,24 @@ export default class Bookshelves extends Component {
     }
 
     componentWillUnmount() {
+        // alert("componentWillUnmount")
         AppState.removeEventListener('change', this._handleAppStateChange(this));
         this.timer && clearTimeout(this.timer);
     }
 
     componentWillReceiveProps() {
-        console.log("componentWillReceiveProps")
-        this._onRefresh()
-        this.timer = setTimeout(() => {
-            console.log('componentDidMount timer')
-            this._getBookshelves()
-            //NativeModules.RNAdModule.showAd('com.axiamireader.BannerActivity')
-        }, 2000)
+        // alert("componentWillReceiveProps")
+        // console.log("componentWillReceiveProps")
+        // this._onRefresh()
+        // this.timer = setTimeout(() => {
+        //     console.log('componentDidMount timer')
+        //     this._getBookshelves()
+        //     //NativeModules.RNAdModule.showAd('com.axiamireader.BannerActivity')
+        // }, 2000)
     }
 
     _handleAppStateChange(nextAppState) {
+        // alert("_handleAppStateChange")
         console.log(nextAppState);
         try {
             let current_time = new Date().getTime()
@@ -97,7 +101,7 @@ export default class Bookshelves extends Component {
                     NativeModules.RNAdModule.showAd('com.axiamireader.SplashActivity')
                 }
                 last_time = current_time
-                this._onRefresh()
+                // this._onRefresh()
             }
             this.setState({appState: nextAppState});
         } catch (ex) {
@@ -188,31 +192,18 @@ export default class Bookshelves extends Component {
         })
     }
 
-    _saveBookToRealm(bookDetail) {
-        console.log("_saveBookToRealm")
-        var book = realm.objectForPrimaryKey('HistoryBook', bookDetail._id)
-        realm.write(() => {
-            if (book) {
-                console.log("_saveBookToRealm; realm.write")
-                var hasNew = book.lastChapterTitle == bookDetail.lastChapter ? book.hasNewChapter : 1
-                realm.create('HistoryBook', {
-                    bookId: bookDetail._id,
-                    isToShow: 1,
-                    lastChapterTitle: bookDetail.lastChapter,
-                    hasNewChapter: hasNew,
-                    lastChapterTime: bookDetail.updated,
-                    saveTime: new Date()
-                }, true)
-            }
-        })
-    }
-
     _updateBookDetail() {
-        //Toast.toastLong("更新中。。。");
-        var books = realm.objects('HistoryBook').sorted('sortNum');
-        console.log('_updateBookDetail booknum=' + books.length);
+        //删除目录缓存
+        // realm.write(() => {
+        //     let allBooks = realm.objects('BookChapterList').filtered('bookName = "时光和你都很美"');
+        //     realm.delete(allBooks[allBooks.length - 1]);
+        //     alert("成功删除BookChapterList")
+        // });
+        // return;
 
-        // alert(JSON.stringify(books[0]))
+        Toast.toastLong("更新中。。。");
+        var books = realm.objects('HistoryBook').sorted('sortNum');
+
         for (var i = 0; i < books.length; ++i) {
             var book = books[i];
 
@@ -221,48 +212,66 @@ export default class Bookshelves extends Component {
                 if(key == ""){
                     key = HtmlAnalysis.mainKey;
                 }
-                let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"').sorted('orderNum');;
-                let thisBookChapterList = new Array();
-                for(let j = 0 ; j < bookChapterList.length ; j++){
-                    if(bookChapterList[j].listKey.split("_")[0] == key){
-                        thisBookChapterList.push(bookChapterList[j]);
+
+                let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"').sorted('orderNum');
+                if(bookChapterList.length < 1){
+                    // alert("没缓存："+book.bookName);
+                    request.get(api.BOOK_DETAIL(book.bookId), null, (data) => {
+                        this._saveBookToRealm(data);
+                        resolve(null);
+                    }, (error) => {
+                        resolve(null);
+                    });
+
+                }else{
+                    // alert("缓存："+book.bookName);
+                    let thisBookChapterList = new Array();
+                    for(let j = 0 ; j < bookChapterList.length ; j++){
+                        if(bookChapterList[j].listKey.split("_")[0] == key){
+                            thisBookChapterList.push(bookChapterList[j]);
+                        }
+                    }
+
+                    //根据目录长度计算出最大的目录页数
+                    let source = HtmlAnalysis.api[key];
+                    let maxPageNum = 1;//缓存目录的最大页数，向上取整
+                    let c = 0;//得到无法整除的多余数量，用于后面orderNum的计算
+                    if(source.chapterRowNum != -1){
+                        maxPageNum = Math.ceil(thisBookChapterList.length / source.chapterRowNum);
+                        c = thisBookChapterList.length % source.chapterRowNum
+                    }
+
+                    let rd = {
+                        book: book,
+                        key: key,
+                        bookChapterList: bookChapterList,
+                        thisBookChapterList: thisBookChapterList,
+                        source: source,
+                        c: c,
+                        maxPageNum: maxPageNum
+                    }
+                    // alert(bookChapterList.length+"++"+thisBookChapterList.length+"++"+maxPageNum+"++"+c)
+                    if(key == HtmlAnalysis.mainKey){
+                        request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
+                            if (data.ok) {
+                                rd["data"] = data.mixToc.chapters;
+                                resolve(rd);
+                            } else {
+                                resolve(null);
+                            }
+                        })
+                    }else{
+                        this._getOnePageChapter(source,book,maxPageNum,new Array()).then((data) => {
+                            rd["data"] = data;
+                            resolve(rd);
+                        });
                     }
                 }
 
-                //根据目录长度计算出最大的目录页数
-                let source = HtmlAnalysis.api[key];
-                let maxPageNum = 1;//缓存目录的最大页数，向上取整
-                let c = 0;//得到无法整除的多余数量，用于后面orderNum的计算
-                if(source.chapterRowNum != -1){
-                    maxPageNum = Math.ceil(thisBookChapterList.length / source.chapterRowNum);
-                    c = thisBookChapterList.length % source.chapterRowNum
-                }
-
-                let rd = {
-                    book: book,
-                    key: key,
-                    bookChapterList: bookChapterList,
-                    thisBookChapterList: thisBookChapterList,
-                    source: source,
-                    c: c,
-                    maxPageNum: maxPageNum
-                }
-                if(key == HtmlAnalysis.mainKey){
-                    request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
-                        if (data.ok) {
-                            rd["data"] = data.mixToc.chapters;
-                            resolve(rd);
-                        } else {
-                            resolve(null);
-                        }
-                    })
-                }else{
-                    this._getOnePageChapter(source,book,maxPageNum,new Array()).then((data) => {
-                        rd["data"] = data;
-                        resolve(rd);
-                    });
-                }
             }).then((rd) => {
+                if(rd == null){
+                    return;
+                }
                 let data = rd.data;
                 if(data != null && data.length > 0){
                     let book1 = rd.book;
@@ -294,6 +303,7 @@ export default class Bookshelves extends Component {
                     // alert("取值："+data.length+"++"+newChapterList.length);
                     //如果有新的目录，存入数据库
                     if(newChapterList.length > 0){
+                        // alert(book1.bookName+"更新："+newChapterList.length+"\n"+newChapterList[newChapterList.length - 1].title)
                         realm.write(() => {
                             for(let m = 0 ; m < newChapterList.length ; m++){
                                 let orderNum = m + bookChapterList.length;
@@ -319,7 +329,7 @@ export default class Bookshelves extends Component {
                                 saveTime: new Date()
                             }, true)
                         });
-
+                        this._getBookshelves();
                         // alert("更新："+newChapterList.length+"\n"+JSON.stringify(newChapterList));
                     }
 
@@ -331,7 +341,23 @@ export default class Bookshelves extends Component {
             });
 
         }
-        console.log('_updateBookDetail end');
+    }
+
+    _saveBookToRealm(bookDetail) {
+        var book = realm.objectForPrimaryKey('HistoryBook', bookDetail._id)
+        realm.write(() => {
+            if (book) {
+                var hasNew = book.lastChapterTitle == bookDetail.lastChapter ? book.hasNewChapter : 1
+                realm.create('HistoryBook', {
+                    bookId: bookDetail._id,
+                    isToShow: 1,
+                    lastChapterTitle: bookDetail.lastChapter,
+                    hasNewChapter: hasNew,
+                    lastChapterTime: bookDetail.updated,
+                    saveTime: new Date()
+                }, true)
+            }
+        })
     }
 
     _getKey(source,book){
@@ -356,13 +382,13 @@ export default class Bookshelves extends Component {
 
     }
     _onRefresh = () => {
-        console.log("_onRefresh")
         this._updateBookDetail();
-        this._getBookshelves()
+        this._getBookshelves();
         //this.setState({
         //    isRefreshing: false
         //});
     }
+
 
     _readBook(bookId) {
         this.props.navigator.push({
