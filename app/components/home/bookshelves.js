@@ -7,6 +7,7 @@
 import React, { Component } from 'react'
 import {
     StyleSheet,
+    StatusBar,
     ListView,
     RefreshControl,
     TouchableOpacity,
@@ -67,20 +68,17 @@ export default class Bookshelves extends Component {
             this._setDefaultBooks();
             // alert("componentDidMount")
             this._onRefresh();
-
-        })
+        });
 
         AppState.addEventListener('change', this._handleAppStateChange.bind(this));
     }
 
     componentWillUnmount() {
-        // alert("componentWillUnmount")
         AppState.removeEventListener('change', this._handleAppStateChange(this));
         this.timer && clearTimeout(this.timer);
     }
 
     componentWillReceiveProps() {
-        // alert("componentWillReceiveProps")
         // console.log("componentWillReceiveProps")
         // this._onRefresh()
         // this.timer = setTimeout(() => {
@@ -91,7 +89,6 @@ export default class Bookshelves extends Component {
     }
 
     _handleAppStateChange(nextAppState) {
-        // alert("_handleAppStateChange")
         console.log(nextAppState);
         try {
             let current_time = new Date().getTime()
@@ -391,6 +388,14 @@ export default class Bookshelves extends Component {
 
 
     _readBook(bookId) {
+        realm.write(() => {
+            realm.create('HistoryBook', {
+                bookId: bookId,
+                hasNewChapter: 0
+            }, true)
+        });
+        this._getBookshelves();
+
         this.props.navigator.push({
             name: 'readPlatform',
             component: ReadPlatform,
@@ -567,6 +572,16 @@ export default class Bookshelves extends Component {
     render() {
         return (
             <View style={{flex: 1}}>
+
+                <StatusBar
+                    hidden={true}
+                    backgroundColor={"blue"}
+                    translucent={true}
+                    showHideTransition={'slide'}
+                    barStyle={'light-content'}
+                    networkActivityIndicatorVisible={true}
+                />
+
                 <View style={styles.header}>
                     <Text style={styles.headerLeftText}>书架</Text>
 

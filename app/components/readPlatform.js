@@ -84,7 +84,7 @@ export default class ReadPlatform extends Component {
         this.adVersion = 1;
         this.failNum = 0;//请求失败的次数
         this.failNumMax = 3;//请求失败的最大次数
-        this.lock = false;
+        this.isShowAD = false;//是否显示广告
     }
     componentDidMount() {
         let readerConfig = realm.objects('ReaderConfig')
@@ -457,8 +457,8 @@ export default class ReadPlatform extends Component {
 
             // alert("当前位置："+scrollIndex+"\n当前章节："+(chapterNum+1)+"\n当前页："+chapterPage)
             try {
-                if ((this.state.chapterNum + 1) % 3 == 0 && chapterPage + 1 == totalPage) {
-                    // NativeModules.RNAdModule.showAd('banner_ad')
+                if ((this.state.chapterNum + 1) % 3 == 0 && chapterPage + 1 == totalPage && this.isShowAD) {
+                    NativeModules.RNAdModule.showAd('banner_ad')
                 }
             } catch (e) {
             }
