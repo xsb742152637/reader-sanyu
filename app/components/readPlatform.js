@@ -565,7 +565,7 @@ export default class ReadPlatform extends Component {
                 }
                 _arr.push(_chapterInfo)
             });
-            if(this.state.chapterNum < (this.state.chapterLength - 1)){
+            if(num < (this.state.chapterLength - 1)){
                 _arr.push({
                     title: this.state.bookChapter[num + 1].title,
                     orderNum: num + 1,
@@ -575,7 +575,7 @@ export default class ReadPlatform extends Component {
                 });
             }
         }catch (e){
-            alert("小说内容格式化出错！")
+            alert("小说内容格式化出错！\n"+title+"\n"+num+"\n"+content)
         }
 
         return _arr
