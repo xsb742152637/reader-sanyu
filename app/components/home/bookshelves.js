@@ -575,11 +575,10 @@ export default class Bookshelves extends Component {
 
                 <StatusBar
                     hidden={true}
-                    backgroundColor={"blue"}
+                    backgroundColor={"darkgreen"}
                     translucent={true}
                     showHideTransition={'slide'}
-                    barStyle={'light-content'}
-                    networkActivityIndicatorVisible={true}
+                    barStyle={'dark-content'}
                 />
 
                 <View style={styles.header}>

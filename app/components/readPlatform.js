@@ -84,7 +84,7 @@ export default class ReadPlatform extends Component {
         this.adVersion = 1;
         this.failNum = 0;//请求失败的次数
         this.failNumMax = 3;//请求失败的最大次数
-        this.isShowAD = false;//是否显示广告
+        this.isShowAD = true;//是否显示广告
         this.chapterDetailNext = [];//下一章小说内容
     }
     componentDidMount() {
