@@ -85,6 +85,7 @@ export default class ReadPlatform extends Component {
         this.failNum = 0;//请求失败的次数
         this.failNumMax = 3;//请求失败的最大次数
         this.isShowAD = false;//是否显示广告
+        this.chapterDetailNext = [];//下一章小说内容
     }
     componentDidMount() {
         let readerConfig = realm.objects('ReaderConfig')
@@ -138,8 +139,10 @@ export default class ReadPlatform extends Component {
         InteractionManager.runAfterInteractions(()=> {
             //得到章节列表
             this._getBookChapterList().then((data) => {
+                //得到当前阅读章节的小说内容
                 this._getBookChapterDetail(true,null).then((data2)=> {
-
+                    //缓存下一章
+                    this._setNextChapter(this.state.chapterNum);
                 });
             });
         });
@@ -327,7 +330,6 @@ export default class ReadPlatform extends Component {
                         request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null, (data) => {
                             if (data.ok) {
                                 this._setBookChapterDetail(chapter,data.chapter.body).then((data1) => {
-
                                     resolve1(data1);
                                 });
                             } else {
@@ -340,7 +342,6 @@ export default class ReadPlatform extends Component {
                         HtmlAnalysis.getChapterDetail(this.state.source,chapter).then((data)=> {
                             this.failNum = 0;
                             this._setBookChapterDetail(chapter,data).then((data1) => {
-
                                 resolve1(data1);
                             });
                         }).catch((err) => {
@@ -361,30 +362,31 @@ export default class ReadPlatform extends Component {
                     resolve1(chapterDetail[0]);
                 }
             }).then((data)=> {
-                if(type2 != null){
+                if(data != null){
                     let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
-                    this.setState({
-                        chapterDetail: tempArr,
-                        isLoadEnd: true,
-                        chapterTotalPage: tempArr[1].totalPage,
-                        chapterNum: chapterNum
-                    });
-                    if(tempArr != null && tempArr.length > 0){
-                        setTimeout(()=> {
-                            //跳转到当前章节第一页，如果是第一章，不用多跳一页
+                    if(type2 != null){
+                        this.setState({
+                            chapterDetail: tempArr,
+                            isLoadEnd: true,
+                            chapterTotalPage: tempArr[1].totalPage,
+                            chapterNum: chapterNum
+                        });
+                        if(tempArr != null && tempArr.length > 0){
+                            setTimeout(()=> {
+                                //跳转到当前章节第一页，如果是第一章，不用多跳一页
 
-                            if(type2){
-                                this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
-                            }else{
-                                this._scrollToIndex(tempArr.length - 2);
-                            }
-                        }, 50);
+                                if(type2){
+                                    this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
+                                }else{
+                                    this._scrollToIndex(tempArr.length - 2);
+                                }
+                            }, 50);
+                        }
                     }
                     resolve(tempArr)
                 }else{
                     resolve([]);
                 }
-
             })
         });
     }
@@ -477,19 +479,24 @@ export default class ReadPlatform extends Component {
                 },(data) => {
                     // 章节发生变化,自动加载上下章
                     if(isChange){
-                        // alert("自动加载+"+(this.state.chapterNum+1))
-                        this._getBookChapterDetail(ori_right,null).then((data)=> {
-                            InteractionManager.runAfterInteractions(()=> {
-                                setTimeout(()=> {
-                                    //自动缓存下一章
-                                    this._getBookChapterDetail(null,this.state.chapterNum + 1).then((data)=> {
-
-                                    });
-                                }, 500);
-
+                        if(ori_right && this.chapterDetailNext != null && this.chapterDetailNext.length > 0){
+                            this.setState({
+                                chapterDetail: this.chapterDetailNext,
+                                chapterTotalPage: this.chapterDetailNext[1].totalPage
                             });
+                            setTimeout(()=> {
+                                this._scrollToIndex(1);
+                            }, 50);
+                            this._setNextChapter(this.state.chapterNum);
+                            // Toast.toastLong("缓存一")
+                        }else{
+                            // alert("自动加载+"+(this.state.chapterNum+1))
+                            this._getBookChapterDetail(ori_right,null).then((data)=> {
+                                this._setNextChapter(this.state.chapterNum);
+                            });
+                            // Toast.toastLong("缓存二")
+                        }
 
-                        });
                     }
                 });
                 this._updateHistoryBookChapter(this.props.bookId, chapterNum, chapterPage);
@@ -500,6 +507,18 @@ export default class ReadPlatform extends Component {
         }
     }
 
+    //缓存下一章
+    _setNextChapter(chapterNum){
+        InteractionManager.runAfterInteractions(()=> {
+            setTimeout(()=> {
+                //自动缓存下一章
+                this._getBookChapterDetail(null,chapterNum + 1).then((data)=> {
+                    this.chapterDetailNext = data;
+                });
+            }, 500);
+
+        });
+    }
     //屏幕点击事件
     _showControlStation_LR(evt) {
         // console.log('_showControlStation_LR', evt.nativeEvent.pageX, evt.nativeEvent.pageY)
@@ -783,12 +802,11 @@ export default class ReadPlatform extends Component {
 
         this._back(false);
         InteractionManager.runAfterInteractions(()=> {
-            // alert("isMainApi:"+this.state.isMainApi+"++"+isMainApi)
-            console.log('_clickListModalItem');
             let num = item.orderNum;
 
             this._getBookChapterDetail(true,num).then((data)=> {
                 this._updateHistoryBookChapter(this.props.bookId, num, 0)
+                this._setNextChapter(num);
             })
         });
 
