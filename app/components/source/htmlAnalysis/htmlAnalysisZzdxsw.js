@@ -77,6 +77,7 @@ myModule._search_html = (source,htmlStr,bookName) => {
         //<div class="right"><a class="name" href="/mushenji/">牧神记</a><span style="float:right;font-size:0.8125em;color: #999;">连载中</span><p class="update">最新章节：<a href="/mushenji/9992696.html">第一千二百一十四章 战斗明王</a></p><p class="info">作者：宅猪<span class="words">字数：4175457</span></p></div>
         let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<div.class=\"right\"><a.class=\"name\".href=\"(.*)\">(.*)<\/a><span.style=\".*\">(.*)<\/span><p.class=\"update\">最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><p.class=\"info\">作者：(.*)<span.class=\"words\">字数：(.*)<\/span><\/p>/),7);
 
+        data.sourceBaseUrl = source.baseUrl;//小说路径
         data.bookUrlNew = source.baseUrl + ar[0];//小说路径
         data.bookName = ar[1];//小说名称
         data.longIntro = "";//简介

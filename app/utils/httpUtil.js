@@ -10,6 +10,8 @@ import queryString from 'query-string'
 import _ from 'lodash'
 import Mock from 'mockjs'
 import config from '../common/config'
+const Buffer = require('buffer').Buffer;
+const iconvLite = require('iconv-lite');
 
 var request = {}
 
@@ -51,16 +53,19 @@ request.post = (url, body, successCallBack, failCallBack) => {
  *
  * @param url 请求路径
  * @param timeout 超时时间 单位是秒
- * @param charset 编码格式
+ * @param isUtf8 是否为utf8编码格式，
  * @param params 请求参数
  * @param async 是否异步
  * @param successCallBack 成功回调
  * @param failCallBack 失败回调
  * @returns {Promise.<T>|*}
  */
-request.ajax = (url,timeout,charset, params,async, successCallBack,failCallBack) => {
+request.ajax = (url,timeout,isUtf8, params,async, successCallBack,failCallBack) => {
     if (params) {
         url += '?' + queryString.stringify(params)
+    }
+    if(isUtf8 == null){
+        isUtf8 = true;
     }
 
     if(async){
@@ -78,8 +83,8 @@ request.ajax = (url,timeout,charset, params,async, successCallBack,failCallBack)
                 request.abort();
             },timeout);
 
-            if(charset != null && charset != ""){
-                // request.overrideMimeType(charset);//设定以gb2312编码识别数据
+            if(!isUtf8){
+                request.responseType = "arraybuffer";
             }
             request.onreadystatechange = e => {
                 if (request.readyState === 4) {
@@ -88,7 +93,18 @@ request.ajax = (url,timeout,charset, params,async, successCallBack,failCallBack)
                     }else if(request.status === 200){
                         //如果没有超时，手动结束计时
                         clearTimeout(timer);
-                        resolve(request.responseText);
+                        if(!isUtf8){
+                            // alert("aaa")
+                            //request.response是ArrayBuffer数据，可通过下面的方式得到其中可用的Uint8Array
+                            let b1 = new Uint8Array(request.response);
+                            //Buffer.from(b1,'hex')是把Uint8Array转化成Buffer类型数据
+                            let htmlStr = iconvLite.decode(Buffer.from(b1,'hex'), 'gbk');
+                            resolve(htmlStr);
+                        }else{
+                            resolve(request.responseText);
+                        }
+                    }else if(request.status === 404 || request.status === 500 ){
+                        resolve(null);
                     }
                 }
             }

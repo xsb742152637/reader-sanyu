@@ -25,7 +25,7 @@ myModule.getChapterDetail = (source,chapter) => {
     return new Promise((resolve,reject) => {
         // alert("得到小说："+JSON.stringify(chapter));
         //超时时间为
-        request.ajax(chapter.link,20,source.charset, null,true,(data) => {
+        request.ajax(chapter.link,20,source.isUtf8, null,true,(data) => {
             let ha = myModule._get_type(source.key);
             // alert("结果："+data);
             if(ha != null){
@@ -58,13 +58,18 @@ myModule.getChapter = (source,book,pageNum) => {
 
         // alert(book.webName+"获取目录："+url);
         //超时时间为
-        request.ajax(url,20,source.charset, null,true,(data) => {
-            let ha = myModule._get_type(book.sourceKey);
-            if(ha != null){
-                let dataList = ha._chapter_html(book,data);
-                resolve(dataList);
+        request.ajax(url,20,source.isUtf8, null,true,(data) => {
+            // alert("ff")
+            if(data == null || data == ""){
+                resolve(null);
             }else{
-                reject("无法识别的类型："+key);
+                let ha = myModule._get_type(book.sourceKey);
+                if(ha != null){
+                    let dataList = ha._chapter_html(book,data);
+                    resolve(dataList);
+                }else{
+                    reject("无法识别的类型："+key);
+                }
             }
 
         },(err) => {
