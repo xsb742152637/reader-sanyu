@@ -65,7 +65,7 @@ myModule.getChapter = (source,book,pageNum) => {
             }else{
                 let ha = myModule._get_type(book.sourceKey);
                 if(ha != null){
-                    let dataList = ha._chapter_html(book,data);
+                    let dataList = ha._chapter_html(source,book,data);
                     resolve(dataList);
                 }else{
                     reject("无法识别的类型："+key);

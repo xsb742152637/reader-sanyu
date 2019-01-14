@@ -41,7 +41,7 @@ var myModule = {
             chapterUrlFirst: false,
             chapterUrlBefor: 'index_',
             chapterUrlAfter: '.html',
-            chapterRowNum: 25//每页目录行数
+            chapterRowNum: 20//每页目录行数
         }
     }
 }

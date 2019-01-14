@@ -193,13 +193,15 @@ export default class Bookshelves extends Component {
     _getErrorChapter(bookName){
         let aaa = []
         realm.write(() => {
-            let allBooks = realm.objects('BookChapterList').filtered('bookName = "'+bookName+'"');
+            let allBooks = realm.objects('BookChapterList').filtered('bookName = "'+bookName+'"').sorted('orderNum');
             // alert(allBooks.length)
+            // realm.delete(allBooks);
+            let b = '';
             let beforNum = 0;
             for(let i = 0 ; i < allBooks.length ; i++){
                 let a = allBooks[i];
                 if(a.orderNum - 1 > beforNum){
-                    b += a.title+"("+a.orderNum+")";
+                    b += a.orderNum+"("+a.title+")\n";
                     aaa.push(a);
                 }
                 beforNum = a.orderNum;
@@ -209,7 +211,7 @@ export default class Bookshelves extends Component {
             // alert(allBooks.length+"++"+allBooks[allBooks.length -1].orderNum)
             // realm.delete(aaa);
             if(aaa.length > 0){
-                Toast.toastLong(bookName+"已修复缓存错误章节："+b)
+                alert(bookName+"已修复缓存错误章节：\n"+b)
                 realm.delete(aaa);
             }
             // alert("成功删除BookChapterList")
@@ -229,6 +231,7 @@ export default class Bookshelves extends Component {
             var book = books[i];
 
             this._getErrorChapter(book.bookName);
+            // return;
 
             new Promise((resolve,reject) => {
                 let key = book.sourceKey;
@@ -347,7 +350,7 @@ export default class Bookshelves extends Component {
                                 realm.create('BookChapterList', bc, true)
                             }
 
-                            alert((len+newChapterList.length)+"\n"+bb)
+                            // alert((len+newChapterList.length)+"\n\n"+bb)
                             // alert(JSON.stringify(book))
                             realm.create('HistoryBook', {
                                 bookId: book1.bookId,
