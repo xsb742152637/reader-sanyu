@@ -362,7 +362,7 @@ export default class ReadPlatform extends Component {
                     }
                 }).then((data)=> {
                     if(data != null){
-                        let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
+                        let tempArr = this._formatChapter(data, chapterNum, chapter.title);
                         if(type2 != null){
                             this.setState({
                                 chapterDetail: tempArr,
@@ -561,7 +561,7 @@ export default class ReadPlatform extends Component {
     }
 
     //格式化小说内容
-    _formatChapter(content, num, title) {
+    _formatChapter(data, num, title) {
         // alert("num:"+num+"\n"+"title:"+title+"\n"+"content:"+content);
         // console.log('_formatChapter:' + content)
 
@@ -576,7 +576,7 @@ export default class ReadPlatform extends Component {
                     content: []
                 });
             }
-            let _content = '\u3000\u3000' + content.replace(/\n/g, '@\u3000\u3000')
+            let _content = '\u3000\u3000' + data.content.replace(/\n/g, '@\u3000\u3000')
             let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
             let totalPage = _arrTemp.length
 
@@ -600,7 +600,7 @@ export default class ReadPlatform extends Component {
                 });
             }
         }catch (e){
-            alert("小说内容格式化出错！\n"+title+"\n"+num+"\n"+content)
+            alert("小说内容格式化出错！\n"+title+"\n"+num+"\n"+JSON.stringify(data))
         }
 
         return _arr
