@@ -189,20 +189,46 @@ export default class Bookshelves extends Component {
         })
     }
 
+    //对缓存章节的调试
+    _getErrorChapter(bookName){
+        let aaa = []
+        realm.write(() => {
+            let allBooks = realm.objects('BookChapterList').filtered('bookName = "'+bookName+'"');
+            // alert(allBooks.length)
+            let beforNum = 0;
+            for(let i = 0 ; i < allBooks.length ; i++){
+                let a = allBooks[i];
+                if(a.orderNum - 1 > beforNum){
+                    b += a.title+"("+a.orderNum+")";
+                    aaa.push(a);
+                }
+                beforNum = a.orderNum;
+
+            }
+
+            // alert(allBooks.length+"++"+allBooks[allBooks.length -1].orderNum)
+            // realm.delete(aaa);
+            if(aaa.length > 0){
+                Toast.toastLong(bookName+"已修复缓存错误章节："+b)
+                realm.delete(aaa);
+            }
+            // alert("成功删除BookChapterList")
+        });
+        if(aaa.length > 0){
+            return true;
+        }else{
+            return false;
+        }
+    }
     _updateBookDetail() {
-        //删除目录缓存
-        // realm.write(() => {
-        //     let allBooks = realm.objects('BookChapterList').filtered('bookName = "时光和你都很美"');
-        //     realm.delete(allBooks[allBooks.length - 1]);
-        //     alert("成功删除BookChapterList")
-        // });
-        // return;
 
         Toast.toastLong("更新中。。。");
         var books = realm.objects('HistoryBook').sorted('sortNum');
 
         for (var i = 0; i < books.length; ++i) {
             var book = books[i];
+
+            this._getErrorChapter(book.bookName);
 
             new Promise((resolve,reject) => {
                 let key = book.sourceKey;
@@ -302,8 +328,11 @@ export default class Bookshelves extends Component {
                     if(newChapterList.length > 0){
                         // alert(book1.bookName+"更新："+newChapterList.length+"\n"+newChapterList[newChapterList.length - 1].title)
                         realm.write(() => {
+                            let len = bookChapterList.length;//bookChapterList得长度会因为下面的保存成功而实时更新，所以长度必须先保存到一个变量中
+                            // alert(bookChapterList[0].orderNum +"++"+ (bookChapterList.length))
+                            let bb = bookChapterList[bookChapterList.length - 1].orderNum+"\n";
                             for(let m = 0 ; m < newChapterList.length ; m++){
-                                let orderNum = m + bookChapterList.length;
+                                let orderNum = m + len;
                                 let bc = {
                                     listId: this._getKey(source,book1)+"_"+orderNum,
                                     listKey: this._getKey(source,book1),
@@ -313,10 +342,12 @@ export default class Bookshelves extends Component {
                                     num: newChapterList[m].num,
                                     orderNum: orderNum
                                 };
+                                bb += bc.orderNum+"\n";
                                 // alert(JSON.stringify(bookChapterList[bookChapterList.length -1])+"\n\n"+JSON.stringify(bc))
                                 realm.create('BookChapterList', bc, true)
                             }
 
+                            alert((len+newChapterList.length)+"\n"+bb)
                             // alert(JSON.stringify(book))
                             realm.create('HistoryBook', {
                                 bookId: book1.bookId,

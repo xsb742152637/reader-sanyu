@@ -84,7 +84,7 @@ export default class ReadPlatform extends Component {
         this.adVersion = 1;
         this.failNum = 0;//请求失败的次数
         this.failNumMax = 3;//请求失败的最大次数
-        this.isShowAD = true;//是否显示广告
+        this.isShowAD = false;//是否显示广告
         this.chapterDetailNext = [];//下一章小说内容
     }
     componentDidMount() {
@@ -315,79 +315,80 @@ export default class ReadPlatform extends Component {
             chapterNum = this.state.chapterNum;
         }
 
-        let chapter = this.state.bookChapter[chapterNum];
         return new Promise((resolve, reject)=> {
-            if (chapterNum < 0) {
-                resolve([])
-                return
+            if (chapterNum < 0 || chapterNum >= this.state.bookChapter.length) {
+                resolve([]);
+            }else{
+                let chapter = this.state.bookChapter[chapterNum];
+
+                new Promise((resolve1, reject1)=> {
+                    let chapterDetail = realm.objects('BookChapterDetail').filtered('listId = "'+chapter.listId+'"');
+                    if(chapterDetail == null || chapterDetail.length < 1 ||chapterDetail[0] == null  ||chapterDetail[0].length < 1 ){
+                        if(this.state.isMainApi){
+                            let tempUrl = chapter.link.replace(/\//g, '%2F').replace('?', '%3F')
+                            request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null, (data) => {
+                                if (data.ok) {
+                                    this._setBookChapterDetail(chapter,data.chapter.body).then((data1) => {
+                                        resolve1(data1);
+                                    });
+                                } else {
+                                    Toast.toastLong('更新章节失败~~检查网络后左右滑动屏幕重试~~')
+                                }
+                            }, (error) => {
+                                Toast.toastLong('更新章节失败~~检查网络后左右滑动屏幕重试~~')
+                            })
+                        }else{
+                            HtmlAnalysis.getChapterDetail(this.state.source,chapter).then((data)=> {
+                                this.failNum = 0;
+                                this._setBookChapterDetail(chapter,data).then((data1) => {
+                                    resolve1(data1);
+                                });
+                            }).catch((err) => {
+                                this.failNum += 1;
+                                if(this.failNum > this.failNumMax && type2 != null){
+                                    alert("获取小说内容失败：\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
+                                }else{
+                                    if(type2 != null){
+                                        Toast.toastLong("获取小说内容失败：第"+this.failNum+"次再次尝试获取");
+                                    }
+                                    this._getBookChapterDetail(type2,chapterNum).then((data1) => {
+                                        resolve1(data1);
+                                    });
+                                }
+                            });
+                        }
+                    }else{
+                        resolve1(chapterDetail[0]);
+                    }
+                }).then((data)=> {
+                    if(data != null){
+                        let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
+                        if(type2 != null){
+                            this.setState({
+                                chapterDetail: tempArr,
+                                isLoadEnd: true,
+                                chapterTotalPage: tempArr[1].totalPage,
+                                chapterNum: chapterNum
+                            });
+                            if(tempArr != null && tempArr.length > 0){
+                                setTimeout(()=> {
+                                    //跳转到当前章节第一页，如果是第一章，不用多跳一页
+
+                                    if(type2){
+                                        this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
+                                    }else{
+                                        this._scrollToIndex(tempArr.length - 2);
+                                    }
+                                }, 50);
+                            }
+                        }
+                        resolve(tempArr)
+                    }else{
+                        resolve([]);
+                    }
+                })
             }
 
-            new Promise((resolve1, reject1)=> {
-                let chapterDetail = realm.objects('BookChapterDetail').filtered('listId = "'+chapter.listId+'"');
-                if(chapterDetail == null || chapterDetail.length < 1 ||chapterDetail[0] == null  ||chapterDetail[0].length < 1 ){
-                    if(this.state.isMainApi){
-                        let tempUrl = chapter.link.replace(/\//g, '%2F').replace('?', '%3F')
-                        request.get(api.READ_BOOK_CHAPTER_DETAIL(tempUrl), null, (data) => {
-                            if (data.ok) {
-                                this._setBookChapterDetail(chapter,data.chapter.body).then((data1) => {
-                                    resolve1(data1);
-                                });
-                            } else {
-                                Toast.toastLong('更新章节失败~~检查网络后左右滑动屏幕重试~~')
-                            }
-                        }, (error) => {
-                            Toast.toastLong('更新章节失败~~检查网络后左右滑动屏幕重试~~')
-                        })
-                    }else{
-                        HtmlAnalysis.getChapterDetail(this.state.source,chapter).then((data)=> {
-                            this.failNum = 0;
-                            this._setBookChapterDetail(chapter,data).then((data1) => {
-                                resolve1(data1);
-                            });
-                        }).catch((err) => {
-                            this.failNum += 1;
-                            if(this.failNum > this.failNumMax && type2 != null){
-                                alert("获取小说内容失败：\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
-                            }else{
-                                if(type2 != null){
-                                    Toast.toastLong("获取小说内容失败：第"+this.failNum+"次再次尝试获取");
-                                }
-                                this._getBookChapterDetail(type2,chapterNum).then((data1) => {
-                                    resolve1(data1);
-                                });
-                            }
-                        });
-                    }
-                }else{
-                    resolve1(chapterDetail[0]);
-                }
-            }).then((data)=> {
-                if(data != null){
-                    let tempArr = this._formatChapter(data.content, chapterNum, chapter.title);
-                    if(type2 != null){
-                        this.setState({
-                            chapterDetail: tempArr,
-                            isLoadEnd: true,
-                            chapterTotalPage: tempArr[1].totalPage,
-                            chapterNum: chapterNum
-                        });
-                        if(tempArr != null && tempArr.length > 0){
-                            setTimeout(()=> {
-                                //跳转到当前章节第一页，如果是第一章，不用多跳一页
-
-                                if(type2){
-                                    this._scrollToIndex(chapterNum > 0 ?(this.state.chapterPage + 1) : this.state.chapterPage);
-                                }else{
-                                    this._scrollToIndex(tempArr.length - 2);
-                                }
-                            }, 50);
-                        }
-                    }
-                    resolve(tempArr)
-                }else{
-                    resolve([]);
-                }
-            })
         });
     }
     //保存小说目录
@@ -512,9 +513,14 @@ export default class ReadPlatform extends Component {
         InteractionManager.runAfterInteractions(()=> {
             setTimeout(()=> {
                 //自动缓存下一章
-                this._getBookChapterDetail(null,chapterNum + 1).then((data)=> {
-                    this.chapterDetailNext = data;
-                });
+                try{
+                    this._getBookChapterDetail(null,chapterNum + 1).then((data)=> {
+                        // alert("自动："+data.length);
+                        this.chapterDetailNext = data;
+                    });
+                }catch (e){
+                    alert("自动获取失败"+(chapterNum+1))
+                }
             }, 500);
 
         });
