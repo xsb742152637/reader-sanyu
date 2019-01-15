@@ -518,23 +518,52 @@ export default class Bookshelves extends Component {
      * modal删除
      */
     _toDelete() {
-        let bookDetail = this.state.focusBook
-        console.log('_toDelete ' + bookDetail)
+        let bookName = this.state.focusBook.bookName;
+        console.log('_toDelete ' + bookName)
+        new Promise((resolve,reject) => {
+            try{
+                realm.write(() => {
+                    realm.delete(this.state.focusBook)
+                    resolve(true);
+                });
+            }catch (e){
+                reject(e)
+            }
+        }).then((data) => {
+            setTimeout(()=> {
+                let bookList = realm.objects('HistoryBook').filtered('isToShow = 1').sorted('sortNum', true);
+                // Toast.toastLong(bookList.length);
+                this.setState({
+                    bookshelves: bookList,
+                    toShow: false,
+                    focusBook: null
+                })
+            }, 200);
 
-        realm.write(() => {
-            //删除数据库中存的目录，所有源
-            let BookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+bookDetail.bookName+'"');
-            realm.delete(BookChapterList);
-            //删除数据库中存的小说内容，所有源
-            let BookChapterDetail = realm.objects('BookChapterDetail').filtered('bookName = "'+bookDetail.bookName+'"');
-            realm.delete(BookChapterDetail);
+            // alert("删除缓存："+bookName)
+            try{
+                if(bookName != null && bookName != ""){
+                    InteractionManager.runAfterInteractions(()=> {
+                        setTimeout(()=> {
+                            realm.write(() => {
+                                //删除数据库中存的目录，所有源
+                                let BookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+bookName+'"');
+                                if(BookChapterList != null && BookChapterList.length > 0){
+                                    realm.delete(BookChapterList);
+                                }
 
-            realm.delete(this.state.focusBook)
-        });
-        this.setState({
-            bookshelves: realm.objects('HistoryBook').filtered('isToShow = 1').sorted('sortNum', true),
-            toShow: false,
-            focusBook: null
+                                //删除数据库中存的小说内容，所有源
+                                let BookChapterDetail = realm.objects('BookChapterDetail').filtered('bookName = "'+bookName+'"');
+                                if(BookChapterDetail != null && BookChapterDetail.length > 0){
+                                    realm.delete(BookChapterDetail);
+                                }
+                            });
+                        }, 500);
+                    });
+                }
+            }catch (e){
+                alert("删除缓存失败："+JSON.stringify(bookDetail))
+            }
         })
     }
 

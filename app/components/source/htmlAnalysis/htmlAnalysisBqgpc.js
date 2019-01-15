@@ -43,7 +43,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
             //<dd><a href="(.*)">(.*)</a>
             let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<dd><a.href=\"(.*)\">(.*)<\/a>/),2);
 
-            data.link = book.bookUrlNew + ar[0];//章节路径
+            data.link = source.baseUrl + ar[0];//章节路径
             data.title = ar[1];//章节名称
             let zj = HtmlAnalysisBase.getMatchStr(data.title.match(/第(.*)章/));
             data.num = HtmlAnalysisBase.getChapterNumByCH(zj,beforNum) - 1;//当前章节的数字
@@ -61,9 +61,9 @@ myModule._chapter_html = (source,book,htmlStr) => {
 }
 
 //搜索页面解析
-myModule._search_html = (source,data,bookName) => {
-    let htmlStr = data.content;
-    // alert("Jing");
+myModule._search_html = (source,data1,bookName) => {
+    let htmlStr = data1.content;
+    // alert("Jing："+JSON.stringify(data1));
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
 
     let data = {};
@@ -116,7 +116,7 @@ myModule._search_html = (source,data,bookName) => {
         //<div.id=\"info\"><h1>(.*)<\/h1><p>作.*者：(.*)<\/p><p>动.*最后更新：(.*)<\/p><p>最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><\/div><div.id=\"intro\"><p>(.*)<\/p><\/div><\/div>
         let ar = HtmlAnalysisBase.getMatchStr(htmlStr.match(/<div.id=\"info\"><h1>(.*)<\/h1><p>作.*者：(.*)<\/p><p>动.*最后更新：(.*)<\/p><p>最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><\/div><div.id=\"intro\"><p>(.*)<\/p><\/div><\/div>/),6);
 
-        data.bookUrlNew = data.url;//小说路径
+        data.bookUrlNew = data1.url;//小说路径
         data.bookName = ar[0];//小说名称
         data.longIntro = ar[5];//简介
         data.bookType = ar[2];//连载、已完结等或更新时间

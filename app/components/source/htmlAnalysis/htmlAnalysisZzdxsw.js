@@ -57,8 +57,8 @@ myModule._chapter_html = (source,book,htmlStr) => {
 }
 
 //搜索页面解析
-myModule._search_html = (source,data,bookName) => {
-    let htmlStr = data.content;
+myModule._search_html = (source,data1,bookName) => {
+    let htmlStr = data1.content;
     // alert("Jing");
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="container">','</div><div class="footer">');

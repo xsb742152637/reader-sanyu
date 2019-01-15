@@ -12,6 +12,7 @@ import HtmlAnalysisBase from './htmlAnalysis/htmlAnalysisBase'
 import HtmlAnalysisPsw from './htmlAnalysis/htmlAnalysisPsw'
 import HtmlAnalysisZzdxsw from './htmlAnalysis/htmlAnalysisZzdxsw'
 import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
+import HtmlAnalysisBqgpc from './htmlAnalysis/htmlAnalysisBqgpc'
 
 var myModule = {
     bookName:"",
@@ -62,7 +63,7 @@ myModule.getChapter = (source,book,pageNum) => {
             }
         }
 
-        // alert(book.webName+"获取目录："+url+"\n"+JSON.stringify(source));
+        // alert(book.webName+"获取目录："+url+"\n"+JSON.stringify(source)+"\n"+JSON.stringify(book));
         //超时时间为
         request.ajax(url,myModule.outTime,source.isUtf8, null,true,(data) => {
             // alert(JSON.stringify(data))
@@ -130,7 +131,7 @@ myModule.searchBook = (bookId,bookName,key) => {
                 let ha = myModule._get_type(key);
                 if(ha != null){
                     // alert("aaa");
-                    let book = ha._search_html(source,data,myModule.bookName,url);
+                    let book = ha._search_html(source,data,myModule.bookName);
                     // alert("bbb");
                     if(book != undefined && book != null){
                         if(JSON.stringify(book) == "{}"){
@@ -167,6 +168,9 @@ myModule._get_type = (key) => {
             break;
         case "bqg":
             ha = HtmlAnalysisBqg;
+            break;
+        case "bqgpc":
+            ha = HtmlAnalysisBqgpc;
             break;
     }
     return ha;

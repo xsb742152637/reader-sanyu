@@ -17,16 +17,16 @@ var myModule = {
             isMainApi: true,
             chapterRowNum: -1//每页目录行数
         },
-        psw:{
-            key:'psw',
-            webNameShort: '品',//简称
-            webName: '品书网',//全名
-            isMainApi: false,
-            isUtf8: false,//编码是否为UTF-8
-            baseUrl: 'https://www.vodtw.com',//网址
-            searchUrl: '/Book/Search.aspx?SearchClass=1&SearchKey=',//搜索路径及key
-            chapterRowNum: -1//每页目录行数
-        },
+        // psw:{
+        //     key:'psw',
+        //     webNameShort: '品',//简称
+        //     webName: '品书网',//全名
+        //     isMainApi: false,
+        //     isUtf8: false,//编码是否为UTF-8
+        //     baseUrl: 'https://www.vodtw.com',//网址
+        //     searchUrl: '/Book/Search.aspx?SearchClass=1&SearchKey=',//搜索路径及key
+        //     chapterRowNum: -1//每页目录行数
+        // },
         bqgpc:{
             key:'bqgpc',
             webNameShort: '笔',//简称
