@@ -14,7 +14,8 @@ import HtmlAnalysisZzdxsw from './htmlAnalysis/htmlAnalysisZzdxsw'
 import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 
 var myModule = {
-    bookName:""
+    bookName:"",
+    outTime: 12//超时时间
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
@@ -28,7 +29,7 @@ myModule.getChapterDetail = (source,chapter) => {
     return new Promise((resolve,reject) => {
         // alert("得到小说："+JSON.stringify(chapter)+"\n"+JSON.stringify(source));
         //超时时间为
-        request.ajax(chapter.link,20,source.isUtf8, null,true,(data) => {
+        request.ajax(chapter.link,myModule.outTime,source.isUtf8, null,true,(data) => {
             let ha = myModule._get_type(source.key);
             // alert("结果："+data);
             if(ha != null){
@@ -63,7 +64,7 @@ myModule.getChapter = (source,book,pageNum) => {
 
         // alert(book.webName+"获取目录："+url+"\n"+JSON.stringify(source));
         //超时时间为
-        request.ajax(url,10,source.isUtf8, null,true,(data) => {
+        request.ajax(url,myModule.outTime,source.isUtf8, null,true,(data) => {
             // alert(JSON.stringify(data))
             if(data == null || data == ""){
                 resolve(null);
@@ -123,7 +124,7 @@ myModule.searchBook = (bookId,bookName,key) => {
             }
             // alert("url:"+url+"+++"+key+"\n"+JSON.stringify(source));
             //超时时间为20秒
-            request.ajax(url,10, source.isUtf8, null,true,(data) => {
+            request.ajax(url,myModule.outTime, source.isUtf8, null,true,(data) => {
 
                 // alert(JSON.stringify(data))
                 let ha = myModule._get_type(key);

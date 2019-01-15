@@ -399,9 +399,13 @@ export default class Bookshelves extends Component {
             HtmlAnalysis.getChapter(source,book,pageNum).then((data)=> {
                 if(data != null && data.length > 0){
                     dataList = dataList.concat(data);
-                    this._getOnePageChapter(source,book,(pageNum + 1),dataList).then((data1) => {
-                        resolve(data1)
-                    });
+                    if(source.chapterRowNum > 0){
+                        this._getOnePageChapter(source,book,(pageNum + 1),dataList).then((data1) => {
+                            resolve(data1)
+                        });
+                    }else {
+                        resolve(dataList);
+                    }
                 }else{
                     resolve(dataList);
                 }

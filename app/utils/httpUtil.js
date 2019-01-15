@@ -86,11 +86,14 @@ request.ajax = (url,timeout,isUtf8, params,async, successCallBack,failCallBack) 
             if(!isUtf8){
                 request.responseType = "arraybuffer";
             }
+            // alert("开始")
             request.onreadystatechange = e => {
                 if (request.readyState === 4) {
                     if(time){
-                        failCallBack("请求超时："+url);
+                        // alert("超时")
+                        reject("请求超时："+url);
                     }else if(request.status === 200){
+                        // alert("完成")
                         //如果没有超时，手动结束计时
                         clearTimeout(timer);
                         if(!isUtf8){
