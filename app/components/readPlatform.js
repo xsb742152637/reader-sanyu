@@ -183,6 +183,9 @@ export default class ReadPlatform extends Component {
 
             this._getBookChapterDetail(true,chapterNum).then((data)=> {
                 this._updateHistoryBookChapter(this.props.bookId, chapterNum, 0)
+                if(type){
+                    this._setNextChapter(chapterNum);
+                }
 
             })
         }
@@ -202,7 +205,7 @@ export default class ReadPlatform extends Component {
             try{
                 let chapterList = realm.objects('BookChapterList').filtered('listKey = "'+(this._getKey(source))+'"').sorted('orderNum');
 
-                // alert(JSON.stringify(chapterList))
+                // alert(chapterList.length+"++"+isTemp+"++"+JSON.stringify(source)+"++\n"+JSON.stringify(book));
                 if(chapterList == null || chapterList.length < 1){
                     //得到追书神器中的小说章节
                     if((!isTemp && this.state.isMainApi) || (isTemp && book.sourceKey == HtmlAnalysis.mainKey) ){
@@ -420,10 +423,13 @@ export default class ReadPlatform extends Component {
                     this.setState({
                         loadLen: dataList.length
                     })
-                    // resolve(dataList);
-                    this._getOnePageChapter(source,book,(pageNum + 1),dataList).then((data1) => {
-                        resolve(data1)
-                    });
+                    if(source.chapterRowNum > 0){
+                        this._getOnePageChapter(source,book,(pageNum + 1),dataList).then((data1) => {
+                            resolve(data1)
+                        });
+                    }else {
+                        resolve(dataList);
+                    }
                 }else{
                     resolve(dataList);
                 }
@@ -489,7 +495,7 @@ export default class ReadPlatform extends Component {
                                 this._scrollToIndex(1);
                             }, 50);
                             this._setNextChapter(this.state.chapterNum);
-                            // Toast.toastLong("缓存一")
+                            // Toast.toastLong("得到缓存的章节")
                         }else{
                             // alert("自动加载+"+(this.state.chapterNum+1))
                             this._getBookChapterDetail(ori_right,null).then((data)=> {
@@ -510,6 +516,7 @@ export default class ReadPlatform extends Component {
 
     //缓存下一章
     _setNextChapter(chapterNum){
+        this.chapterDetailNext = null;
         InteractionManager.runAfterInteractions(()=> {
             setTimeout(()=> {
                 //自动缓存下一章

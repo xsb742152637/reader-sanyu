@@ -23,6 +23,7 @@ const ONE_HOUR_AGO = "小时前";
 const ONE_DAY_AGO = "天前";
 const ONE_MONTH_AGO = "个月前";
 const ONE_YEAR_AGO = "年前";
+var iconvLite = require('iconv-lite');
 
 let toSeconds = (date) => {
     return date / 1000
@@ -170,6 +171,36 @@ export let generateUUID =() => {
     return uuid;
 }
 
+//中文转码
+export let myEncode = (str, charset) => {
+    // if (isUTF8(charset)) {
+    //     return encodeURIComponent(str);
+    // }
+    if(charset == undefined || charset == null || charset == ""){
+        alert("请设置编码格式");
+        return "";
+    }
+
+    //得到中文的gbk二进制数组
+    var buf = []
+    try{
+        buf = iconvLite.encode(str, charset);
+    }catch (e){
+        alert("cw")
+    }
+    var encodeStr = '';
+    var ch = '';
+    //将数组中的每一个元素转换成16进制，转换后的长度小于2的在前面加0，然后用%拼接
+    for (var i = 0; i < buf.length; i++) {
+        ch = buf[i].toString('16');
+        if (ch.length === 1) {
+            ch = '0' + ch;
+        }
+        encodeStr += '%' + ch;
+    }
+    encodeStr = encodeStr.toUpperCase();
+    return encodeStr;
+}
 // export let contentFormat = (content) => {
 //   const length = content.length
 //   var array = []

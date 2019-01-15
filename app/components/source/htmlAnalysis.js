@@ -5,10 +5,13 @@
  */
 
 import request from '../../utils/httpUtil'
+import api from '../../common/api'
+import {myEncode} from '../../utils/formatUtil'
 import HtmlAnalysisBase from './htmlAnalysis/htmlAnalysisBase'
+
+import HtmlAnalysisPsw from './htmlAnalysis/htmlAnalysisPsw'
 import HtmlAnalysisZzdxsw from './htmlAnalysis/htmlAnalysisZzdxsw'
 import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
-import api from '../../common/api'
 
 var myModule = {
     bookName:""
@@ -23,7 +26,7 @@ myModule.api = HtmlAnalysisBase.api;
  */
 myModule.getChapterDetail = (source,chapter) => {
     return new Promise((resolve,reject) => {
-        // alert("得到小说："+JSON.stringify(chapter));
+        // alert("得到小说："+JSON.stringify(chapter)+"\n"+JSON.stringify(source));
         //超时时间为
         request.ajax(chapter.link,20,source.isUtf8, null,true,(data) => {
             let ha = myModule._get_type(source.key);
@@ -36,7 +39,7 @@ myModule.getChapterDetail = (source,chapter) => {
             }
 
         },(err) => {
-            // alert("getChapterDetail\n"+JSON.stringify(err));
+            alert("getChapterDetail\n"+JSON.stringify(err));
             reject("获取小说章节出错");
         });
     });
@@ -52,14 +55,16 @@ myModule.getChapter = (source,book,pageNum) => {
     return new Promise((resolve,reject) => {
         //路径类型：true(相对路径,还需要加上网址）、false(绝对路径,直接可以使用)
         let url = book.bookUrlNew;
-        if((pageNum == 1 && source.chapterUrlFirst) || pageNum != 1){
-            url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
+        if(source.chapterRowNum > 0){
+            if((pageNum == 1 && source.chapterUrlFirst) || pageNum != 1){
+                url += source.chapterUrlBefor + pageNum + source.chapterUrlAfter;
+            }
         }
 
-        // alert(book.webName+"获取目录："+url);
+        // alert(book.webName+"获取目录："+url+"\n"+JSON.stringify(source));
         //超时时间为
         request.ajax(url,20,source.isUtf8, null,true,(data) => {
-            // alert("ff")
+            // alert(JSON.stringify(data))
             if(data == null || data == ""){
                 resolve(null);
             }else{
@@ -109,10 +114,18 @@ myModule.searchBook = (bookId,bookName,key) => {
                 reject(err);
             })
         }else{
-            let url = source.baseUrl + source.searchUrl + myModule.bookName;
-            // alert("url:"+url+"+++"+key);
+            // alert(JSON.stringify(source))
+            let url = source.baseUrl + source.searchUrl;
+            if(source.isUtf8){
+                url += myModule.bookName;
+            }else{
+                url += myEncode(myModule.bookName,"gbk");
+            }
+            // alert("url:"+url+"+++"+key+"\n"+JSON.stringify(source));
             //超时时间为20秒
-            request.ajax(url,20, null, null,true,(data) => {
+            request.ajax(url,20, source.isUtf8, null,true,(data) => {
+
+                // alert(JSON.stringify(data))
                 let ha = myModule._get_type(key);
                 if(ha != null){
                     // alert("aaa");
@@ -141,6 +154,9 @@ myModule.searchBook = (bookId,bookName,key) => {
 myModule._get_type = (key) => {
     let ha = null;
     switch (key){
+        case "psw":
+            ha = HtmlAnalysisPsw;
+            break;
         case "zzdxsw":
             ha = HtmlAnalysisZzdxsw;
             break;

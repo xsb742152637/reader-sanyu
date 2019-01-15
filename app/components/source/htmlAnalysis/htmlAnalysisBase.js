@@ -17,38 +17,49 @@ var myModule = {
             isMainApi: true,
             chapterRowNum: -1//每页目录行数
         },
-        zzdxsw:{
-            key:'zzdxsw',
-            webNameShort: '猪猪岛',//简称
-            webName: '猪猪岛小说网',//全名
-            isMainApi: false,
-            isUtf8: true,//编码是否为UTF-8
-            baseUrl: 'http://m.zzdxsw.org',//网址
-            searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
-            chapterUrlFirst: false,//章节路径的第一页不加路径
-            chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
-            chapterUrlAfter: '.html',//后续章节需要添加的后面部分
-            chapterRowNum: 25//每页目录行数
-        },
-        bqg:{
-            key:'bqg',
-            webNameShort: '笔趣阁',
-            webName: '笔趣阁',
+        psw:{
+            key:'psw',
+            webNameShort: '品',//简称
+            webName: '品书网',//全名
             isMainApi: false,
             isUtf8: false,//编码是否为UTF-8
-            baseUrl: 'https://m.biqubao.com',
-            searchUrl: '/search.php?keyword=',
-            chapterUrlFirst: false,
-            chapterUrlBefor: 'index_',
-            chapterUrlAfter: '.html',
-            chapterRowNum: 20//每页目录行数
+            baseUrl: 'https://www.vodtw.com',//网址
+            searchUrl: '/Book/Search.aspx?SearchClass=1&SearchKey=',//搜索路径及key
+            chapterRowNum: -1//每页目录行数
         }
+        // ,
+        // zzdxsw:{
+        //     key:'zzdxsw',
+        //     webNameShort: '猪',//简称
+        //     webName: '猪猪岛小说网',//全名
+        //     isMainApi: false,
+        //     isUtf8: true,//编码是否为UTF-8
+        //     baseUrl: 'http://m.zzdxsw.org',//网址
+        //     searchUrl: '/wap.php?action=search&wd=',//搜索路径及key
+        //     chapterUrlFirst: false,//章节路径的第一页不加路径
+        //     chapterUrlBefor: 'list_',//后续章节需要添加的前面部分
+        //     chapterUrlAfter: '.html',//后续章节需要添加的后面部分
+        //     chapterRowNum: 25//每页目录行数
+        // },
+        // bqg:{
+        //     key:'bqg',
+        //     webNameShort: '笔',
+        //     webName: '笔趣阁',
+        //     isMainApi: false,
+        //     isUtf8: false,//编码是否为UTF-8
+        //     baseUrl: 'https://m.biqubao.com',
+        //     searchUrl: '/search.php?keyword=',
+        //     chapterUrlFirst: false,
+        //     chapterUrlBefor: 'index_',
+        //     chapterUrlAfter: '.html',
+        //     chapterRowNum: 20//每页目录行数
+        // }
     }
 }
 
 //将br换行标签转换成\n
 myModule.replaceBrTag = (htmlStr) => {
-    htmlStr = htmlStr.replace(/<br.\/><br.\/>/g,'\n').replace(/&nbsp;/g,' ');
+    htmlStr = htmlStr.replace(/<br.\/><br.\/>/g,'\n').replace(/&nbsp;/g,' ').replace(/<\/p><p>/g,'\n').replace(/<p>/g,'');
     return htmlStr.replace(/<br.\/>/g,'\n');
 }
 //通过特别的字符串截取从headStr到footStr之间的html内容
