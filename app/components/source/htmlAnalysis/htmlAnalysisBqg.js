@@ -58,7 +58,8 @@ myModule._chapter_html = (source,book,htmlStr) => {
 }
 
 //搜索页面解析
-myModule._search_html = (source,htmlStr,bookName) => {
+myModule._search_html = (source,data,bookName) => {
+    let htmlStr = data.content;
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="result-list">','</div><div class="search-result-page">');
 
@@ -70,7 +71,7 @@ myModule._search_html = (source,htmlStr,bookName) => {
 
     let data = {};
     for(let i in htmls) {
-        if(i == 0){
+        if(i == 0|| htmls[i] == ""){
             continue;
         }
         //<div class="result-game-item-pic"><a cpos="img" href="https://m.biqubao.com/book/18569/" class="result-game-item-pic-link" target="_blank" style="width:110px;height:150px;"><img src="https://www.biqubao.com/cover/18/18569/18569s.jpg" class="result-game-item-pic-link-img" onerror="$(this).attr('src', 'https://www.biqubao.com/images/nocover.jpg')"></a></div><div class="result-game-item-detail"><h3 class="result-item-title result-game-item-title"><a cpos="title" href="https://m.biqubao.com/book/18569/" title="牧神记" class="result-game-item-title-link" target="_blank"><span>牧神记</span></a></h3><p class="result-game-item-desc">大墟的祖训说，天黑，别出门。　　大墟残老村的老弱病残们从江边...</p><div class="result-game-item-info"><p class="result-game-item-info-tag"><span class="result-game-item-info-tag-title preBold">作者：</span><span>宅猪</span></p><p class="result-game-item-info-tag"><span class="result-game-item-info-tag-title preBold">类型：</span><span class="result-game-item-info-tag-title">玄幻小说</span></p><p class="result-game-item-info-tag"><span class="result-game-item-info-tag-title preBold">更新时间：</span><span class="result-game-item-info-tag-title">2018-12-19</span></p><p class="result-game-item-info-tag"><span class="result-game-item-info-tag-title preBold">最新章节：</span><a cpos="newchapter" href=" https://m.biqubao.com/book/18569/12507524.html " class="result-game-item-info-tag-item" target="_blank">第一千二百一十六章 额头上香（第二更）</a></p></div></div></div>

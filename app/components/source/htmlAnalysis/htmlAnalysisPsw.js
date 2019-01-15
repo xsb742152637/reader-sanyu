@@ -60,7 +60,8 @@ myModule._chapter_html = (source,book,htmlStr) => {
 }
 
 //搜索页面解析
-myModule._search_html = (source,htmlStr,bookName) => {
+myModule._search_html = (source,data,bookName) => {
+    let htmlStr = data.content;
     // alert("Jing");
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div id="Content"><div id="CrTitle">','<form name="__aspnetForm" method="post"');
@@ -72,7 +73,7 @@ myModule._search_html = (source,htmlStr,bookName) => {
     }
     let data = {};
     for(let i in htmls) {
-        if(i == 0){
+        if(i == 0|| htmls[i] == ""){
             continue;
         }
 

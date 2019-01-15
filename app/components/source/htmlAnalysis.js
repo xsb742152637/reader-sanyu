@@ -33,7 +33,7 @@ myModule.getChapterDetail = (source,chapter) => {
             let ha = myModule._get_type(source.key);
             // alert("结果："+data);
             if(ha != null){
-                data = ha._getChapter_detail(data);
+                data = ha._getChapter_detail(data.content);
                 resolve(data);
             }else{
                 reject("无法识别的类型："+key);
@@ -71,7 +71,7 @@ myModule.getChapter = (source,book,pageNum) => {
             }else{
                 let ha = myModule._get_type(book.sourceKey);
                 if(ha != null){
-                    let dataList = ha._chapter_html(source,book,data);
+                    let dataList = ha._chapter_html(source,book,data.content);
                     resolve(dataList);
                 }else{
                     reject("无法识别的类型："+key);
@@ -130,7 +130,7 @@ myModule.searchBook = (bookId,bookName,key) => {
                 let ha = myModule._get_type(key);
                 if(ha != null){
                     // alert("aaa");
-                    let book = ha._search_html(source,data,myModule.bookName);
+                    let book = ha._search_html(source,data,myModule.bookName,url);
                     // alert("bbb");
                     if(book != undefined && book != null){
                         if(JSON.stringify(book) == "{}"){

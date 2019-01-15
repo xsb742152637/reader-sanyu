@@ -96,16 +96,20 @@ request.ajax = (url,timeout,isUtf8, params,async, successCallBack,failCallBack) 
                         // alert("完成")
                         //如果没有超时，手动结束计时
                         clearTimeout(timer);
+                        let data = {};
+                        data.url = request.responseURL;
                         if(!isUtf8){
                             // alert("aaa")
                             //request.response是ArrayBuffer数据，可通过下面的方式得到其中可用的Uint8Array
                             let b1 = new Uint8Array(request.response);
                             //Buffer.from(b1,'hex')是把Uint8Array转化成Buffer类型数据
+
                             let htmlStr = iconvLite.decode(Buffer.from(b1,'hex'), 'gbk');
-                            resolve(htmlStr);
+                            data.content = htmlStr;
                         }else{
-                            resolve(request.responseText);
+                            data.content = request.responseText;
                         }
+                        resolve(data);
                     }else if(request.status === 404 || request.status === 500 ){
                         resolve(null);
                     }
