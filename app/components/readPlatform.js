@@ -183,10 +183,7 @@ export default class ReadPlatform extends Component {
 
             this._getBookChapterDetail(true,chapterNum).then((data)=> {
                 this._updateHistoryBookChapter(this.props.bookId, chapterNum, 0)
-                if(type){
-                    this._setNextChapter(chapterNum);
-                }
-
+                this._setNextChapter(chapterNum);
             })
         }
     }
