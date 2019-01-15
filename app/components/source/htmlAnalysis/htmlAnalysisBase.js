@@ -28,6 +28,17 @@ var myModule = {
             chapterRowNum: -1//每页目录行数
         }
         // ,
+        // bqgpc:{
+        //     key:'bqgpc',
+        //     webNameShort: '笔',//简称
+        //     webName: '笔趣阁',//全名
+        //     isMainApi: false,
+        //     isUtf8: false,//编码是否为UTF-8
+        //     baseUrl: 'http://www.biquyun.com',//网址
+        //     searchUrl: '/modules/article/soshu.php?searchkey=',//搜索路径及key
+        //     chapterRowNum: -1//每页目录行数
+        // }
+        // ,
         // zzdxsw:{
         //     key:'zzdxsw',
         //     webNameShort: '猪',//简称

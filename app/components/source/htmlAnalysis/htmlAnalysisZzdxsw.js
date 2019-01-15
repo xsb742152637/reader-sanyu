@@ -87,7 +87,7 @@ myModule._search_html = (source,htmlStr,bookName) => {
 
         if(bookName != data.bookName){
             //名称不同，说明不是同一本小说
-            data = null;
+            data = {};
             continue;
         }
 

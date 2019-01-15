@@ -63,7 +63,7 @@ myModule.getChapter = (source,book,pageNum) => {
 
         // alert(book.webName+"获取目录："+url+"\n"+JSON.stringify(source));
         //超时时间为
-        request.ajax(url,20,source.isUtf8, null,true,(data) => {
+        request.ajax(url,10,source.isUtf8, null,true,(data) => {
             // alert(JSON.stringify(data))
             if(data == null || data == ""){
                 resolve(null);
@@ -78,7 +78,7 @@ myModule.getChapter = (source,book,pageNum) => {
             }
 
         },(err) => {
-            alert("getChapter\n"+JSON.stringify(err));
+            alert("请求章节列表错误：\n"+url+"\n\n"+JSON.stringify(err)+"\n\n"+JSON.stringify(source)+"\n\n"+JSON.stringify(book));
             resolve([]);
             // reject(err);
         });
@@ -123,7 +123,7 @@ myModule.searchBook = (bookId,bookName,key) => {
             }
             // alert("url:"+url+"+++"+key+"\n"+JSON.stringify(source));
             //超时时间为20秒
-            request.ajax(url,20, source.isUtf8, null,true,(data) => {
+            request.ajax(url,10, source.isUtf8, null,true,(data) => {
 
                 // alert(JSON.stringify(data))
                 let ha = myModule._get_type(key);
@@ -132,8 +132,12 @@ myModule.searchBook = (bookId,bookName,key) => {
                     let book = ha._search_html(source,data,myModule.bookName);
                     // alert("bbb");
                     if(book != undefined && book != null){
-                        book.webName = source.webName;//小说网站简称
-                        book.sourceKey = key;//小说网站
+                        if(JSON.stringify(book) == "{}"){
+                            book = null;
+                        }else{
+                            book.webName = source.webName;//小说网站简称
+                            book.sourceKey = key;//小说网站
+                        }
                     }
                     // alert(JSON.stringify(book));
                     resolve(book);

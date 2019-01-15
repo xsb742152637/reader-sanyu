@@ -10,8 +10,8 @@ var myModule = {};
 //章节页面解析
 myModule._getChapter_detail = (htmlStr) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
-    htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div id="trail" style="visibility:hidden; border:#E1E1E1 1px solid; padding:3px;"></div>','本书来自</p>');
-    htmlStr = htmlStr.replace("<p><content>","").replace("</content></p>","")
+    htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div id="trail" style="visibility:hidden; border:#E1E1E1 1px solid; padding:3px;"></div>','</div><div class="button_con">');
+    htmlStr = htmlStr.replace("<p><content>","").replace("</content></p>","").split("本书来自")[0];
     htmlStr = HtmlAnalysisBase.replaceBrTag(htmlStr);
     return htmlStr;
 }
@@ -20,6 +20,7 @@ myModule._getChapter_detail = (htmlStr) => {
 myModule._chapter_html = (source,book,htmlStr) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="insert_list">','<div id="adfour"><script');
+    htmlStr = htmlStr.replace(/<li>/g,'');
 
     // alert(htmlStr)
     let htmls = htmlStr.split('</li>');//根据li结束标签截取为数组，最后一个元素不循环。
@@ -30,9 +31,8 @@ myModule._chapter_html = (source,book,htmlStr) => {
 
     let dataList = new Array();
     let beforNum = 0;
-    // alert("11");
     for(let i in htmls) {
-        if(i == htmls.length -1){
+        if(i == htmls.length -1 || htmls[i] == ""){
             continue;
         }
 
@@ -40,7 +40,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
             let data = {};
             //<li><a href="32139774.html" title="更新时间:2018-12-1 16:26:15 更新字数:3315">第一百四十章 守擂人选</a>
             //<li><a.href=\"(.*)\".title=\".*\">(.*)<\/a>
-            let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<li><a.href=\"(.*)\".title=\".*\">(.*)<\/a>/),2);
+            let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<a.href=\"(.*)\".title=\".*\">(.*)<\/a>/),2);
 
             data.link = book.bookUrlNew.replace("index.html","") + ar[0];//章节路径
             data.title = ar[1];//章节名称
@@ -89,7 +89,7 @@ myModule._search_html = (source,htmlStr,bookName) => {
 
         if(bookName != data.bookName){
             //名称不同，说明不是同一本小说
-            data = null;
+            data = {};
             continue;
         }
 
