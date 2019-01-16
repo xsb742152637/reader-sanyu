@@ -61,6 +61,7 @@ export default class Bookshelves extends Component {
         this.downloadRequired = false
         this.adVersion = 1
         this.showAlert = true//是否显示调试信息
+        this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
     }
 
     componentDidMount() {
@@ -539,9 +540,10 @@ export default class Bookshelves extends Component {
         }).then((data) => {
             setTimeout(()=> {
                 let bookList = realm.objects('HistoryBook').filtered('isToShow = 1').sorted('sortNum', true);
-                // Toast.toastLong(bookList.length);
+                // Toast.toastLong(bookList.length+"++"+this.state.bookshelves);
                 this.setState({
                     bookshelves: bookList,
+                    datasource: ds.cloneWithRows(bookList),
                     toShow: false,
                     focusBook: null
                 })
@@ -671,6 +673,9 @@ export default class Bookshelves extends Component {
 
 
                 </View>
+                <View style={styles.messageView}>
+                    <Text style={styles.messageText}>{this.messageText}</Text>
+                </View>
                 {this.state.bookshelves && this.state.bookshelves.length > 0 ?
                     <ListView
                         enableEmptySections={true}
@@ -729,12 +734,23 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'center'
     },
+    messageView: {
+        backgroundColor: "#999999",
+        borderBottomColor: config.css.color.line,
+        borderBottomWidth: 1
+    },
+    messageText: {
+        fontSize: 10,
+        marginLeft: 14,
+        color: config.css.fontColor.white
+
+    },
     header: {
         height: config.css.headerHeight,
         backgroundColor: config.css.color.appMainColor,
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomColor: config.css.color.line,
+        borderBottomColor: config.css.color.appMainColor,
         borderBottomWidth: 1
     },
     headerLeftText: {

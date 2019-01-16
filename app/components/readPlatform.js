@@ -76,6 +76,7 @@ export default class ReadPlatform extends Component {
             fontColor: '#604733',
             lineHeight: 34,
             dayNight: '#000000',
+            dayNightText: null,
             controlStationViewHeight: Dimen.window.height
 
         }
@@ -87,7 +88,7 @@ export default class ReadPlatform extends Component {
         this.isShowAD = false;//是否显示广告
         this.chapterDetailNext = [];//下一章小说内容
         this.showAlert = true//是否显示调试信息
-        this.lastChapterMessageText = "\n\n此第三方网站已达最后章节，可点击 “换源” 按钮查找其他网站提供的最新章节。";//
+        this.lastChapterMessageText = "\n此第三方网站已达最后章节，可点击 “换源” 按钮查找其他网站提供的最新章节。";//
     }
     componentDidMount() {
         let readerConfig = realm.objects('ReaderConfig')
@@ -475,6 +476,15 @@ export default class ReadPlatform extends Component {
             } catch (e) {
             }
 
+            if(chapterNum == this.state.bookChapter[this.state.bookChapter.length - 1].orderNum && chapterPage == totalPage - 1){
+                this.setState({
+                    dayNightText: "#ff0000"
+                })
+            }else if(this.state.dayNightText != null){
+                this.setState({
+                    dayNightText: null
+                })
+            }
             if (chapterNum != this.state.chapterNum || chapterPage != this.state.chapterPage) {
                 let isChange = false;
                 if(chapterNum != this.state.chapterNum){
@@ -592,13 +602,10 @@ export default class ReadPlatform extends Component {
                     content: []
                 });
             }
-            let con = data.content;
-            if(num == (this.state.chapterLength - 1)){
-                con += this.lastChapterMessageText;
-            }
-            let _content = '\u3000\u3000' + con.replace(/\n/g, '@\u3000\u3000')
+
+            let _content = '\u3000\u3000' + data.content.replace(/\n/g, '@\u3000\u3000')
             let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
-            let totalPage = _arrTemp.length
+            let totalPage = num == (this.state.chapterLength - 1) ? _arrTemp.length + 1 : _arrTemp.length
 
             _arrTemp.forEach(function (element, index) {
                 let _chapterInfo = {
@@ -617,6 +624,15 @@ export default class ReadPlatform extends Component {
                     page: 0,
                     totalPage: '',
                     content: []
+                });
+            }else if(num == (this.state.chapterLength - 1)){
+                _arrTemp = contentFormat(this.lastChapterMessageText, this.state.fontSize, this.state.lineHeight)
+                _arr.push({
+                    title: this.state.bookChapter[num].title,
+                    orderNum: num,
+                    page: totalPage - 1,
+                    totalPage: totalPage,
+                    content: _arrTemp[0]
                 });
             }
         }catch (e){
@@ -1094,7 +1110,7 @@ export default class ReadPlatform extends Component {
                     {rowData.content ? rowData.content.map((value, index, chapterContent) => {
                         return (
                             <Text
-                                style={{color: this.state.dayNight,fontSize: this.state.fontSize,lineHeight:this.state.lineHeight}}
+                                style={{color: this.state.dayNightText == null ? this.state.dayNight : this.state.dayNightText,fontSize: this.state.fontSize,lineHeight:this.state.lineHeight}}
                                 key={index}>
                                 {value ? value : ' '}
                             </Text>
