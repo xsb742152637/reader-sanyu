@@ -37,16 +37,16 @@ var myModule = {
             searchUrl: '/modules/article/soshu.php?searchkey=',//搜索路径及key
             chapterRowNum: -1//每页目录行数
         },
-        // ddxs:{
-        //     key:'ddxs',
-        //     webNameShort: '顶',//简称
-        //     webName: '顶点小说',//全名
-        //     isMainApi: false,
-        //     isUtf8: false,//编码是否为UTF-8
-        //     baseUrl: 'https://www.x23us.com',//网址
-        //     searchUrl: '/modules/article/search.php?searchtype=keywords&searchkey=',//搜索路径及key
-        //     chapterRowNum: -1//每页目录行数
-        // },
+        ddxs:{
+            key:'ddxs',
+            webNameShort: '顶',//简称
+            webName: '顶点小说',//全名
+            isMainApi: false,
+            isUtf8: false,//编码是否为UTF-8
+            baseUrl: 'https://www.x23us.com',//网址
+            searchUrl: '/modules/article/search.php?searchtype=keywords&searchkey=',//搜索路径及key
+            chapterRowNum: -1//每页目录行数
+        },
         zzdxsw:{
             key:'zzdxsw',
             webNameShort: '猪',//简称

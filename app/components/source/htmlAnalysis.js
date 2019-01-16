@@ -13,7 +13,7 @@ import HtmlAnalysisPsw from './htmlAnalysis/htmlAnalysisPsw'
 import HtmlAnalysisZzdxsw from './htmlAnalysis/htmlAnalysisZzdxsw'
 import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 import HtmlAnalysisBqgpc from './htmlAnalysis/htmlAnalysisBqgpc'
-// import HtmlAnalysisDdxs from './htmlAnalysis/htmlAnalysisDdxs'
+import HtmlAnalysisDdxs from './htmlAnalysis/htmlAnalysisDdxs'
 
 var myModule = {
     bookName:"",
@@ -179,9 +179,9 @@ myModule._get_type = (key) => {
         case "bqgpc":
             ha = HtmlAnalysisBqgpc;
             break;
-        // case "ddxs":
-        //     ha = HtmlAnalysisDdxs;
-        //     break;
+        case "ddxs":
+            ha = HtmlAnalysisDdxs;
+            break;
     }
     return ha;
 };
