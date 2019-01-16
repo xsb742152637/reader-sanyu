@@ -87,6 +87,7 @@ export default class ReadPlatform extends Component {
         this.isShowAD = false;//是否显示广告
         this.chapterDetailNext = [];//下一章小说内容
         this.showAlert = true//是否显示调试信息
+        this.lastChapterMessageText = "\n\n此第三方网站已达最后章节，可点击 “换源” 按钮查找其他网站提供的最新章节。";//
     }
     componentDidMount() {
         let readerConfig = realm.objects('ReaderConfig')
@@ -591,7 +592,11 @@ export default class ReadPlatform extends Component {
                     content: []
                 });
             }
-            let _content = '\u3000\u3000' + data.content.replace(/\n/g, '@\u3000\u3000')
+            let con = data.content;
+            if(num == (this.state.chapterLength - 1)){
+                con += this.lastChapterMessageText;
+            }
+            let _content = '\u3000\u3000' + con.replace(/\n/g, '@\u3000\u3000')
             let _arrTemp = contentFormat(_content, this.state.fontSize, this.state.lineHeight)
             let totalPage = _arrTemp.length
 
