@@ -20,7 +20,7 @@ var myModule = {
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
-myModule.showAlert = true;//是否显示调试信息
+myModule.showAlert = false;//是否显示调试信息
 
 /**
  * 根据章节信息得到小说内容
