@@ -20,7 +20,7 @@ var myModule = {
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
-
+myModule.showAlert = true;//是否显示调试信息
 
 /**
  * 根据章节信息得到小说内容
@@ -41,7 +41,9 @@ myModule.getChapterDetail = (source,chapter) => {
             }
 
         },(err) => {
-            alert("getChapterDetail\n"+JSON.stringify(err));
+            if(myModule.showAlert){
+                alert("getChapterDetail\n"+JSON.stringify(err));
+            }
             reject("获取小说章节出错");
         });
     });
@@ -80,7 +82,9 @@ myModule.getChapter = (source,book,pageNum) => {
             }
 
         },(err) => {
-            alert("请求章节列表错误：\n"+url+"\n\n"+JSON.stringify(err)+"\n\n"+JSON.stringify(source)+"\n\n"+JSON.stringify(book));
+            if(myModule.showAlert){
+                alert("请求章节列表错误：\n"+url+"\n\n"+JSON.stringify(err)+"\n\n"+JSON.stringify(source)+"\n\n"+JSON.stringify(book));
+            }
             resolve([]);
             // reject(err);
         });
@@ -95,7 +99,9 @@ myModule.getChapter = (source,book,pageNum) => {
  */
 myModule.searchBook = (bookId,bookName,key) => {
     if((bookId == undefined || bookId == null || bookId == "") && (bookName == undefined || bookName == null || bookName == "")){
-        alert("小说名称是什么？");
+        if(myModule.showAlert){
+            alert("小说名称是什么？");
+        }
         return;
     }
     myModule.bookName = bookName;

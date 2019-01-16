@@ -50,7 +50,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
             dataList.push(data);
             // alert("章节名称："+data.title+"\n章节路径："+data.link);
         }catch (e){
-            alert("截取章节HTML出错了");
+            // alert("截取章节HTML出错了");
         }
     }
     return dataList;

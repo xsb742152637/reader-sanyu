@@ -86,6 +86,7 @@ export default class ReadPlatform extends Component {
         this.failNumMax = 3;//请求失败的最大次数
         this.isShowAD = false;//是否显示广告
         this.chapterDetailNext = [];//下一章小说内容
+        this.showAlert = true//是否显示调试信息
     }
     componentDidMount() {
         let readerConfig = realm.objects('ReaderConfig')
@@ -346,7 +347,9 @@ export default class ReadPlatform extends Component {
                             }).catch((err) => {
                                 this.failNum += 1;
                                 if(this.failNum > this.failNumMax && type2 != null){
-                                    alert("获取小说内容失败：\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
+                                    if(this.showAlert){
+                                        alert("获取小说内容失败：\n"+chapterNum+"++\n"+JSON.stringify(chapter)+"++\n"+JSON.stringify(this.state.source));
+                                    }
                                 }else{
                                     if(type2 != null){
                                         Toast.toastLong("获取小说内容失败：第"+this.failNum+"次再次尝试获取");
@@ -433,7 +436,9 @@ export default class ReadPlatform extends Component {
             }).catch((err) => {
                 this.failNum += 1;
                 if(this.failNum > this.failNumMax){
-                    alert("_getOnePageChapter方法：\n"+JSON.stringify(err));
+                    if(this.showAlert){
+                        alert("_getOnePageChapter方法：\n"+JSON.stringify(err));
+                    }
                     reject(err);
                 }else{
                     Toast.toastLong("获取小说目录失败：第"+this.failNum+"次再次尝试获取");
@@ -507,7 +512,9 @@ export default class ReadPlatform extends Component {
             }
 
         }catch (e){
-            alert("翻页错误：\n"+JSON.stringify(e))
+            if(this.showAlert){
+                alert("翻页错误：\n"+JSON.stringify(e))
+            }
         }
     }
 
@@ -523,7 +530,9 @@ export default class ReadPlatform extends Component {
                         this.chapterDetailNext = data;
                     });
                 }catch (e){
-                    alert("自动获取失败"+(chapterNum+1))
+                    if(this.showAlert){
+                        alert("自动获取失败"+(chapterNum+1))
+                    }
                 }
             }, 500);
 
@@ -560,7 +569,9 @@ export default class ReadPlatform extends Component {
             let scrollView = this.refs.scrollView
             scrollView.scrollTo({x: index * Dimen.window.width, y: 0, animated: false})
         }catch (e){
-            alert("自动滚动功能错误：" + JSON.stringify(e));
+            if(this.showAlert){
+                alert("自动滚动功能错误：" + JSON.stringify(e));
+            }
         }
     }
 
@@ -604,7 +615,9 @@ export default class ReadPlatform extends Component {
                 });
             }
         }catch (e){
-            alert("小说内容格式化出错！\n"+title+"\n"+num+"\n"+JSON.stringify(data))
+            if(this.showAlert){
+                alert("小说内容格式化出错！\n"+title+"\n"+num+"\n"+JSON.stringify(data))
+            }
         }
 
         return _arr
@@ -698,7 +711,9 @@ export default class ReadPlatform extends Component {
                 isLoadEnd: true,
                 listModalDataSource: []
             });
-            alert("出错了："+JSON.stringify(err));
+            if(this.showAlert){
+                alert("出错了："+JSON.stringify(err));
+            }
         });
 
     }

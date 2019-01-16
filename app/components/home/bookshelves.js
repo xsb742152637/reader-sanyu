@@ -60,6 +60,7 @@ export default class Bookshelves extends Component {
         this.downloadUrl = ''
         this.downloadRequired = false
         this.adVersion = 1
+        this.showAlert = true//是否显示调试信息
     }
 
     componentDidMount() {
@@ -211,7 +212,9 @@ export default class Bookshelves extends Component {
             // alert(allBooks.length+"++"+allBooks[allBooks.length -1].orderNum)
             // realm.delete(aaa);
             if(aaa.length > 0){
-                alert(bookName+"已修复缓存错误章节：\n"+b)
+                if(this.showAlert){
+                    alert(bookName+"已修复缓存错误章节：\n"+b)
+                }
                 realm.delete(aaa);
             }
             // alert("成功删除BookChapterList")
@@ -368,7 +371,9 @@ export default class Bookshelves extends Component {
 
                 }
             }).catch((err) => {
-                alert("更新错误："+JSON.stringify(err));
+                if(this.showAlert){
+                    alert("更新错误："+JSON.stringify(err));
+                }
             });
 
         }
@@ -410,7 +415,9 @@ export default class Bookshelves extends Component {
                     resolve(dataList);
                 }
             }).catch((err) => {
-                alert("获取目录失败：\n"+JSON.stringify(err)+"\n"+JSON.stringify(source)+"\n"+JSON.stringify(book)+"\npageNum:"+pageNum);
+                if(this.showAlert){
+                    alert("获取目录失败：\n"+JSON.stringify(err)+"\n"+JSON.stringify(source)+"\n"+JSON.stringify(book)+"\npageNum:"+pageNum);
+                }
                 reject(err);
             });
         });
@@ -562,7 +569,9 @@ export default class Bookshelves extends Component {
                     });
                 }
             }catch (e){
-                alert("删除缓存失败："+JSON.stringify(bookDetail))
+                if(this.showAlert){
+                    alert("删除缓存失败："+JSON.stringify(bookDetail))
+                }
             }
         })
     }
