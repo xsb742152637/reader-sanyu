@@ -96,9 +96,9 @@ export default class Bookshelves extends Component {
                 console.log('App has come to the foreground!')
                 if (current_time - last_time > 30000) {
                     NativeModules.RNAdModule.showAd('com.axiamireader.SplashActivity')
+                    this._onRefresh()
                 }
                 last_time = current_time
-                // this._onRefresh()
             }
             this.setState({appState: nextAppState});
         } catch (ex) {
