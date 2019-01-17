@@ -87,7 +87,12 @@ myModule.getNeedHtml =(htmlStr,headStr,footStr) => {
 }
 //移除html中前面不需要的部分
 myModule.removeHead = (htmlStr,str) => {
-    return htmlStr.split(str)[1];
+    let r = htmlStr.split(str);
+    if(r.length < 2){
+        return "";
+    }else {
+        return r[1];
+    }
 }
 //移除html中后面不需要的部分
 myModule.removeFoot = (htmlStr,str) => {

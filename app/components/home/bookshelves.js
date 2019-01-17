@@ -60,7 +60,7 @@ export default class Bookshelves extends Component {
         this.downloadUrl = ''
         this.downloadRequired = false
         this.adVersion = 1
-        this.showAlert = false//是否显示调试信息
+        this.showAlert = true//是否显示调试信息
         this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
     }
 
@@ -177,6 +177,7 @@ export default class Bookshelves extends Component {
             realm.create('HistoryBook', {
                 bookId: bookDetail.bookId,
                 bookName: bookDetail.bookName,
+                author: bookDetail.author,
                 bookUrl: bookDetail.bookUrl,
                 bookUrlNew: bookDetail.bookUrl,
                 lastChapterTitle: bookDetail.lastChapterTitle,

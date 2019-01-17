@@ -104,6 +104,7 @@ export default class BookDetail extends Component {
         realm.create('HistoryBook', {
           bookId: bookDetail._id,
           bookName: bookDetail.title,
+          author: bookDetail.author,
           bookUrl: bookDetail.cover,
           lastChapterTitle: bookDetail.lastChapter,
           historyChapterNum: 0,

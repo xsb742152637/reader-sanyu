@@ -86,8 +86,8 @@ export default class ReadPlatform extends Component {
         this.failNum = 0;//请求失败的次数
         this.failNumMax = 3;//请求失败的最大次数
         this.chapterDetailNext = [];//下一章小说内容
-        this.isShowAD = true;//是否显示插屏广告
-        this.showAlert = false//是否显示调试信息
+        this.isShowAD = false;//是否显示插屏广告
+        this.showAlert = true//是否显示调试信息
         this.lastChapterMessageText = "\n此第三方网站已达最后章节，可点击 “换源” 按钮查找其他网站提供的最新章节。";//
     }
     componentDidMount() {
@@ -698,13 +698,12 @@ export default class ReadPlatform extends Component {
         var li = new Array();
         var i = 0;
         var apiLen = 0;
-        let bookName = this.state.book.bookName;
         for(let key in HtmlAnalysis.api){
             apiLen++;
         }
         new Promise((resolve,reject) => {
             for(let key in HtmlAnalysis.api){
-                HtmlAnalysis.searchBook(this.props.bookId,bookName,key).then((data)=> {
+                HtmlAnalysis.searchBook(this.state.book,key).then((data)=> {
                     // alert("aafff"+JSON.stringify(data))
                     if(data != undefined && data != null){
                         li.push(data);
@@ -715,7 +714,9 @@ export default class ReadPlatform extends Component {
                     }
                 }).catch((err) => {
                     //这个源如果请求超时了，就直接抛弃，继续去下一个源查找
-                    // alert("出错了2："+JSON.stringify(err));
+                    if(this.showAlert){
+                        // alert("出错了2："+JSON.stringify(err));
+                    }
                     i++;
                     if(i == apiLen){
                         resolve(li);

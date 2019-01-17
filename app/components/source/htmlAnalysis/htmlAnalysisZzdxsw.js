@@ -57,7 +57,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
 }
 
 //搜索页面解析
-myModule._search_html = (source,data1,bookName) => {
+myModule._search_html = (source,data1,book) => {
     let htmlStr = data1.content;
     // alert("Jing");
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
@@ -69,12 +69,13 @@ myModule._search_html = (source,data1,bookName) => {
         // alert("没有找到这本书");
         return null;
     }
-    let data = {};
+    let list = [];
     for(let i in htmls) {
         if(i == htmls.length -1 || htmls[i] == ""){
             continue;
         }
 
+        let data = {};
         //<div class="right"><a class="name" href="/mushenji/">牧神记</a><span style="float:right;font-size:0.8125em;color: #999;">连载中</span><p class="update">最新章节：<a href="/mushenji/9992696.html">第一千二百一十四章 战斗明王</a></p><p class="info">作者：宅猪<span class="words">字数：4175457</span></p></div>
         let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<div.class=\"right\"><a.class=\"name\".href=\"(.*)\">(.*)<\/a><span.style=\".*\">(.*)<\/span><p.class=\"update\">最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><p.class=\"info\">作者：(.*)<span.class=\"words\">字数：(.*)<\/span><\/p>/),7);
 
@@ -86,17 +87,14 @@ myModule._search_html = (source,data1,bookName) => {
         data.lastChapterTitle = ar[4];//最新章节
         data.author = ar[5];//作者
 
-        if(bookName != data.bookName){
-            //名称不同，说明不是同一本小说
-            data = {};
+        //作者或小说名称，不满足其一就跳过
+        if(book.bookName != data.bookName || (book.author != "" && book.author != data.author)){
             continue;
         }
 
-        // alert("小说路径："+data.bookUrlNew+"\n小说名称："+data.bookName+"\n状态："+data.bookType+"\n最新章节路径："+data.newChapterUrl+"\n最新章节："+data.newChapter+"\n作者："+data.author);
-        //如果已经找到一个，就不再循环
-        break;
+        list.push(data);
     }
-    return data;
+    return list;
 }
 
 module.exports = myModule;

@@ -16,22 +16,20 @@ import HtmlAnalysisBqgpc from './htmlAnalysis/htmlAnalysisBqgpc'
 import HtmlAnalysisDdxs from './htmlAnalysis/htmlAnalysisDdxs'
 
 var myModule = {
-    bookName:"",
-    outTime: 12//超时时间
+    outTime: 18//超时时间
 }
 myModule.mainKey = HtmlAnalysisBase.mainKey;
 myModule.api = HtmlAnalysisBase.api;
-myModule.showAlert = false;//是否显示调试信息
+myModule.showAlert = true;//是否显示调试信息
 
 /**
  * 根据章节信息得到小说内容
  * @param chapter
  */
 myModule.getChapterDetail = (source,chapter) => {
+
     return new Promise((resolve,reject) => {
-        // alert("得到小说："+JSON.stringify(chapter)+"\n"+JSON.stringify(source));
-        //超时时间为
-        request.ajax(chapter.link,myModule.outTime,source.isUtf8, null,true,(data) => {
+        request.ajax(chapter.link,myModule.outTime,source.isUtf8, null).then((data) => {
             let ha = myModule._get_type(source.key);
             // alert("结果："+data);
             if(ha != null){
@@ -40,12 +38,6 @@ myModule.getChapterDetail = (source,chapter) => {
             }else{
                 reject("无法识别的类型："+key);
             }
-
-        },(err) => {
-            if(myModule.showAlert){
-                alert("getChapterDetail\n"+JSON.stringify(err));
-            }
-            reject("获取小说章节出错");
         });
     });
 }
@@ -68,7 +60,7 @@ myModule.getChapter = (source,book,pageNum) => {
 
         // alert(book.webName+"获取目录："+url+"\n"+JSON.stringify(source)+"\n"+JSON.stringify(book));
         //超时时间为
-        request.ajax(url,myModule.outTime,source.isUtf8, null,true,(data) => {
+        request.ajax(url,myModule.outTime,source.isUtf8, null).then((data) => {
             // alert(JSON.stringify(data))
             if(data == null || data == ""){
                 resolve(null);
@@ -82,7 +74,7 @@ myModule.getChapter = (source,book,pageNum) => {
                 }
             }
 
-        },(err) => {
+        }).catch((err) => {
             if(myModule.showAlert){
                 alert("请求章节列表错误：\n"+url+"\n\n"+JSON.stringify(err)+"\n\n"+JSON.stringify(source)+"\n\n"+JSON.stringify(book));
             }
@@ -98,27 +90,25 @@ myModule.getChapter = (source,book,pageNum) => {
  * @param key 来源类型
  * @returns {*}
  */
-myModule.searchBook = (bookId,bookName,key) => {
-    if((bookId == undefined || bookId == null || bookId == "") && (bookName == undefined || bookName == null || bookName == "")){
+myModule.searchBook = (book,key) => {
+    if((book.bookId == undefined || book.bookId == null || book.bookId == "") && (book.bookName == undefined || book.bookName == null || book.bookName == "")){
         if(myModule.showAlert){
             alert("小说名称是什么？");
         }
         return;
     }
-    myModule.bookName = bookName;
     let source = myModule.api[key];
     return new Promise((resolve,reject) => {
         if(source.isMainApi){
-            request.get(api.BOOK_DETAIL(bookId), null, (book) => {
-                book.sourceKey = source.key;
-                book.webName = source.webName;//小说网站简称
-                book.isMainApi = true;
-                book.bookUrlNew = book.cover;
-                book.bookId = book._id;
-                book.bookName = book.title;
-                book.lastChapterTitle = book.lastChapter;
-                // alert("searchBook:\n"+JSON.stringify(book));
-                resolve(book);
+            request.get(api.BOOK_DETAIL(book.bookId), null, (data) => {
+                data.sourceKey = source.key;
+                data.webName = source.webName;//小说网站简称
+                data.isMainApi = true;
+                data.bookUrlNew = data.cover;
+                data.bookId = data._id;
+                data.bookName = data.title;
+                data.lastChapterTitle = data.lastChapter;
+                resolve(data);
             }, (err) => {
                 reject(err);
             })
@@ -126,40 +116,42 @@ myModule.searchBook = (bookId,bookName,key) => {
             // alert(JSON.stringify(source))
             let url = source.baseUrl + source.searchUrl;
             if(source.isUtf8){
-                url += myModule.bookName;
+                url += book.bookName;
             }else{
-                url += myEncode(myModule.bookName,"gbk");
+                url += myEncode(book.bookName,"gbk");
             }
-            // alert("url:"+url+"+++"+key+"\n"+JSON.stringify(source));
-            //超时时间为20秒
-            request.ajax(url,myModule.outTime, source.isUtf8, null,true,(data) => {
 
-                // alert(JSON.stringify(data))
+            //超时时间为20秒
+            request.ajax(url,myModule.outTime, source.isUtf8, null).then((data) => {
+
                 let ha = myModule._get_type(key);
                 if(ha != null){
                     // alert("aaa");
-                    let book = ha._search_html(source,data,myModule.bookName);
-                    // alert("bbb");
-                    if(book != undefined && book != null){
-                        if(JSON.stringify(book) == "{}"){
-                            book = null;
+                    let books = ha._search_html(source,data,book);
+                    // alert(JSON.stringify(books));
+                    if(books != undefined && books != null && books.length > 0){
+                        if(JSON.stringify(books) == "{}"){
+                            books = null;
                         }else{
-                            book.webName = source.webName;//小说网站简称
-                            book.sourceKey = key;//小说网站
+                            //如果查询出来多本作者和名称都相同的小说，只取第一个
+                            books = books[0];
+                            books.webName = source.webName;//小说网站简称
+                            books.sourceKey = key;//小说网站
                         }
+                    }else{
+                        books = null;
                     }
-                    // alert(JSON.stringify(book));
-                    resolve(book);
+                    // alert(JSON.stringify(books));
+                    resolve(books);
                 }else{
                     // alert("无法识别的类型："+key);
                     reject("无法识别的类型："+key);
                 }
 
-            },(err) => {
+            }).catch((err) => {
                 reject(err);
             });
         }
-
     });
 };
 

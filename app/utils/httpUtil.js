@@ -55,12 +55,9 @@ request.post = (url, body, successCallBack, failCallBack) => {
  * @param timeout 超时时间 单位是秒
  * @param isUtf8 是否为utf8编码格式，
  * @param params 请求参数
- * @param async 是否异步
- * @param successCallBack 成功回调
- * @param failCallBack 失败回调
  * @returns {Promise.<T>|*}
  */
-request.ajax = (url,timeout,isUtf8, params,async, successCallBack,failCallBack) => {
+request.ajax = (url,timeout,isUtf8, params) => {
     if (params) {
         url += '?' + queryString.stringify(params)
     }
@@ -68,67 +65,50 @@ request.ajax = (url,timeout,isUtf8, params,async, successCallBack,failCallBack) 
         isUtf8 = true;
     }
 
-    if(async){
-        //异步
-        return new Promise(function(resolve,reject){
-            var request = new XMLHttpRequest();
+    return new Promise(function(resolve,reject){
+        var request = new XMLHttpRequest();
 
-            if(timeout == null){
-                timeout = 60 ;//默认一分钟
-            }
-            timeout *= 1000;
-            var time = false;
-            var timer = setTimeout(function(){
-                time = true;
-                request.abort();
-            },timeout);
+        if(timeout == null){
+            timeout = 60 ;//默认一分钟
+        }
+        timeout *= 1000;
+        var time = false;
+        var timer = setTimeout(function(){
+            time = true;
+            request.abort();
+        },timeout);
 
-            if(!isUtf8){
-                request.responseType = "arraybuffer";
-            }
-            // alert("开始")
-            request.onreadystatechange = e => {
-                if (request.readyState === 4) {
-                    if(time){
-                        // alert("超时")
-                        reject("请求超时："+url);
-                    }else if(request.status === 200){
-                        // alert("完成")
-                        //如果没有超时，手动结束计时
-                        clearTimeout(timer);
-                        let data = {};
-                        data.url = request.responseURL;
-                        if(!isUtf8){
-                            // alert("aaa")
-                            //request.response是ArrayBuffer数据，可通过下面的方式得到其中可用的Uint8Array
-                            let b1 = new Uint8Array(request.response);
-                            //Buffer.from(b1,'hex')是把Uint8Array转化成Buffer类型数据
-
-                            let htmlStr = iconvLite.decode(Buffer.from(b1,'hex'), 'gbk');
-                            data.content = htmlStr;
-                        }else{
-                            data.content = request.responseText;
-                        }
-                        resolve(data);
-                    }else if(request.status === 404 || request.status === 500 ){
-                        resolve(null);
+        if(!isUtf8){
+            request.responseType = "arraybuffer";
+        }
+        request.onreadystatechange = e => {
+            if (request.readyState === 4) {
+                if(time){
+                    // alert("超时")
+                    reject("请求超时："+url);
+                }else if(request.status === 200){
+                    //如果没有超时，手动结束计时
+                    clearTimeout(timer);
+                    let data = {};
+                    data.url = request.responseURL;
+                    if(!isUtf8){
+                        //request.response是ArrayBuffer数据，可通过下面的方式得到其中可用的Uint8Array
+                        let b1 = new Uint8Array(request.response);
+                        //Buffer.from(b1,'hex')是把Uint8Array转化成Buffer类型数据
+                        let htmlStr = iconvLite.decode(Buffer.from(b1,'hex'), 'gbk');
+                        data.content = htmlStr;
+                    }else{
+                        data.content = request.responseText;
                     }
+                    resolve(data);
+                }else if(request.status === 404 || request.status === 500 ){
+                    resolve(null);
                 }
             }
-            request.open("GET", url);
-            request.send();
-        }).then((data) => {
-            successCallBack(data);
-        }).catch((err) => {
-            failCallBack(err);
-        });
-    }else{
-        //同步
-        var request = new XMLHttpRequest();
-        request.open("GET", url, async);  // 同步请求
+        }
+        request.open("GET", url);
         request.send();
-        return request.responseText;
-    }
+    });
 };
 
 module.exports = request;

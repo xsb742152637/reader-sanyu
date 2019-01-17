@@ -38,6 +38,7 @@ const HistoryBookSchema = {
   properties: {
     bookId: 'string',
     bookName: 'string',
+    author: {type: 'string',default: ''},//作者
     bookUrl: 'string',
     bookUrlNew: {type: 'string',default: ''},
     lastChapterTitle: 'string',

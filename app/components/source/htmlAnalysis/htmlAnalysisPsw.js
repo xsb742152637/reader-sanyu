@@ -60,7 +60,7 @@ myModule._chapter_html = (source,book,htmlStr) => {
 }
 
 //搜索页面解析
-myModule._search_html = (source,data1,bookName) => {
+myModule._search_html = (source,data1,book) => {
     let htmlStr = data1.content;
     // alert("Jing");
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
@@ -71,12 +71,13 @@ myModule._search_html = (source,data1,bookName) => {
         // alert("没有找到这本书");
         return null;
     }
-    let data = {};
+    let list = [];
     for(let i in htmls) {
         if(i == 0|| htmls[i] == ""){
             continue;
         }
 
+        let data = {};
         //<a href="/html/book/52/52747/index.html" target="_blank"><b>牧葬诸天</b></a>[<a href="/Author/WB/52747.aspx">请饮余生</a>|<a href="/Book/LC/5.aspx">玄幻奇幻</a><a href="/Book/LN/57.aspx" target="_blank">东方玄幻</a>| 最新章节 >>><a href="/Html/Book/52/52747/32292744.html" target="_blank">第一百五十二章 灭杀</a>| 12月6日 更新 ]</div><div id="CListText">觉醒紫色灵塔的天才，却因为身体羸弱无法修灵，当禁锢源魂的枷锁打开，黎牧注定要埋葬诸天神界，这是他的命，也是前生的恨！...</div>
         let ar = HtmlAnalysisBase.getMatchStr(htmls[i].match(/<a.href=\"(.*)\".target=\"_blank\"><b>(.*)<\/b><\/a>.<a.href=\".*\">(.*)<\/a>.<a.href=\".*\">.*<\/a><a.href=\".*\".target=\"_blank\">.*<\/a>..最新章节.>>><a.href=\"(.*)\".target=\"_blank\">(.*)<\/a>.*<\/div><div.id=\"CListText\">.*/),5);
 
@@ -88,17 +89,14 @@ myModule._search_html = (source,data1,bookName) => {
         data.lastChapterTitle = ar[4];//最新章节
         data.author = ar[2];//作者
 
-        if(bookName != data.bookName){
-            //名称不同，说明不是同一本小说
-            data = {};
+        //作者或小说名称，不满足其一就跳过
+        if(book.bookName != data.bookName || (book.author != "" && book.author != data.author)){
             continue;
         }
 
-        // alert("小说路径："+data.bookUrlNew+"\n小说名称："+data.bookName+"\n状态："+data.bookType+"\n最新章节路径："+data.newChapterUrl+"\n最新章节："+data.newChapter+"\n作者："+data.author);
-        //如果已经找到一个，就不再循环
-        break;
+        list.push(data);
     }
-    return data;
+    return list;
 }
 
 module.exports = myModule;
