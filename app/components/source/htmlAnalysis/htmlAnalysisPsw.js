@@ -1,7 +1,7 @@
 /*
- * description: 猪猪岛html解析
+ * description: 品书网html解析
  * author: 谢
- * time: 2018年12月17日
+ * time: 2019年01月
  */
 import HtmlAnalysisBase from './htmlAnalysisBase'
 
@@ -65,6 +65,7 @@ myModule._search_html = (source,data1,book) => {
     // alert("Jing");
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div id="Content"><div id="CrTitle">','<form name="__aspnetForm" method="post"');
+    htmlStr = htmlStr.replace(/\n/g,'');
 
     let htmls = htmlStr.split('<div id="CListTitle">');//根据li结束标签截取为数组，最后一个元素不循环。
     if(htmls.length < 2){

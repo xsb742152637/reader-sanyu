@@ -128,6 +128,7 @@ export default class Bookshelves extends Component {
         this._setDefaultBook({
             bookId: '5ab9d8f4ce88777b51df45c2',
             bookName: '时光和你都很美',
+            author: '叶非夜',
             bookUrl: '/agent/http%3A%2F%2Fimg.1391.com%2Fapi%2Fv1%2Fbookcenter%2Fcover%2F1%2F2259361%2F2259361_0ad97e42d80748d18bf52717d76f8a7d.jpg%2F',
             lastChapterTitle: ''
         })
@@ -135,6 +136,7 @@ export default class Bookshelves extends Component {
         this._setDefaultBook({
             bookId: '5a814ea71de990532e1461f9',
             bookName: '国民男神是女生：恶魔，住隔壁',
+            author: '战七少',
             bookUrl: '/agent/http%3A%2F%2Fimg.1391.com%2Fapi%2Fv1%2Fbookcenter%2Fcover%2F1%2F2226274%2F2226274_d2842585f49c417b844fe365dd7011c8.jpg%2F',
             lastChapterTitle: ''
         })
@@ -142,6 +144,7 @@ export default class Bookshelves extends Component {
         this._setDefaultBook({
             bookId: '58f6cf5e071d24c05e88bc14',
             bookName: '毒妃在上，邪王在下',
+            author: '穆丹枫',
             bookUrl: '/agent/http%3A%2F%2Fimg.1391.com%2Fapi%2Fv1%2Fbookcenter%2Fcover%2F1%2F1505754%2F1505754_81b22622819e476fb78b2d760f94b617.jpg%2F',
             lastChapterTitle: ''
         })
@@ -149,6 +152,7 @@ export default class Bookshelves extends Component {
         this._setDefaultBook({
             bookId: '5948c17d031fdaa005680400',
             bookName: '牧神记',
+            author: '宅猪',
             bookUrl: '/agent/http%3A%2F%2Fimg.1391.com%2Fapi%2Fv1%2Fbookcenter%2Fcover%2F1%2F2044498%2F2044498_b1e079fc34864ade953606f4a3ad8c68.jpg%2F',
             lastChapterTitle: ''
         })
@@ -156,6 +160,7 @@ export default class Bookshelves extends Component {
         this._setDefaultBook({
             bookId: '5ab0c808e02fb07a94479321',
             bookName: '我的时空旅舍',
+            author: '金色茉莉花',
             bookUrl: '/agent/http%3A%2F%2Fimg.1391.com%2Fapi%2Fv1%2Fbookcenter%2Fcover%2F1%2F2253541%2F2253541_1c6f6c39b1d9444b99e7c001331036bf.jpg%2F',
             lastChapterTitle: ''
         })
@@ -163,6 +168,7 @@ export default class Bookshelves extends Component {
         this._setDefaultBook({
             bookId: '5816b415b06d1d32157790b1',
             bookName: '圣墟',
+            author: '辰东',
             bookUrl: '/agent/http%3A%2F%2Fimg.1391.com%2Fapi%2Fv1%2Fbookcenter%2Fcover%2F1%2F1228859%2F1228859_d14f18e849b34420904ead54936e440a.jpg%2F',
             lastChapterTitle: '第1203章 肯定被绿了'
         })
@@ -173,6 +179,7 @@ export default class Bookshelves extends Component {
         if (book) {
             return
         }
+
         realm.write(() => {
             realm.create('HistoryBook', {
                 bookId: bookDetail.bookId,

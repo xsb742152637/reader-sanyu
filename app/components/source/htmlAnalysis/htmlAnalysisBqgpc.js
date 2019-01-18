@@ -1,7 +1,7 @@
 /*
- * description: 猪猪岛html解析
+ * description: 笔趣阁PC版html解析
  * author: 谢
- * time: 2018年12月17日
+ * time: 2019年01月
  */
 import HtmlAnalysisBase from './htmlAnalysisBase'
 
@@ -65,6 +65,7 @@ myModule._search_html = (source,data1,book) => {
     let htmlStr = data1.content;
     // alert("Jing："+JSON.stringify(data1));
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
+    htmlStr = htmlStr.replace(/\n/g,'');
 
     let list = [];
     //说明搜索出来多个结果，得到名字完全一样的那本小说

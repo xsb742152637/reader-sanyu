@@ -1,7 +1,7 @@
 /*
- * description: 猪猪岛html解析
+ * description: 顶点小说html解析
  * author: 谢
- * time: 2018年12月17日
+ * time: 2019年01月
  */
 import HtmlAnalysisBase from './htmlAnalysisBase'
 
@@ -11,7 +11,8 @@ var myModule = {};
 myModule._getChapter_detail = (htmlStr) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<dd id="contents">','</dd><div class="adhtml">');
-    htmlStr = htmlStr.replace("-- 上拉加载下一章 s -->","").replace(/顶.{0,2}点.{0,2}小.{0,2}说/g,"").replace(/Ｘ.{0,2}２.{0,2}３.{0,2}Ｕ.{0,2}Ｓ.{0,2}Ｃ.{0,2}ＯＭ/g,"").replace(/更.{0,2}新.{0,2}最.{0,2}快/g,"")
+    htmlStr = htmlStr.replace("-- 上拉加载下一章 s -->","");
+    // htmlStr = htmlStr.replace("-- 上拉加载下一章 s -->","").replace(/顶.{0,2}点.{0,2}小.{0,2}说/g,"").replace(/Ｘ.{0,2}２.{0,2}３.{0,2}Ｕ.{0,2}Ｓ.{0,2}Ｃ.{0,2}ＯＭ/g,"").replace(/更.{0,2}新.{0,2}最.{0,2}快/g,"")
     htmlStr = HtmlAnalysisBase.replaceBrTag(htmlStr);
     return htmlStr;
 }
@@ -63,12 +64,13 @@ myModule._chapter_html = (source,book,htmlStr) => {
 myModule._search_html = (source,data1,book) => {
     let htmlStr = data1.content;
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
+    htmlStr = htmlStr.replace(/\n/g,'');
 
     let list = [];
     //说明搜索出来多个结果，得到名字完全一样的那本小说
     if(htmlStr.indexOf("</b>搜索结果</caption>") > 0){
         htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'</b>搜索结果</caption>','</table><div class="pages">');
-        htmlStr = htmlStr.replace(/<b.style=\"color:red\">/,"").replace(/<\/b>/,"");
+        htmlStr = htmlStr.replace(/<b.style=\"color:red\">/g,"").replace(/<\/b>/g,"");
         let htmls = htmlStr.split("</tr>");//根据li结束标签截取为数组，最后一个元素不循环。
         if(htmls.length < 2){
             // alert("没有找到这本书");

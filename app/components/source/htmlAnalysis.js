@@ -11,9 +11,10 @@ import HtmlAnalysisBase from './htmlAnalysis/htmlAnalysisBase'
 
 import HtmlAnalysisPsw from './htmlAnalysis/htmlAnalysisPsw'
 import HtmlAnalysisZzdxsw from './htmlAnalysis/htmlAnalysisZzdxsw'
-import HtmlAnalysisBqg from './htmlAnalysis/htmlAnalysisBqg'
 import HtmlAnalysisBqgpc from './htmlAnalysis/htmlAnalysisBqgpc'
 import HtmlAnalysisDdxs from './htmlAnalysis/htmlAnalysisDdxs'
+import HtmlAnalysisByzww from './htmlAnalysis/htmlAnalysisByzww'
+import HtmlAnalysisRwxs from './htmlAnalysis/htmlAnalysisRwxs'
 
 var myModule = {
     outTime: 18//超时时间
@@ -101,6 +102,9 @@ myModule.searchBook = (book,key) => {
     return new Promise((resolve,reject) => {
         if(source.isMainApi){
             request.get(api.BOOK_DETAIL(book.bookId), null, (data) => {
+                if(myModule.showAlert){
+                    // alert(JSON.stringify(book)+"\n\n"+JSON.stringify(data))
+                }
                 data.sourceKey = source.key;
                 data.webName = source.webName;//小说网站简称
                 data.isMainApi = true;
@@ -113,44 +117,52 @@ myModule.searchBook = (book,key) => {
                 reject(err);
             })
         }else{
-            // alert(JSON.stringify(source))
-            let url = source.baseUrl + source.searchUrl;
-            if(source.isUtf8){
-                url += book.bookName;
+            if(source.isUse != undefined && source.isUse != null && source.isUse == false){
+                resolve(null);
             }else{
-                url += myEncode(book.bookName,"gbk");
-            }
-
-            //超时时间为20秒
-            request.ajax(url,myModule.outTime, source.isUtf8, null).then((data) => {
-
-                let ha = myModule._get_type(key);
-                if(ha != null){
-                    // alert("aaa");
-                    let books = ha._search_html(source,data,book);
-                    // alert(JSON.stringify(books));
-                    if(books != undefined && books != null && books.length > 0){
-                        if(JSON.stringify(books) == "{}"){
-                            books = null;
-                        }else{
-                            //如果查询出来多本作者和名称都相同的小说，只取第一个
-                            books = books[0];
-                            books.webName = source.webName;//小说网站简称
-                            books.sourceKey = key;//小说网站
-                        }
-                    }else{
-                        books = null;
-                    }
-                    // alert(JSON.stringify(books));
-                    resolve(books);
+                // alert(JSON.stringify(source))
+                let url = source.baseUrl + source.searchUrl;
+                let isUtf8 = source.isUtf8_search;
+                if(isUtf8 == undefined || isUtf8 == null){
+                    isUtf8 = source.isUtf8;
+                }
+                if(isUtf8){
+                    url += book.bookName;
                 }else{
-                    // alert("无法识别的类型："+key);
-                    reject("无法识别的类型："+key);
+                    url += myEncode(book.bookName,"gbk");
                 }
 
-            }).catch((err) => {
-                reject(err);
-            });
+                //超时时间为20秒
+                request.ajax(url,myModule.outTime, isUtf8, null).then((data) => {
+
+                    let ha = myModule._get_type(key);
+                    if(ha != null){
+                        // alert("aaa");
+                        let books = ha._search_html(source,data,book);
+                        // alert(JSON.stringify(books));
+                        if(books != undefined && books != null && books.length > 0){
+                            if(JSON.stringify(books) == "{}"){
+                                books = null;
+                            }else{
+                                //如果查询出来多本作者和名称都相同的小说，只取第一个
+                                books = books[0];
+                                books.webName = source.webName;//小说网站简称
+                                books.sourceKey = key;//小说网站
+                            }
+                        }else{
+                            books = null;
+                        }
+                        // alert(JSON.stringify(books));
+                        resolve(books);
+                    }else{
+                        // alert("无法识别的类型："+key);
+                        reject("无法识别的类型："+key);
+                    }
+
+                }).catch((err) => {
+                    reject(err);
+                });
+            }
         }
     });
 };
@@ -165,14 +177,17 @@ myModule._get_type = (key) => {
         case "zzdxsw":
             ha = HtmlAnalysisZzdxsw;
             break;
-        case "bqg":
-            ha = HtmlAnalysisBqg;
-            break;
         case "bqgpc":
             ha = HtmlAnalysisBqgpc;
             break;
         case "ddxs":
             ha = HtmlAnalysisDdxs;
+            break;
+        case "byzww":
+            ha = HtmlAnalysisByzww;
+            break;
+        case "rwxs":
+            ha = HtmlAnalysisRwxs;
             break;
     }
     return ha;

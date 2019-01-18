@@ -14,6 +14,7 @@ var myModule = {
             key:'zssq',
             webNameShort: '追书神器',//简称
             webName: '追书神器',//全名
+            isUse: true,//是否启用
             isMainApi: true,
             chapterRowNum: -1//每页目录行数
         },
@@ -21,6 +22,7 @@ var myModule = {
             key:'psw',
             webNameShort: '品',//简称
             webName: '品书网',//全名
+            isUse: true,//是否启用
             isMainApi: false,
             isUtf8: false,//编码是否为UTF-8
             baseUrl: 'https://www.vodtw.com',//网址
@@ -31,6 +33,7 @@ var myModule = {
             key:'bqgpc',
             webNameShort: '笔',//简称
             webName: '笔趣阁',//全名
+            isUse: true,//是否启用
             isMainApi: false,
             isUtf8: false,//编码是否为UTF-8
             baseUrl: 'http://www.biquyun.com',//网址
@@ -41,9 +44,33 @@ var myModule = {
             key:'ddxs',
             webNameShort: '顶',//简称
             webName: '顶点小说',//全名
+            isUse: true,//是否启用
             isMainApi: false,
             isUtf8: false,//编码是否为UTF-8
-            baseUrl: 'https://www.x23us.com',//网址
+            baseUrl: 'https://www.x23us.com',//网址，该网站搜索间隔不能小于10秒
+            searchUrl: '/modules/article/search.php?searchtype=keywords&searchkey=',//搜索路径及key
+            chapterRowNum: -1//每页目录行数
+        },
+        byzww:{
+            key:'byzww',
+            webNameShort: '八',//简称
+            webName: '八一中文网',//全名
+            isUse: true,//是否启用
+            isMainApi: false,
+            isUtf8: false,//编码是否为UTF-8
+            isUtf8_search: true,//搜索页面的编码是否为UTF-8，默认为空，表示一致
+            baseUrl: 'https://www.zwdu.com',//网址
+            searchUrl: '/search.php?keyword=',//搜索路径及key
+            chapterRowNum: -1//每页目录行数
+        },
+        rwxs:{
+            key:'rwxs',
+            webNameShort: '燃',//简称
+            webName: '燃文小说',//全名
+            isUse: true,//是否启用
+            isMainApi: false,
+            isUtf8: false,//编码是否为UTF-8
+            baseUrl: 'https://www.ranwena.com',//网址，该网站搜索间隔不能小于6秒
             searchUrl: '/modules/article/search.php?searchtype=keywords&searchkey=',//搜索路径及key
             chapterRowNum: -1//每页目录行数
         },
@@ -51,6 +78,7 @@ var myModule = {
             key:'zzdxsw',
             webNameShort: '猪',//简称
             webName: '猪猪岛小说网',//全名
+            isUse: true,//是否启用
             isMainApi: false,
             isUtf8: true,//编码是否为UTF-8
             baseUrl: 'http://m.zzdxsw.org',//网址
@@ -60,19 +88,6 @@ var myModule = {
             chapterUrlAfter: '.html',//后续章节需要添加的后面部分
             chapterRowNum: 25//每页目录行数
         }
-        // ,bqg:{
-        //     key:'bqg',
-        //     webNameShort: '笔',
-        //     webName: '笔趣阁',
-        //     isMainApi: false,
-        //     isUtf8: false,//编码是否为UTF-8
-        //     baseUrl: 'https://m.biqubao.com',
-        //     searchUrl: '/search.php?keyword=',
-        //     chapterUrlFirst: false,
-        //     chapterUrlBefor: 'index_',
-        //     chapterUrlAfter: '.html',
-        //     chapterRowNum: 20//每页目录行数
-        // }
     }
 }
 
@@ -131,34 +146,40 @@ myModule.getMatchStr = (data,lens = 1) => {
 myModule.getChapterNumByCH = (ch,beforNum) => {
     let r = 0;
     if(ch != null && ch != ""){
-        let b_n = 0;
-        let bf = true;//true:上一个是单位，false:上一个是数字
-        for(let c in ch){
-            let c1 = ch[c];
-            if(CH_SZ[c1] != null){
-                if(bf){
-                    b_n = CH_SZ[c1];
-                }else{
-                    if(r == 0){
-                        r = "";
+        //是数字
+        if(!isNaN(parseInt(ch))){
+            r = ch;
+        }else{
+            let b_n = 0;
+            let bf = true;//true:上一个是单位，false:上一个是数字
+            for(let c in ch){
+                let c1 = ch[c];
+                if(CH_SZ[c1] != null){
+                    if(bf){
+                        b_n = CH_SZ[c1];
+                    }else{
+                        if(r == 0){
+                            r = "";
+                        }
+                        // console.log(r + '+='+ b_n+"+"+CH_SZ[c1])
+                        r += b_n+ "" + CH_SZ[c1];
+                        b_n = "";
                     }
-                    console.log(r + '+='+ b_n+"+"+CH_SZ[c1])
-                    r += b_n+ "" + CH_SZ[c1];
-                    b_n = "";
+                    bf = false;
+                    // alert("数字："+c1+"+++"+b_n);
+                }else if(CH_DW[c1]){
+                    if(b_n == 0){
+                        b_n = 1;
+                    }
+                    r += b_n * CH_DW[c1];
+                    b_n = 0;
+                    bf = true;
+                    // alert("结果："+c1+"+++"+CH_DW[c1]+"+++"+r);
                 }
-                bf = false;
-                // alert("数字："+c1+"+++"+b_n);
-            }else if(CH_DW[c1]){
-                if(b_n == 0){
-                    b_n = 1;
-                }
-                r += b_n * CH_DW[c1];
-                b_n = 0;
-                bf = true;
-                // alert("结果："+c1+"+++"+CH_DW[c1]+"+++"+r);
             }
+            r += b_n;
         }
-        r += b_n;
+
     }else{
         r = beforNum + 1;
     }

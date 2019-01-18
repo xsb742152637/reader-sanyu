@@ -1,7 +1,7 @@
 /*
  * description: 猪猪岛html解析
  * author: 谢
- * time: 2018年12月17日
+ * time: 2018年12月
  */
 import HtmlAnalysisBase from './htmlAnalysisBase'
 
@@ -63,6 +63,7 @@ myModule._search_html = (source,data1,book) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div class="container">','</div><div class="footer">');
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<ul>','</ul>');
+    htmlStr = htmlStr.replace(/\n/g,'');
 
     let htmls = htmlStr.split('</li>');//根据li结束标签截取为数组，最后一个元素不循环。
     if(htmls.length < 2){
