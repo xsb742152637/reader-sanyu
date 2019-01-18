@@ -7,7 +7,7 @@ import HtmlAnalysisBase from './htmlAnalysisBase'
 
 var myModule = {};
 
-//章节页面解析
+//小说内容页面解析
 myModule._getChapter_detail = (htmlStr) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'<div id="trail" style="visibility:hidden; border:#E1E1E1 1px solid; padding:3px;"></div>','</div><div class="button_con">');

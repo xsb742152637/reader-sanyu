@@ -7,7 +7,7 @@ import HtmlAnalysisBase from './htmlAnalysisBase'
 
 var myModule = {};
 
-//章节页面解析
+//小说内容页面解析
 myModule._getChapter_detail = (htmlStr) => {
     htmlStr = HtmlAnalysisBase.htmlTrim(htmlStr);
     htmlStr = HtmlAnalysisBase.getNeedHtml(htmlStr,'</table><div id="content">','</div><script>read3();</script>');
