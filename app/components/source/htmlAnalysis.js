@@ -15,6 +15,7 @@ import HtmlAnalysisBqgpc from './htmlAnalysis/htmlAnalysisBqgpc'
 import HtmlAnalysisDdxs from './htmlAnalysis/htmlAnalysisDdxs'
 import HtmlAnalysisByzww from './htmlAnalysis/htmlAnalysisByzww'
 import HtmlAnalysisRwxs from './htmlAnalysis/htmlAnalysisRwxs'
+import HtmlAnalysisSyxsw from './htmlAnalysis/htmlAnalysisSyxsw'
 
 var myModule = {
     outTime: 18//超时时间
@@ -188,6 +189,9 @@ myModule._get_type = (key) => {
             break;
         case "rwxs":
             ha = HtmlAnalysisRwxs;
+            break;
+        case "syxsw":
+            ha = HtmlAnalysisSyxsw;
             break;
     }
     return ha;

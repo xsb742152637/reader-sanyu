@@ -66,7 +66,22 @@ export default class Bookshelves extends Component {
 
     componentDidMount() {
         InteractionManager.runAfterInteractions(()=> {
-            console.log("componentDidMount")
+            console.log("componentDidMount");
+            try{
+                request.get('http://www.sanyureader.cn/app/latest.json', null, (data) => {
+                    console.log("componentDidMount, this.readerVersion", this.readerVersion)
+                    this.downloadUrl = data.downloadUrl;
+                    this.downloadRequired = data.required;
+                    this.downloadVersion = data.latest;
+                    console.log("componentDidMount, this.downloadVersion", this.downloadVersion)
+                    if (this.downloadVersion > this.readerVersion) {
+                        this.setState({downloadDlg: true})
+                    }
+                }, (error) => {
+                })
+            }catch (e){
+
+            }
             this._setDefaultBooks();
             // alert("componentDidMount")
             this._onRefresh();

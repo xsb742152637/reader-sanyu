@@ -118,11 +118,18 @@ export default class ReadPlatform extends Component {
         let source;
         let isMainApi = true;
         if(book.sourceKey){
+            let isHave = false;
             for(let key in HtmlAnalysis.api){
                 if(key == book.sourceKey){
                     source = HtmlAnalysis.api[key];
                     isMainApi = HtmlAnalysis.mainKey == key;
+                    isHave = true;
+                    break;
                 }
+            }
+            if(!isHave){
+                source = HtmlAnalysis.api[HtmlAnalysis.mainKey];
+                isMainApi = true;
             }
         }else{
             source = HtmlAnalysis.api[HtmlAnalysis.mainKey];
@@ -787,7 +794,8 @@ export default class ReadPlatform extends Component {
                     if (this.catalogListView) {
                         if(index > this.state.listModalData.length){
                             index = this.state.listModalData.length - 1;
-                        }else if(index < 0){
+                        }
+                        if(index < 0){
                             index = 0;
                         }
                         if (this.catalogListView) {

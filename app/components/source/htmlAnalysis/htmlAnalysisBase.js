@@ -74,11 +74,22 @@ var myModule = {
             searchUrl: '/modules/article/search.php?searchtype=keywords&searchkey=',//搜索路径及key
             chapterRowNum: -1//每页目录行数
         },
+        syxsw:{
+            key:'syxsw',
+            webNameShort: '31',//简称
+            webName: '31小说网',//全名
+            isUse: true,//是否启用
+            isMainApi: false,
+            isUtf8: false,//编码是否为UTF-8
+            baseUrl: 'http://www.31xs.org',//网址
+            searchUrl: '/search.php?keywords=',//搜索路径及key
+            chapterRowNum: -1//每页目录行数
+        },
         zzdxsw:{
             key:'zzdxsw',
             webNameShort: '猪',//简称
             webName: '猪猪岛小说网',//全名
-            isUse: true,//是否启用
+            isUse: false,//是否启用
             isMainApi: false,
             isUtf8: true,//编码是否为UTF-8
             baseUrl: 'http://m.zzdxsw.org',//网址
@@ -93,7 +104,7 @@ var myModule = {
 
 //将br换行标签转换成\n
 myModule.replaceBrTag = (htmlStr) => {
-    htmlStr = htmlStr.replace(/<br.\/><br.\/>/g,'\n').replace(/&nbsp;/g,' ').replace(/<\/p><p>/g,'\n').replace(/<p>/g,'');
+    htmlStr = htmlStr.replace(/<br.\/><br.\/>/g,'\n').replace(/&nbsp;/g,' ').replace(/<\/p><p>/g,'\n').replace(/<p>/g,'').replace(/<\/p>/g,'');
     return htmlStr.replace(/<br.\/>/g,'\n');
 }
 //通过特别的字符串截取从headStr到footStr之间的html内容
