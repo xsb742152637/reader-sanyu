@@ -215,16 +215,32 @@ export default class Bookshelves extends Component {
     }
 
     //对缓存章节的调试
-    _getErrorChapter(bookName){
+    _getErrorChapter(bookName,key){
+        if(key == ""){
+            key = HtmlAnalysis.mainKey;
+        }
         let aaa = []
         realm.write(() => {
             let allBooks = realm.objects('BookChapterList').filtered('bookName = "'+bookName+'"').sorted('orderNum');
-            // alert(allBooks.length)
-            // realm.delete(allBooks);
+            let thisBookChapterList = new Array();
+            let otherBookChapterList = new Array();
+            for(let j = 0 ; j < allBooks.length ; j++){
+                if(allBooks[j].listKey.split("_")[0] == key){
+                    thisBookChapterList.push(allBooks[j]);
+                }else{
+                    otherBookChapterList.push(allBooks[j]);
+                }
+            }
+            if(otherBookChapterList.length > 0){
+                if(this.showAlert){
+                    // alert("删除多余缓存："+otherBookChapterList.length)
+                }
+                realm.delete(otherBookChapterList);
+            }
             let b = '';
             let beforNum = 0;
-            for(let i = 0 ; i < allBooks.length ; i++){
-                let a = allBooks[i];
+            for(let i = 0 ; i < thisBookChapterList.length ; i++){
+                let a = thisBookChapterList[i];
                 if(a.orderNum - 1 > beforNum){
                     b += a.orderNum+"("+a.title+")\n";
                     aaa.push(a);
@@ -233,7 +249,7 @@ export default class Bookshelves extends Component {
 
             }
 
-            // alert(allBooks.length+"++"+allBooks[allBooks.length -1].orderNum)
+            // alert(thisBookChapterList.length+"++"+thisBookChapterList[thisBookChapterList.length -1].orderNum)
             // realm.delete(aaa);
             if(aaa.length > 0){
                 if(this.showAlert){
@@ -257,7 +273,7 @@ export default class Bookshelves extends Component {
         for (var i = 0; i < books.length; ++i) {
             var book = books[i];
 
-            this._getErrorChapter(book.bookName);
+            this._getErrorChapter(book.bookName,book.sourceKey);
             // return;
 
             new Promise((resolve,reject) => {
