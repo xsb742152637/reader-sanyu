@@ -103,9 +103,9 @@ android {
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
 
-    //dexOptions {
-        //jumboMode = true
-    //}
+    dexOptions {
+        jumboMode = true
+    }
 
     defaultConfig {
         applicationId "com.axiamireader"

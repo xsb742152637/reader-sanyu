@@ -63,7 +63,6 @@ public class SplashActivity extends Activity implements SplashADListener {
     //onCreate > onResume > onPause > onDestroy
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-    Log.i("AD_DEMO", "测试");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity_ly);
         container = (ViewGroup) this.findViewById(R.id.splash_container);

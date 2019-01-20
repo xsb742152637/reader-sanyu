@@ -4,6 +4,7 @@ import android.app.Application;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 
+import com.facebook.react.BuildConfig;
 import com.facebook.react.ReactApplication;
 
 import io.realm.react.RealmReactPackage;
@@ -35,6 +36,7 @@ public class MainApplication extends Application implements ReactApplication {
                     new RealmReactPackage(),
                     new VectorIconsPackage(),
                     new DplusReactPackage(),
+                    new NotificationPackage(),
                     new MyReactPackage()
             );
         }

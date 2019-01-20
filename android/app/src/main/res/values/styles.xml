@@ -5,4 +5,9 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <!-- AppLaunchTheme  theme. -->
+    <style name="AppLaunchTheme" parent="AppTheme">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/app_imgs_splash</item>
+    </style>
 </resources>
