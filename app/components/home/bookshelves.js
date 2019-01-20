@@ -65,7 +65,6 @@ export default class Bookshelves extends Component {
     }
 
     componentDidMount() {
-		NativeModules.Notification.showContentView();
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount");
             try{
