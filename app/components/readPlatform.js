@@ -142,7 +142,8 @@ export default class ReadPlatform extends Component {
             book:book,
             source:source,
             chapterNum: book.historyChapterNum,
-            chapterPage: book.historyChapterPage
+            chapterPage: book.historyChapterPage,
+            time: timeFormat()//更新当前时间
         });
 
         // this._deleteAll();
@@ -269,8 +270,7 @@ export default class ReadPlatform extends Component {
                 listModalData: cloneObj(data),
                 source: isTemp ? this.state.source : source,
                 sourceTemp: isTemp ? source : this.state.sourceTemp,
-                chapterLength: data.length,
-                time: timeFormat()
+                chapterLength: data.length
             });
             return data;
         })
@@ -512,7 +512,8 @@ export default class ReadPlatform extends Component {
                 this.setState({
                     chapterTotalPage: totalPage,
                     chapterNum: chapterNum,
-                    chapterPage: chapterPage
+                    chapterPage: chapterPage,
+                    time: timeFormat()//更新当前时间
                 },(data) => {
                     // 章节发生变化,自动加载上下章
                     if(isChange){
