@@ -267,7 +267,7 @@ export default class Bookshelves extends Component {
     }
     _updateBookDetail() {
 
-        Toast.toastLong("更新中。。。");
+        // Toast.toastLong("更新中。。。");
         var books = realm.objects('HistoryBook').sorted('sortNum');
 
         for (var i = 0; i < books.length; ++i) {
