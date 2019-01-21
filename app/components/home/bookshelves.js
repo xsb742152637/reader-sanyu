@@ -55,10 +55,10 @@ export default class Bookshelves extends Component {
             downloadDlg: false
         }
         this.timer = null;
-        this.readerVersion = '20181001'
-        this.downloadVersion = ''
-        this.downloadUrl = ''
-        this.downloadRequired = false
+        this.readerVersion = '20190121'//最新版本
+        this.downloadVersion = ''//下载版本
+        this.downloadUrl = ''//下载地址
+        this.downloadRequired = false//是否强制更新，强制更新的话不能取消提示框
         this.adVersion = 1
         this.showAlert = true//是否显示调试信息
         this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
@@ -68,6 +68,7 @@ export default class Bookshelves extends Component {
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount");
             try{
+                //更新提示
                 request.get('http://www.sanyureader.cn/app/latest.json', null, (data) => {
                     console.log("componentDidMount, this.readerVersion", this.readerVersion)
                     this.downloadUrl = data.downloadUrl;
