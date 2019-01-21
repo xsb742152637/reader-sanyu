@@ -321,7 +321,7 @@ export default class BookDetail extends Component {
           leftClick={this._back.bind(this)}
           title='书籍详情'
           rightIcon='ios-cloud-download-outline'/>
-        {this.state.bookDetail && this.state.hotReview.length > 0 && this.state.recommendBookList.length > 0 ? 
+        {this.state.bookDetail ?
           <ScrollView 
             style={styles.body}
             showsVerticalScrollIndicator={false}>
