@@ -3,6 +3,8 @@
 RNUMConfigure.init(this, "5ba24b39b465f5f01100039b", "niaogequdao", UMConfigure.DEVICE_TYPE_PHONE, "");
 上面代码中的“niaogequdao”改成相应渠道code即可
 
+在android/app/src/main/res/values/strings.xml中的<string name="app_name">三余阅读</string>修改名字
+
 渠道code与name
 huawei	三余阅读—免费电子书小说阅读器
 xiaomi	三余阅读
