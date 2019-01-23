@@ -6,9 +6,17 @@
     </style>
 
     <!-- AppLaunchTheme  theme. -->
-    <style name="AppLaunchTheme" parent="AppTheme">
+    <style name="AppTheme.AppLaunchTheme" parent="AppTheme">
         <item name="windowNoTitle">true</item>
         <item name="android:windowBackground">@drawable/app_imgs_main</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- AppLaunchTheme  theme. -->
+    <style name="AppTheme.AppLaunchTheme2" parent="AppTheme">
+        <item name="windowNoTitle">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

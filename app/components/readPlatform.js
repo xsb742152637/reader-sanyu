@@ -1366,14 +1366,14 @@ export default class ReadPlatform extends Component {
             <Image style={{width: Dimen.window.width, height:Dimen.window.height, flex:1}} source={require('../imgs/read_bg.jpg')}>
 
                 <StatusBar
-                    hidden={!(this.state.showControlStation || this.state.showSourceListModal || this.state.showListModal)}
-                    backgroundColor={"#333333"}
+                    hidden={false}
+                    backgroundColor={"#cccccc"}
                     translucent={true}
                     showHideTransition={'slide'}
                     barStyle={'dark-content'}/>
 
                 <View
-                    style={{width: Dimen.window.width, height: Dimen.window.height, backgroundColor: this.state.background, flex:1, paddingTop:10}}>
+                    style={{width: Dimen.window.width, height: Dimen.window.height, backgroundColor: this.state.background, flex:1, paddingTop:35}}>
                     {this.state.chapterDetail.length === 0 ?
                         <Loading />
                         :

@@ -692,7 +692,7 @@ export default class Bookshelves extends Component {
             <View style={{flex: 1}}>
 
                 <StatusBar
-                    hidden={true}
+                    hidden={false}
                     backgroundColor={"darkgreen"}
                     translucent={true}
                     showHideTransition={'slide'}
@@ -791,7 +791,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderBottomColor: config.css.color.appMainColor,
-        borderBottomWidth: 1
+        borderBottomWidth: 1,
+        paddingTop:10
     },
     headerLeftText: {
         flex: 1,
