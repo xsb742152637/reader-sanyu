@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderBottomColor: config.css.color.appMainColor,
         borderBottomWidth: 1,
-        paddingTop:10
+        paddingTop:8
     },
     headerLeftText: {
         flex: 1,

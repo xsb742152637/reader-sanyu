@@ -301,7 +301,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderBottomColor: config.css.color.line,
-        borderBottomWidth: 1
+        borderBottomWidth: 1,
+        paddingTop:8
     },
     headerLeftText: {
         flex: 1,
