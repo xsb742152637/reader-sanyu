@@ -51,20 +51,22 @@ export default class Bookshelves extends Component {
             toShow: false,
             focusBook: null,
             isRefreshing: false,
+            isLoadEnd: true,//是否加载结束
             appState: AppState.currentState,
             downloadDlg: false
         }
         this.timer = null;
-        this.readerVersion = '20190121'//最新版本
+        this.readerVersion = '20190124'//最新版本
         this.downloadVersion = ''//下载版本
         this.downloadUrl = ''//下载地址
         this.downloadRequired = false//是否强制更新，强制更新的话不能取消提示框
         this.adVersion = 1
-        this.showAlert = true//是否显示调试信息
+        this.showAlert = false//是否显示调试信息
         this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
     }
 
     componentDidMount() {
+        this.setState({isLoadEnd: false})
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount");
             try{
@@ -129,7 +131,8 @@ export default class Bookshelves extends Component {
         var booklist = realm.objects('HistoryBook').filtered('isToShow = 1').sorted('sortNum', true);
         this.setState({
             bookshelves: booklist,
-            datasource: ds.cloneWithRows(booklist)
+            datasource: ds.cloneWithRows(booklist),
+            isLoadEnd:true
         })
         console.log('_getBookshelves end')
     }
@@ -268,156 +271,163 @@ export default class Bookshelves extends Component {
     }
     _updateBookDetail() {
 
-        // Toast.toastLong("更新中。。。");
-        var books = realm.objects('HistoryBook').sorted('sortNum');
+        try{
+            // Toast.toastLong("更新中。。。");
+            var books = realm.objects('HistoryBook').sorted('sortNum');
 
-        for (var i = 0; i < books.length; ++i) {
-            var book = books[i];
+            for (var i = 0; i < books.length; ++i) {
+                var book = books[i];
 
-            this._getErrorChapter(book.bookName,book.sourceKey);
-            // return;
+                this._getErrorChapter(book.bookName,book.sourceKey);
+                // return;
 
-            new Promise((resolve,reject) => {
-                let key = book.sourceKey;
-                if(key == ""){
-                    key = HtmlAnalysis.mainKey;
-                }
+                new Promise((resolve,reject) => {
+                    let key = book.sourceKey;
+                    if(key == ""){
+                        key = HtmlAnalysis.mainKey;
+                    }
 
-                let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"').sorted('orderNum');
-                if(bookChapterList.length < 1){
-                    // alert("没缓存："+book.bookName);
-                    request.get(api.BOOK_DETAIL(book.bookId), null, (data) => {
-                        this._saveBookToRealm(data);
-                        resolve(null);
-                    }, (error) => {
-                        resolve(null);
-                    });
+                    let bookChapterList = realm.objects('BookChapterList').filtered('bookName = "'+book.bookName+'"').sorted('orderNum');
+                    if(bookChapterList.length < 1){
+                        // alert("没缓存："+book.bookName);
+                        request.get(api.BOOK_DETAIL(book.bookId), null, (data) => {
+                            this._saveBookToRealm(data);
+                            resolve(null);
+                        }, (error) => {
+                            resolve(null);
+                        });
 
-                }else{
-                    // alert("缓存："+book.bookName);
-                    let thisBookChapterList = new Array();
-                    for(let j = 0 ; j < bookChapterList.length ; j++){
-                        if(bookChapterList[j].listKey.split("_")[0] == key){
-                            thisBookChapterList.push(bookChapterList[j]);
+                    }else{
+                        // alert("缓存："+book.bookName);
+                        let thisBookChapterList = new Array();
+                        for(let j = 0 ; j < bookChapterList.length ; j++){
+                            if(bookChapterList[j].listKey.split("_")[0] == key){
+                                thisBookChapterList.push(bookChapterList[j]);
+                            }
                         }
-                    }
 
-                    //根据目录长度计算出最大的目录页数
-                    let source = HtmlAnalysis.api[key];
-                    let maxPageNum = 1;//缓存目录的最大页数，向上取整
-                    let c = 0;//得到无法整除的多余数量，用于后面orderNum的计算
-                    if(source.chapterRowNum != -1){
-                        maxPageNum = Math.ceil(thisBookChapterList.length / source.chapterRowNum);
-                        c = thisBookChapterList.length % source.chapterRowNum
-                    }
+                        //根据目录长度计算出最大的目录页数
+                        let source = HtmlAnalysis.api[key];
+                        let maxPageNum = 1;//缓存目录的最大页数，向上取整
+                        let c = 0;//得到无法整除的多余数量，用于后面orderNum的计算
+                        if(source.chapterRowNum != -1){
+                            maxPageNum = Math.ceil(thisBookChapterList.length / source.chapterRowNum);
+                            c = thisBookChapterList.length % source.chapterRowNum
+                        }
 
-                    let rd = {
-                        book: book,
-                        key: key,
-                        bookChapterList: bookChapterList,
-                        thisBookChapterList: thisBookChapterList,
-                        source: source,
-                        c: c,
-                        maxPageNum: maxPageNum
-                    }
-                    // alert(bookChapterList.length+"++"+thisBookChapterList.length+"++"+maxPageNum+"++"+c)
-                    if(key == HtmlAnalysis.mainKey){
-                        request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
-                            if (data.ok) {
-                                rd["data"] = data.mixToc.chapters;
+                        let rd = {
+                            book: book,
+                            key: key,
+                            bookChapterList: bookChapterList,
+                            thisBookChapterList: thisBookChapterList,
+                            source: source,
+                            c: c,
+                            maxPageNum: maxPageNum
+                        }
+                        // alert(bookChapterList.length+"++"+thisBookChapterList.length+"++"+maxPageNum+"++"+c)
+                        if(key == HtmlAnalysis.mainKey){
+                            request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
+                                if (data.ok) {
+                                    rd["data"] = data.mixToc.chapters;
+                                    resolve(rd);
+                                } else {
+                                    resolve(null);
+                                }
+                            })
+                        }else{
+                            this._getOnePageChapter(source,book,maxPageNum,new Array()).then((data) => {
+                                rd["data"] = data;
                                 resolve(rd);
-                            } else {
-                                resolve(null);
-                            }
-                        })
-                    }else{
-                        this._getOnePageChapter(source,book,maxPageNum,new Array()).then((data) => {
-                            rd["data"] = data;
-                            resolve(rd);
-                        });
-                    }
-                }
-
-            }).then((rd) => {
-                if(rd == null){
-                    return;
-                }
-                let data = rd.data;
-                if(data != null && data.length > 0){
-                    let book1 = rd.book;
-                    let key = rd.key;
-                    let bookChapterList = rd.bookChapterList;
-                    let thisBookChapterList = rd.thisBookChapterList;
-                    let source = rd.source;
-                    let c = rd.c;
-                    let maxPageNum = rd.maxPageNum;
-
-                    let newChapterList = new Array();
-                    //maxPageNum == 1 ，说明目录是一次性加载的全部，
-                    if(maxPageNum == 1){
-                        //得到数据库中不存在的部分
-                        for(let i = thisBookChapterList.length ; i < data.length ; i++){
-                            if(key == HtmlAnalysis.mainKey){
-                                data[i].num = i;
-                                data[i].bookName = data[i].title;
-                            }
-                            newChapterList.push(data[i]);
-                        }
-                    }else{
-                        //得到数据库中不存在的部分
-                        for(let i = c ; i < data.length ; i++){
-                            newChapterList.push(data[i]);
+                            });
                         }
                     }
 
-                    // alert("取值："+data.length+"++"+newChapterList.length);
-                    //如果有新的目录，存入数据库
-                    if(newChapterList.length > 0){
-                        // alert(book1.bookName+"更新："+newChapterList.length+"\n"+newChapterList[newChapterList.length - 1].title)
-                        realm.write(() => {
-                            let len = bookChapterList.length;//bookChapterList得长度会因为下面的保存成功而实时更新，所以长度必须先保存到一个变量中
-                            // alert(bookChapterList[0].orderNum +"++"+ (bookChapterList.length))
-                            let bb = bookChapterList[bookChapterList.length - 1].orderNum+"\n";
-                            for(let m = 0 ; m < newChapterList.length ; m++){
-                                let orderNum = m + len;
-                                let bc = {
-                                    listId: this._getKey(source,book1)+"_"+orderNum,
-                                    listKey: this._getKey(source,book1),
-                                    bookName: book1.bookName,
-                                    link: newChapterList[m].link,
-                                    title: newChapterList[m].title,
-                                    num: newChapterList[m].num,
-                                    orderNum: orderNum
-                                };
-                                bb += bc.orderNum+"\n";
-                                // alert(JSON.stringify(bookChapterList[bookChapterList.length -1])+"\n\n"+JSON.stringify(bc))
-                                realm.create('BookChapterList', bc, true)
-                            }
-
-                            // alert((len+newChapterList.length)+"\n\n"+bb)
-                            // alert(JSON.stringify(book))
-                            realm.create('HistoryBook', {
-                                bookId: book1.bookId,
-                                isToShow: 1,
-                                lastChapterTitle: newChapterList[newChapterList.length - 1].title,
-                                hasNewChapter: 1,
-                                saveTime: new Date()
-                            }, true)
-                        });
-                        this._getBookshelves();
-                        // alert("更新："+newChapterList.length+"\n"+JSON.stringify(newChapterList));
+                }).then((rd) => {
+                    if(rd == null){
+                        return;
                     }
+                    let data = rd.data;
+                    if(data != null && data.length > 0){
+                        let book1 = rd.book;
+                        let key = rd.key;
+                        let bookChapterList = rd.bookChapterList;
+                        let thisBookChapterList = rd.thisBookChapterList;
+                        let source = rd.source;
+                        let c = rd.c;
+                        let maxPageNum = rd.maxPageNum;
 
-                }else{
+                        let newChapterList = new Array();
+                        //maxPageNum == 1 ，说明目录是一次性加载的全部，
+                        if(maxPageNum == 1){
+                            //得到数据库中不存在的部分
+                            for(let i = thisBookChapterList.length ; i < data.length ; i++){
+                                if(key == HtmlAnalysis.mainKey){
+                                    data[i].num = i;
+                                    data[i].bookName = data[i].title;
+                                }
+                                newChapterList.push(data[i]);
+                            }
+                        }else{
+                            //得到数据库中不存在的部分
+                            for(let i = c ; i < data.length ; i++){
+                                newChapterList.push(data[i]);
+                            }
+                        }
 
-                }
-            }).catch((err) => {
-                if(this.showAlert){
-                    alert("更新错误："+JSON.stringify(err));
-                }
-            });
+                        // alert("取值："+data.length+"++"+newChapterList.length);
+                        //如果有新的目录，存入数据库
+                        if(newChapterList.length > 0){
+                            // alert(book1.bookName+"更新："+newChapterList.length+"\n"+newChapterList[newChapterList.length - 1].title)
+                            realm.write(() => {
+                                let len = bookChapterList.length;//bookChapterList得长度会因为下面的保存成功而实时更新，所以长度必须先保存到一个变量中
+                                // alert(bookChapterList[0].orderNum +"++"+ (bookChapterList.length))
+                                let bb = bookChapterList[bookChapterList.length - 1].orderNum+"\n";
+                                for(let m = 0 ; m < newChapterList.length ; m++){
+                                    let orderNum = m + len;
+                                    let bc = {
+                                        listId: this._getKey(source,book1)+"_"+orderNum,
+                                        listKey: this._getKey(source,book1),
+                                        bookName: book1.bookName,
+                                        link: newChapterList[m].link,
+                                        title: newChapterList[m].title,
+                                        num: newChapterList[m].num,
+                                        orderNum: orderNum
+                                    };
+                                    bb += bc.orderNum+"\n";
+                                    // alert(JSON.stringify(bookChapterList[bookChapterList.length -1])+"\n\n"+JSON.stringify(bc))
+                                    realm.create('BookChapterList', bc, true)
+                                }
 
+                                // alert((len+newChapterList.length)+"\n\n"+bb)
+                                // alert(JSON.stringify(book))
+                                realm.create('HistoryBook', {
+                                    bookId: book1.bookId,
+                                    isToShow: 1,
+                                    lastChapterTitle: newChapterList[newChapterList.length - 1].title,
+                                    hasNewChapter: 1,
+                                    saveTime: new Date()
+                                }, true)
+                            });
+                            this._getBookshelves();
+                            // alert("更新："+newChapterList.length+"\n"+JSON.stringify(newChapterList));
+                        }
+
+                    }else{
+
+                    }
+                }).catch((err) => {
+                    if(this.showAlert){
+                        alert("更新错误："+JSON.stringify(err));
+                    }
+                });
+
+            }
+        }catch (e){
+            if(this.showAlert){
+                alert("更新错误11");
+            }
         }
+
     }
 
     _saveBookToRealm(bookDetail) {
@@ -585,7 +595,8 @@ export default class Bookshelves extends Component {
                     bookshelves: bookList,
                     datasource: ds.cloneWithRows(bookList),
                     toShow: false,
-                    focusBook: null
+                    focusBook: null,
+                    isLoadEnd:true
                 })
             }, 200);
 
@@ -729,7 +740,7 @@ export default class Bookshelves extends Component {
                     }
                     />
                     :
-                    <CommonText text='您还没有收藏过任何书籍哦~~'/>
+                    <CommonText text={this.state.isLoadEnd ? '您还没有收藏过任何书籍哦~~' : '正在加载~~'}/>
                 }
                 {this.state.focusBook ?
                     <Modal
