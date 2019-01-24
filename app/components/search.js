@@ -22,6 +22,7 @@ import { connect } from 'react-redux'
 
 import TagsGroup from '../weight/tagsGroup'
 import request from '../utils/httpUtil'
+import CommonText from '../weight/commonText'
 import Dimen from '../utils/dimensionsUtil'
 import api from '../common/api'
 import config from '../common/config'
@@ -282,11 +283,17 @@ class Search extends Component {
                 </View>
                 <ScrollView style={styles.body}>
                     {search.searchState ?
-                        // 显示搜索结果
-                        <ListView
-                            enableEmptySections={true}
-                            dataSource={ds.cloneWithRows(search.searchData)}
-                            renderRow={this.renderSearchData.bind(this)}/>
+                        <View>
+                            {search.searchData.length > 0 ?
+                                // 显示搜索结果
+                                <ListView
+                                    enableEmptySections={true}
+                                    dataSource={ds.cloneWithRows(search.searchData)}
+                                    renderRow={this.renderSearchData.bind(this)}/>
+                                :
+                                <CommonText text={'\n\n没有找到相关书籍~~'}/>
+                            }
+                        </View>
                         :
                         // 显示历史记录和热门搜索
                         <View>
