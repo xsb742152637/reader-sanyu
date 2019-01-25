@@ -291,7 +291,26 @@ class Search extends Component {
                                     dataSource={ds.cloneWithRows(search.searchData)}
                                     renderRow={this.renderSearchData.bind(this)}/>
                                 :
-                                <CommonText text={'\n\n没有找到相关书籍~~'}/>
+                                <View>
+                                    <CommonText text={'\n没有找到相关书籍~~\n\n'}/>
+                                    <View style={styles.hotWordsHeader}>
+                                        <Text style={styles.hotWordsHeaderText}>大家都在搜</Text>
+                                        <Icon
+                                            name='ios-refresh-outline'
+                                            size={20}
+                                            style={{marginTop: 2}}
+                                            color={config.css.color.appBlack}
+                                            onPress={this._refreshHotWord.bind(this)}>
+                                        </Icon>
+                                        <Text
+                                            style={{fontSize: config.css.fontSize.desc, marginLeft: 5, marginRight: 30}}
+                                            onPress={this._refreshHotWord.bind(this)}>
+                                            换一批
+                                        </Text>
+                                    </View>
+                                    <TagsGroup tags={search.hotWordsPart} checkTag={(tag) => this._changeSearchWord(tag)}/>
+                                </View>
+
                             }
                         </View>
                         :

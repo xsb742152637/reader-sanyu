@@ -98,6 +98,18 @@ export let wordCountFormat = (wordCount) => {
   }
 }
 
+export let dateFormat2 = () => {
+  let temp = new Date();
+  var y = temp.getFullYear();
+
+  var m = temp.getMonth() + 1;
+  m = m < 10 ? ('0' + m) : m;
+
+  var d = temp.getDate()
+  d = d < 10 ? ('0' + d) : d
+  return y  +  '' + m + '' + d;
+}
+
 export let timeFormat = () => {
   let temp = new Date()
   var h = temp.getHours()

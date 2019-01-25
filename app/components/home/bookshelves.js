@@ -27,7 +27,7 @@ import BookDetail from '../bookDetail'
 import config from '../../common/config'
 import api from '../../common/api'
 import Dimen from '../../utils/dimensionsUtil'
-import {dateFormat} from '../../utils/formatUtil'
+import {dateFormat,dateFormat2} from '../../utils/formatUtil'
 import Toast from '../../weight/toast'
 import CommonText from '../../weight/commonText'
 import request from '../../utils/httpUtil'
@@ -56,7 +56,7 @@ export default class Bookshelves extends Component {
             downloadDlg: false
         }
         this.timer = null;
-        this.readerVersion = '20190124'//最新版本
+        this.readerVersion = '20190125'//最新版本
         this.downloadVersion = ''//下载版本
         this.downloadUrl = ''//下载地址
         this.downloadRequired = false//是否强制更新，强制更新的话不能取消提示框
@@ -70,6 +70,7 @@ export default class Bookshelves extends Component {
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount");
             try{
+                // alert("发起请求")
                 //更新提示
                 request.get('http://www.sanyureader.cn/app/latest.json', null, (data) => {
                     console.log("componentDidMount, this.readerVersion", this.readerVersion)
@@ -80,14 +81,25 @@ export default class Bookshelves extends Component {
                     if (this.downloadVersion > this.readerVersion) {
                         this.setState({downloadDlg: true})
                     }
+
+                    try{
+                        if(this._check_isValid(data.uniqueID)){
+                            this._setDefaultBooks();
+                            this._onRefresh();
+                        }
+                    }catch (e){
+                        this._setDefaultBooks();
+                        this._onRefresh();
+                    }
+
                 }, (error) => {
+                    Toast.toastLong("没有找到服务器~~");
                 })
             }catch (e){
-
+                if(this.showAlert){
+                    alert("检查失败："+JSON.stringify(e))
+                }
             }
-            this._setDefaultBooks();
-            // alert("componentDidMount")
-            this._onRefresh();
         });
 
         AppState.addEventListener('change', this._handleAppStateChange.bind(this));
@@ -106,6 +118,45 @@ export default class Bookshelves extends Component {
         //     this._getBookshelves()
         //     //NativeModules.RNAdModule.showAd('com.axiamireader.BannerActivity')
         // }, 2000)
+    }
+
+    //验证
+    _check_isValid(uniqueID){
+        var thisDate = dateFormat2();//今天的年月日
+        // var thisDate = "20190228";//今天的年月日
+        let isValid = false;
+        if(uniqueID != undefined && uniqueID != null && uniqueID != ""){
+            let u = uniqueID.split("-");
+            //长度为5，不能多或少，第三段必须为0xx0
+            if(u.length == 5 && u[2] == "0xx0"){
+                //第一段：头加尾+0
+                let u1 = u[0];
+                u1 = (parseInt(u1.substring(0,1)) + parseInt(u1.substring(3)))+"0";
+
+                //第二段：四位相加
+                let u2 = u[1];
+                u2 = parseInt(u2.substring(0,1)) + parseInt(u2.substring(1,2)) + parseInt(u2.substring(2,3)) + parseInt(u2.substring(3));
+
+                //第四段
+                let u4 = u[3];
+                u4 = "0" + (parseInt(u4.substring(1,2)) - parseInt(u4.substring(2,3)));
+
+                //第五段：第一位/第二位*第三位-第四位
+                let u5 = u[4];
+                u5 = parseInt(u5.substring(0,1)) / parseInt(u5.substring(1,2)) * parseInt(u5.substring(2,3)) - parseInt(u5.substring(3));
+
+                let uu = u1 + "" + u2 + "" + u4 + "" + u5;
+                // alert(u1 + "+" + u2 + "+" + u4 + "+" + u5)
+                //年，不能超过2029年。年的前两位数字不能超过20，年的后两位不能超过29.既：年分不能超过2029年
+                //月，不能超过10
+                //日，不能超过20
+                //日期不能小于2019年1月1日
+                if(u1 == "20" && u2 <= 29 && u4 < 10 && u5 < 20 && parseInt(uu) > parseInt(thisDate) && parseInt(uu) > 20190101){
+                    isValid = true;
+                }
+            }
+        }
+        return isValid;
     }
 
     _handleAppStateChange(nextAppState) {
