@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
     },
     item: {
         flexDirection: 'row',
-        height: 100,
+        minHeight: 100,
         width: Dimen.window.width,
         borderBottomWidth: 1,
         borderBottomColor: config.css.color.line
