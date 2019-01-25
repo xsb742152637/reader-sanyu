@@ -93,9 +93,12 @@ export default class Bookshelves extends Component {
                     }
 
                 }, (error) => {
-                    Toast.toastLong("没有找到服务器~~");
+                    this._setDefaultBooks();
+                    this._onRefresh();
                 })
             }catch (e){
+                this._setDefaultBooks();
+                this._onRefresh();
                 if(this.showAlert){
                     alert("检查失败："+JSON.stringify(e))
                 }
