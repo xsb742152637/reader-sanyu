@@ -63,46 +63,35 @@ export default class Bookshelves extends Component {
         this.adVersion = 1
         this.showAlert = false//是否显示调试信息
         this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
+        this.isVaild = true;
     }
 
     componentDidMount() {
         this.setState({isLoadEnd: false})
         InteractionManager.runAfterInteractions(()=> {
             console.log("componentDidMount");
-            try{
-                // alert("发起请求")
-                //更新提示
-                request.get('http://www.sanyureader.cn/app/latest.json', null, (data) => {
-                    console.log("componentDidMount, this.readerVersion", this.readerVersion)
-                    this.downloadUrl = data.downloadUrl;
-                    this.downloadRequired = data.required;
-                    this.downloadVersion = data.latest;
-                    console.log("componentDidMount, this.downloadVersion", this.downloadVersion)
-                    if (this.downloadVersion > this.readerVersion) {
-                        this.setState({downloadDlg: true})
-                    }
-
-                    try{
-                        if(this._check_isValid(data.uniqueID)){
-                            this._setDefaultBooks();
-                            this._onRefresh();
-                        }
-                    }catch (e){
-                        this._setDefaultBooks();
-                        this._onRefresh();
-                    }
-
-                }, (error) => {
-                    this._setDefaultBooks();
-                    this._onRefresh();
-                })
-            }catch (e){
-                this._setDefaultBooks();
-                this._onRefresh();
-                if(this.showAlert){
-                    alert("检查失败："+JSON.stringify(e))
+            // alert("发起请求")
+            //更新提示
+            request.get('http://www.sanyureader.cn/app/latest.json', null, (data) => {
+                console.log("componentDidMount, this.readerVersion", this.readerVersion)
+                this.downloadUrl = data.downloadUrl;
+                this.downloadRequired = data.required;
+                this.downloadVersion = data.latest;
+                console.log("componentDidMount, this.downloadVersion", this.downloadVersion)
+                if (this.downloadVersion > this.readerVersion) {
+                    this.setState({downloadDlg: true})
                 }
-            }
+
+                try{
+                    this.isVaild = this._check_isValid(data.uniqueID)
+                    // this.isVaild = false
+                }catch (e){
+                }
+            }, (error) => {
+
+            })
+            this._setDefaultBooks();
+            this._onRefresh();
         });
 
         AppState.addEventListener('change', this._handleAppStateChange.bind(this));
@@ -546,13 +535,15 @@ export default class Bookshelves extends Component {
         });
         this._getBookshelves();
 
-        this.props.navigator.push({
-            name: 'readPlatform',
-            component: ReadPlatform,
-            params: {
-                bookId: bookId
-            }
-        })
+        if(this.isVaild){
+            this.props.navigator.push({
+                name: 'readPlatform',
+                component: ReadPlatform,
+                params: {
+                    bookId: bookId
+                }
+            })
+        }
     }
 
     _showModal(book) {
