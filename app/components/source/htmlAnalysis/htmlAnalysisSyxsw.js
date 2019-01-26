@@ -97,8 +97,7 @@ myModule._search_html = (source,data1,book) => {
         if(book.bookName != data.bookName || (book.author != "" && book.author != data.author)){
             continue;
         }
-
-        if(data.bookUrlNew != null){
+        if(data.bookUrlNew != null && data.bookName != null){
             list.push(data);
         }
     }

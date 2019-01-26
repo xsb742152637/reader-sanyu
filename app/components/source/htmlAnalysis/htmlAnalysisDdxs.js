@@ -98,7 +98,7 @@ myModule._search_html = (source,data1,book) => {
             if(book.bookName != data.bookName || (book.author != "" && book.author != data.author)){
                 continue;
             }
-            if(data.bookUrlNew != null){
+            if(data.bookUrlNew != null && data.bookName != null){
                 list.push(data);
             }
         }
@@ -125,7 +125,7 @@ myModule._search_html = (source,data1,book) => {
         // data.newChapterUrl = ar[4];//最新章节路径
         data.lastChapterTitle = ar[5];//最新章节
         data.author = ar[1];//作者
-        if(data.bookUrlNew != null){
+        if(data.bookUrlNew != null && data.bookName != null){
             list.push(data);
         }
     }

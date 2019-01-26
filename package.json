@@ -7,6 +7,8 @@
   },
   "dependencies": {
     "buffer": "^5.2.1",
+    "events": "^3.0.0",
+    "cheerio": "0.22.0",
     "lodash": "^4.17.4",
     "mockjs": "^1.0.1-beta3",
     "query-string": "^4.3.2",

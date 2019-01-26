@@ -104,8 +104,8 @@ var myModule = {
 
 //将br换行标签转换成\n
 myModule.replaceBrTag = (htmlStr) => {
-    htmlStr = htmlStr.replace(/<br.\/><br.\/>/g,'\n').replace(/&nbsp;/g,' ').replace(/<\/p><p>/g,'\n').replace(/<p>/g,'').replace(/<\/p>/g,'');
-    return htmlStr.replace(/<br.\/>/g,'\n');
+    htmlStr = htmlStr.replace(/<br.{0,2}><br.{0,2}>/g,'\n').replace(/&nbsp;/g,' ').replace(/<\/p><p>/g,'\n').replace(/<p>/g,'').replace(/<\/p>/g,'');
+    return htmlStr.replace(/<br.{0,2}>/g,'\n');
 }
 //通过特别的字符串截取从headStr到footStr之间的html内容
 myModule.getNeedHtml =(htmlStr,headStr,footStr) => {
