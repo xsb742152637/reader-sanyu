@@ -125,10 +125,10 @@ export default class Bookshelves extends Component {
 
     //验证
     _check_isValid(uniqueID){
-        var thisDate = dateFormat2();//今天的年月日
-        // var thisDate = "20190228";//今天的年月日
         let isValid = false;
         if(uniqueID != undefined && uniqueID != null && uniqueID != ""){
+            var thisDate = dateFormat2();//今天的年月日
+            // var thisDate = "20190228";//今天的年月日
             let u = uniqueID.split("-");
             //长度为5，不能多或少，第三段必须为0xx0
             if(u.length == 5 && u[2] == "0xx0"){
