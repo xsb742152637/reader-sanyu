@@ -98,8 +98,9 @@ myModule._search_html = (source,data1,book) => {
             if(book.bookName != data.bookName || (book.author != "" && book.author != data.author)){
                 continue;
             }
-
-            list.push(data);
+            if(data.bookUrlNew != null){
+                list.push(data);
+            }
         }
     }else{
         //说明只有一个结果，并且自动得到了这本小说的目录页面，但是只取小说信息。
@@ -115,7 +116,7 @@ myModule._search_html = (source,data1,book) => {
 
         //<\/dd><dd><div.class=\"fl\"><a.class=\"hst\".href=\"(.*)\"><img.*作者<\/th><td>(.*)<\/td><th>文章状态.*最后更新<\/th><td>(.*)<\/td><\/tr><tr><th>总点击数.*内容简介：.*show_book2();<\/script><\/td><\/tr><\/table><p>(.*)<br.\/><\/p>.*最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><p.style=\"height:10px;\">
 
-        let ar = HtmlAnalysisBase.getMatchStr(htmlStr.match(/<\/dd><dd><div.class=\"fl\"><a.class=\"hst\".href=\"(.*)\"><img.*作者<\/th><td>(.*)<\/td><th>文章状态.*最后更新<\/th><td>(.*)<\/td><\/tr><tr><th>总点击数.*内容简介.*<\/table><p>(.*)<br.\/><\/p>.*最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><p.style.*/),6);
+        let ar = HtmlAnalysisBase.getMatchStr(htmlStr.match(/<\/dd><dd><div.class=\"fl\"><a.class=\"hst\".href=\"(.*)\"><img.*作者<\/th><td>(.*)<\/td><th>文章状态.*最后更新<\/th><td>(.*)<\/td><\/tr><tr><th>总点击数.*内容简介.*<\/table><p>(.*)<\/p>.*最新章节：<a.href=\"(.*)\">(.*)<\/a><\/p><p.style.*/),6);
 
         data.bookUrlNew = ar[0];//小说路径
         data.bookName = book.bookName;//小说名称
@@ -124,7 +125,9 @@ myModule._search_html = (source,data1,book) => {
         // data.newChapterUrl = ar[4];//最新章节路径
         data.lastChapterTitle = ar[5];//最新章节
         data.author = ar[1];//作者
-        list.push(data);
+        if(data.bookUrlNew != null){
+            list.push(data);
+        }
     }
 
     return list;

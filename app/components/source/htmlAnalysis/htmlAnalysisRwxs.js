@@ -98,7 +98,9 @@ myModule._search_html = (source,data1,book) => {
                 continue;
             }
 
-            list.push(data);
+            if(data.bookUrlNew != null){
+                list.push(data);
+            }
         }
     }else{
         //说明只有一个结果，并且自动得到了这本小说的目录页面，但是只取小说信息。
@@ -120,7 +122,9 @@ myModule._search_html = (source,data1,book) => {
         // data.newChapterUrl = data1.url + ar[3];//最新章节路径
         data.lastChapterTitle = ar[4];//最新章节
         data.author = ar[1];//作者
-        list.push(data);
+        if(data.bookUrlNew != null){
+            list.push(data);
+        }
     }
 
     return list;

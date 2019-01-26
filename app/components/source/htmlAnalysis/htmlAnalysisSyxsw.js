@@ -98,7 +98,9 @@ myModule._search_html = (source,data1,book) => {
             continue;
         }
 
-        list.push(data);
+        if(data.bookUrlNew != null){
+            list.push(data);
+        }
     }
     return list;
 }

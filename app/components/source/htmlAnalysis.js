@@ -103,9 +103,7 @@ myModule.searchBook = (book,key) => {
     return new Promise((resolve,reject) => {
         if(source.isMainApi){
             request.get(api.BOOK_DETAIL(book.bookId), null, (data) => {
-                if(myModule.showAlert){
-                    // alert(JSON.stringify(book)+"\n\n"+JSON.stringify(data))
-                }
+                // alert(JSON.stringify(book)+"\n\n"+JSON.stringify(data))
                 data.sourceKey = source.key;
                 data.webName = source.webName;//小说网站简称
                 data.isMainApi = true;

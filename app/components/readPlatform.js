@@ -114,7 +114,6 @@ export default class ReadPlatform extends Component {
         }
 
         let bookId = this.props.bookId;
-        bookId = null;
         if(bookId == undefined || bookId == "undefined" || bookId == null || bookId == "null" || bookId == ""){
             Toast.toastShort('小说编号：'+bookId+' 无法识别~~')
             return;
