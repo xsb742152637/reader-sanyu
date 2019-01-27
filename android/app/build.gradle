@@ -126,6 +126,20 @@ android {
             keyPassword "afanna"
         }
     }
+    productFlavors{
+        huawei{}
+//        xiaomi{}
+//        niaogqudao{}
+//        baidu-1{}
+//        baidu-2{}
+//        baidu-3{}
+//        baidu-4{}
+//        baidu-5{}
+//        baidu-6{}
+    }
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
     splits {
         abi {
             reset()
@@ -144,26 +158,15 @@ android {
 
     repositories {flatDir {dirs 'libs'}}
 
-    // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // http://tools.android.com/tech-docs/new-build-system/user-guide/apk-splits
-            def versionCodes = ["armeabi-v7a":1, "x86":2]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
-            }
             def outputFile = output.outputFile
             if (outputFile != null && outputFile.name.endsWith('.apk')) {
-                // 输出apk名称为boohee_v1.0_2015-01-15_wandoujia.apk
-                def fileName = "sanyu.apk"
+                def fileName = outputFile.name.replace(".apk", "-${defaultConfig.versionName}.apk")
                 output.outputFile = new File(outputFile.parent, fileName)
-//                output.outputFile = 'bingo.apk'
             }
         }
-    }
+     }
 }
 
 dependencies {

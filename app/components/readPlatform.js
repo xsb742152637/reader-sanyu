@@ -718,11 +718,7 @@ export default class ReadPlatform extends Component {
             showSourceListModal: true
         });
         var li = new Array();
-        var i = 0;
-        var apiLen = 0;
-        for(let key in HtmlAnalysis.api){
-            apiLen++;
-        }
+
         new Promise((resolve,reject) => {
             for(let key in HtmlAnalysis.api){
                 if(this.state.book.bookId == undefined || this.state.book.bookId == ""){
@@ -733,26 +729,19 @@ export default class ReadPlatform extends Component {
                     if(data != undefined && data != null){
                         li.push(data);
                     }
-                    i++;
-                    if(i == apiLen){
-                        resolve(li);
-                    }
+
+                    this.setState({
+                        isLoadEnd: true,
+                        listModalDataSource: li
+                    });
                 }).catch((err) => {
                     //这个源如果请求超时了，就直接抛弃，继续去下一个源查找
                     if(this.showAlert){
                         // alert("出错了2："+JSON.stringify(err));
                     }
-                    i++;
-                    if(i == apiLen){
-                        resolve(li);
-                    }
+
                 });
             }
-        }).then((data) => {
-            this.setState({
-                isLoadEnd: true,
-                listModalDataSource: data
-            });
         }).catch((err) => {
             this.setState({
                 isLoadEnd: true,
