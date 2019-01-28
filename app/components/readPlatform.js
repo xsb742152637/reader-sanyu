@@ -1356,7 +1356,7 @@ export default class ReadPlatform extends Component {
 
     render() {
         return (
-            <Image style={{width: Dimen.window.width, height:Dimen.window.height, flex:1}} source={require('../imgs/read_bg.jpg')}>
+            <Image style={{width: Dimen.window.width, height:Dimen.window.height, flex:1,backgroundColor:"#e9dbc0"}} source={require('../imgs/read_bg.jpg')}>
 
                 <StatusBar
                     hidden={false}
