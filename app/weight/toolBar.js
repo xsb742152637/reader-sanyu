@@ -54,7 +54,8 @@ const styles = StyleSheet.create({
         height: config.css.headerHeight,
         backgroundColor: config.css.color.appMainColor,
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingTop: 20
     },
     headerIcon: {
         marginLeft: 14,
