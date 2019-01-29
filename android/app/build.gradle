@@ -130,6 +130,7 @@ android {
 //        huawei{}//跟其它的渠道名称不同，必须单独打包
 //        xiaomi{}
 //        sanyu{}
+//        vivo{}
 //        oppo{}
 //        anzhi{}
 //        baidu_1{}
