@@ -127,15 +127,16 @@ android {
         }
     }
     productFlavors{
-        huawei{}
+        huawei{}//跟其它的渠道名称不同，必须单独打包
 //        xiaomi{}
-//        niaogqudao{}
-//        baidu-1{}
-//        baidu-2{}
-//        baidu-3{}
-//        baidu-4{}
-//        baidu-5{}
-//        baidu-6{}
+//        baidu_1{}
+//        baidu_2{}
+//        baidu_3{}
+//        baidu_4{}
+//        baidu_5{}
+//        baidu_6{}
+
+//        niaogqudao{}//暂时不用，
     }
     productFlavors.all { flavor ->
         flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
