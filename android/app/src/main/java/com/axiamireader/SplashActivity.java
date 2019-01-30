@@ -31,6 +31,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 这是demo工程的入口Activity，在这里会首次调用广点通的SDK。
@@ -52,7 +54,7 @@ public class SplashActivity extends Activity implements SplashADListener {
      * 给出的延时逻辑是从拉取广告开始算开屏最少持续多久，仅供参考，开发者可自定义延时逻辑，如果开发者采用demo
      * 中给出的延时逻辑，也建议开发者考虑自定义minSplashTimeWhenNoAD的值（单位ms）
      **/
-    private int minSplashTimeWhenNoAD = 1000;
+    private int minSplashTimeWhenNoAD = 2000;
     /**
      * 记录拉取广告的时间
      */
@@ -61,22 +63,34 @@ public class SplashActivity extends Activity implements SplashADListener {
 
     //android部分生命周期
     //onCreate > onResume > onPause > onDestroy
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-    Log.i("AD_DEMO", "测试");
         super.onCreate(savedInstanceState);
+        Log.i("AD_DEMO", "SplashActivity-------------onCreate");
         setContentView(R.layout.splash_activity_ly);
         container = (ViewGroup) this.findViewById(R.id.splash_container);
         skipView = (TextView) findViewById(R.id.skip_view);
         splashHolder = (ImageView) findViewById(R.id.splash_holder);
 
-        showSplahAd();
-//        sendRequestWithHttpClient();
+        TimerTask task = new TimerTask(){
+            public void run(){
+                //method
+                showSplahAd();
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(task,500);
+
+//        showSplahAd();
     }
+
+    //Main onPause > onCreate > onResume false > onDestroy > showSplahAd > fetchSplashAD > onADPresent > onADTick > onADDismissed > onPause true > Main onResume > onDestroy
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i("AD_DEMO", "SplashActivity-------------onResume------"+canJump);
         if (canJump) {
             next();
         }
@@ -86,39 +100,20 @@ public class SplashActivity extends Activity implements SplashADListener {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i("AD_DEMO", "SplashActivity-------------onPause------"+canJump);
         canJump = false;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.i("AD_DEMO", "SplashActivity-------------onDestroy");
         handler.removeCallbacksAndMessages(null);
     }
 
-    private void sendRequestWithHttpClient() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL("http://www.docket.com.cn/258reader/latest.json");//放网站
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    int status = httpURLConnection.getResponseCode();
-                    Log.i("AD_DEMO", "SplashADPresent:"  + status);
-                    if (status == 200) {
-                        startReader();
-                    }else{
-                        showSplahAd();
-                    }
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-                    startReader();
-                }
-            }
-        }).start();//这个start()方法不要忘记了
-    }
-
+    //
     private void showSplahAd() {
+        Log.i("AD_DEMO", "SplashActivity-------------showSplahAd-----"+Build.VERSION.SDK_INT);
         if (Build.VERSION.SDK_INT >= 23) {
             checkAndRequestPermission();
         } else {
@@ -205,6 +200,7 @@ public class SplashActivity extends Activity implements SplashADListener {
      */
     private void fetchSplashAD(Activity activity, ViewGroup adContainer, View skipContainer,
                                String appId, String posId, SplashADListener adListener, int fetchDelay) {
+        Log.i("AD_DEMO", "SplashActivity-------------fetchSplashAD");
         fetchSplashADTime = System.currentTimeMillis();
         splashAD = new SplashAD(activity, adContainer, skipContainer, appId, posId, adListener, fetchDelay);
     }
@@ -212,7 +208,7 @@ public class SplashActivity extends Activity implements SplashADListener {
     //广告成功展示时调用，成功展示不等于满足计费条件（如展示时长尚未满足），隐藏预设开屏图片
     @Override
     public void onADPresent() {
-        Log.i("AD_DEMO", "SplashADPresent");
+        Log.i("AD_DEMO", "SplashActivity-------------SplashADPresent");
         splashHolder.setVisibility(View.INVISIBLE); // 广告展示后一定要把预设的开屏图片隐藏起来
     }
 
@@ -242,7 +238,7 @@ public class SplashActivity extends Activity implements SplashADListener {
     //广告关闭时调用，可能是用户关闭或者展示时间到。此时一般需要跳过开屏的Activity，进入应用内容页面
     @Override
     public void onADDismissed() {
-        Log.i("AD_DEMO", "SplashADDismissed");
+        Log.i("AD_DEMO", "SplashActivity-------------SplashADDismissed");
         next();
     }
 
