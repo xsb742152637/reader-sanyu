@@ -91,6 +91,7 @@ export default class Bookshelves extends Component {
 
             })
             this._setDefaultBooks();
+            this._getBookshelves();
             this._onRefresh();
         });
 
