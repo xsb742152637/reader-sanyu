@@ -36,8 +36,9 @@
             android:theme="@style/AppTheme.AppLaunchTheme2"
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait"
-            android:alwaysRetainTaskState='true'>
+            android:launchMode="singleInstance">
 
+            <!--android:alwaysRetainTaskState='true'-->
             <!--android:launchMode="singleInstance"-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
