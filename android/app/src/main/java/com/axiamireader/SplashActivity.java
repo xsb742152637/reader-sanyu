@@ -73,14 +73,16 @@ public class SplashActivity extends Activity implements SplashADListener {
         skipView = (TextView) findViewById(R.id.skip_view);
         splashHolder = (ImageView) findViewById(R.id.splash_holder);
 
-        TimerTask task = new TimerTask(){
-            public void run(){
-                //method
-                showSplahAd();
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task,500);
+        showSplahAd();
+
+//        TimerTask task = new TimerTask(){
+//            public void run(){
+//                //method
+//                showSplahAd();
+//            }
+//        };
+//        Timer timer = new Timer();
+//        timer.schedule(task,500);
 
 //        showSplahAd();
     }

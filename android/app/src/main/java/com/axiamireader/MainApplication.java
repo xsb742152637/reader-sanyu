@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.facebook.react.ReactApplication;
 
@@ -32,6 +33,7 @@ public class MainApplication extends Application implements ReactApplication {
 
         @Override
         protected List<ReactPackage> getPackages() {
+            Log.i("AD_DEMO", "MainApplication-------------getPackages");
             return Arrays.<ReactPackage>asList(
                     new MainReactPackage(),
                     new RealmReactPackage(),
@@ -44,6 +46,7 @@ public class MainApplication extends Application implements ReactApplication {
         @Nullable
         @Override
         protected String getJSBundleFile() {
+            Log.i("AD_DEMO", "MainApplication-------------getJSBundleFile");
             String jsBundle = Environment.DIRECTORY_DOWNLOADS + "/index.android.bundle";
             File file = new File(jsBundle);
             if(file != null && file.exists()) {
@@ -62,6 +65,7 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i("AD_DEMO", "MainApplication-------------onCreate");
         SoLoader.init(this, /* native exopackage */ false);
         /**
          * 初始化common库

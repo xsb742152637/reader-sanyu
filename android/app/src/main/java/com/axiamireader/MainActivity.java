@@ -1,5 +1,6 @@
 package com.axiamireader;
 
+import android.os.Bundle;
 import android.util.Log;
 
 import com.facebook.react.ReactActivity;
@@ -15,7 +16,11 @@ public class MainActivity extends ReactActivity {
     protected String getMainComponentName() {
         return "simplereader";
     }
-
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.i("AD_DEMO", "MainActivity-------------onCreate");
+    }
     @Override
     public void onResume() {
         super.onResume();
@@ -28,5 +33,10 @@ public class MainActivity extends ReactActivity {
         super.onPause();
         Log.i("AD_DEMO", "MainActivity-------------onPause");
         MobclickAgent.onPause(this);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i("AD_DEMO", "MainActivity-------------onDestroy");
     }
 }
