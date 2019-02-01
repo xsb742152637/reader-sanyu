@@ -67,6 +67,19 @@ public class SplashActivity extends Activity implements SplashADListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if(!isTaskRoot()){
+            Intent i=getIntent();
+            String action=i.getAction();
+            if(i.hasCategory(Intent.CATEGORY_APP_CALENDAR)
+                    && !TextUtils.isEmpty(action)
+                    && action.equals(Intent.ACTION_MAIN)){
+
+                finish();
+                return;
+            }
+        }
+
         Log.i("AD_DEMO", "SplashActivity-------------onCreate");
         setContentView(R.layout.splash_activity_ly);
         container = (ViewGroup) this.findViewById(R.id.splash_container);
@@ -183,6 +196,7 @@ public class SplashActivity extends Activity implements SplashADListener {
             // 如果用户没有授权，那么应该说明意图，引导用户去设置里面授权。
             Toast.makeText(this, "应用缺少必要的权限！请点击\"权限\"，打开所需要的权限。", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
             intent.setData(Uri.parse("package:" + getPackageName()));
             startActivity(intent);
             finish();
@@ -281,6 +295,7 @@ public class SplashActivity extends Activity implements SplashADListener {
                 Log.e("afanna", "display type is not react, start reader");
                 Intent intent = new Intent();
                 intent.setClass(SplashActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
                 SplashActivity.this.startActivity(intent);
                 SplashActivity.this.overridePendingTransition(0, 0);
             }
@@ -288,6 +303,7 @@ public class SplashActivity extends Activity implements SplashADListener {
 //            Log.e("afanna", ex.getMessage());
             Intent intent = new Intent();
             intent.setClass(SplashActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //注意本行的FLAG设置
             SplashActivity.this.startActivity(intent);
             SplashActivity.this.overridePendingTransition(0, 0);
         }
