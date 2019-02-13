@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.axiamireader"
-    android:versionCode="12"
-    android:versionName="4.6.6">
+    android:versionCode="13"
+    android:versionName="4.6.7">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.READ_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.RESTART_PACKAGES" />
+
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
 
     <uses-sdk
         android:minSdkVersion="16"

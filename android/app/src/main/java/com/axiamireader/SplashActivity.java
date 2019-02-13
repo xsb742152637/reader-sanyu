@@ -71,11 +71,10 @@ public class SplashActivity extends Activity implements SplashADListener {
         if(!isTaskRoot()){
             Intent i=getIntent();
             String action=i.getAction();
-            if(i.hasCategory(Intent.CATEGORY_APP_CALENDAR)
-                    && !TextUtils.isEmpty(action)
-                    && action.equals(Intent.ACTION_MAIN)){
-
+            if(i.hasCategory(Intent.CATEGORY_APP_CALENDAR) && !TextUtils.isEmpty(action) && action.equals(Intent.ACTION_MAIN)){
+//                Toast.makeText(getApplicationContext(), "程序已经启动过了~~~",Toast.LENGTH_SHORT).show();
                 finish();
+                System.exit(0);
                 return;
             }
         }
