@@ -1012,6 +1012,9 @@ export default class ReadPlatform extends Component {
             let new_font = this.state.fontSize;
             if(type){
                 new_font += 2;
+                if(new_font > 32){
+                    new_font = 32
+                }
             }else{
                 new_font -= 2;
                 //最小字体为8
