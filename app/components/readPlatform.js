@@ -491,7 +491,7 @@ export default class ReadPlatform extends Component {
 
             // alert("当前位置："+scrollIndex+"\n当前章节："+(chapterNum+1)+"\n当前页："+chapterPage)
             try {
-                if ((this.state.chapterNum + 1) % 3 == 0 && chapterPage + 1 == totalPage && this.isShowAD) {
+                if ((this.state.chapterNum + 1) % 1 == 0 && chapterPage == 0 && this.isShowAD) {
                     NativeModules.RNAdModule.showAd('banner_ad')
                 }
             } catch (e) {
@@ -1012,6 +1012,9 @@ export default class ReadPlatform extends Component {
             let new_font = this.state.fontSize;
             if(type){
                 new_font += 2;
+                if(new_font > 32){
+                    new_font = 32
+                }
             }else{
                 new_font -= 2;
                 //最小字体为8

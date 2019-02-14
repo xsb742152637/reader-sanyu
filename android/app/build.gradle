@@ -111,8 +111,8 @@ android {
         applicationId "com.axiamireader"
         minSdkVersion 16
         targetSdkVersion 22
-        versionCode 12
-        versionName "4.6.6"
+        versionCode 13
+        versionName "4.6.7"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -133,13 +133,6 @@ android {
 //        vivo{}
 //        oppo{}
 //        anzhi{}
-
-//        baidu_1{}
-//        baidu_2{}
-//        baidu_3{}
-//        baidu_4{}
-//        baidu_5{}
-//        baidu_6{}
 
 //        sougou_1{}
 //        sougou_2{}
