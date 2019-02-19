@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     },
     item: {
         flexDirection: 'row',
-        height: 80,
+        minHeight: 80,
         width: Dimen.window.width,
         borderTopWidth: 1,
         borderTopColor: config.css.color.line

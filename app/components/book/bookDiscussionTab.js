@@ -86,10 +86,10 @@ class BookDiscussionTab extends Component {
         activeOpacity={0.5}
         onPress={() => this._goToBookDiscussionDetail(rowData._id)}>
         <View style={styles.item}>
-          <Image 
+          <Image
             style={styles.itemImage}
-            source={rowData.author.avatar 
-              ? {uri: (api.IMG_BASE_URL + rowData.author.avatar)} 
+            source={rowData.author.avatar
+              ? {uri: (api.IMG_BASE_URL + rowData.author.avatar)}
               : require('../../imgs/splash.jpg')}
             />
           <View style={styles.itemBody}>
@@ -197,6 +197,8 @@ const styles = StyleSheet.create({
   itemAuthor: {
     fontSize: config.css.fontSize.desc, 
     color: config.css.fontColor.author,
+    flex: 1,
+    marginRight:10,
   },
   itemTime: {
     fontSize: config.css.fontSize.desc,

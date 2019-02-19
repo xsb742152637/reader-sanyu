@@ -258,7 +258,7 @@ export default class BookDetail extends Component {
         items.push(
           <TouchableOpacity 
             activeOpacity={0.5}
-            style={{flex: 1, width: Dimen.window.width - 68, flexDirection: 'row', marginLeft: 14, marginRight: 14}} 
+            style={{flex: 1, width: Dimen.window.width - 30, flexDirection: 'row', marginLeft: 14, marginRight: 14}}
             onPress={this._reviewDetail.bind(this, i)}
             key={i}>
             <Image 
@@ -266,11 +266,11 @@ export default class BookDetail extends Component {
               source={review.author.avatar 
                 ? {uri: (api.IMG_BASE_URL + review.author.avatar)} 
                 : require('../imgs/splash.jpg')}/>
-            <View style={{marginLeft: 14, marginTop: 10}}>
-              <Text style={{fontSize: config.css.fontSize.desc, color: config.css.fontColor.author, marginTop: 3, marginBottom: 3}}>{review.author.nickname + 'lv.' + review.author.lv}</Text>
-              <Text style={{fontSize: config.css.fontSize.desc, color: config.css.fontColor.title}}>{review.title}</Text>
+            <View style={{marginLeft: 14, marginTop: 10,flex:1}}>
+              <Text numberOfLines={2} style={{fontSize: config.css.fontSize.desc, color: config.css.fontColor.author, marginTop: 3, marginBottom: 3}}>{review.author.nickname + 'lv.' + review.author.lv}</Text>
+              <Text numberOfLines={2} style={{fontSize: config.css.fontSize.desc, color: config.css.fontColor.title}}>{review.title}</Text>
               <StarLevel rating={review.rating}/>
-              <Text style={{fontSize: config.css.fontSize.desc, color: config.css.fontColor.desc, marginTop: 3, marginBottom: 3}} numberOfLines={2}>{review.content}</Text>
+              <Text numberOfLines={3} style={{fontSize: config.css.fontSize.desc, color: config.css.fontColor.desc, marginTop: 3, marginBottom: 3}}>{review.content}</Text>
               <Icon 
                 name='ios-thumbs-up-outline'
                 size={15}
@@ -293,7 +293,7 @@ export default class BookDetail extends Component {
         items.push(
           <TouchableOpacity 
             activeOpacity={0.5}
-            style={{flex: 1, width: Dimen.window.width - 68, flexDirection: 'row', marginLeft: 14, marginRight: 14}} 
+            style={{flex: 1, width: Dimen.window.width - 30, flexDirection: 'row', marginLeft: 14, marginRight: 14}}
             onPress={this._recommendBookDetail.bind(this, i)}
             key={i}>
             <Image 
@@ -301,11 +301,11 @@ export default class BookDetail extends Component {
               source={recommend.cover 
                 ? {uri: (api.IMG_BASE_URL + recommend.cover)} 
                 : require('../imgs/splash.jpg')}/>
-            <View style={{marginLeft: 14, marginTop: 10}}>
-              <Text style={{color: config.css.fontColor.title, fontSize: config.css.fontSize.title}}>{recommend.title}</Text>
-              <Text style={{marginTop: 5, marginBottom: 5, color: config.css.fontColor.title, fontSize: config.css.fontSize.desc}}>{recommend.author}</Text>
-              <Text style={{color: config.css.fontColor.title, fontSize: config.css.fontSize.desc}} numberOfLines={1}>{recommend.desc}</Text>
-              <Text style={{marginTop: 5, marginBottom: 5, color: config.css.fontColor.desc, fontSize: config.css.fontSize.desc}}>{'共' + recommend.bookCount + '本书 | ' + recommend.collectorCount + '人收藏'}</Text>
+            <View style={{marginLeft: 14, marginTop: 10,flex:1}}>
+              <Text numberOfLines={2} style={{color: config.css.fontColor.title, fontSize: config.css.fontSize.title}}>{recommend.title}</Text>
+              <Text numberOfLines={2} style={{marginTop: 5, marginBottom: 5, color: config.css.fontColor.title, fontSize: config.css.fontSize.desc}}>{recommend.author}</Text>
+              <Text numberOfLines={3} style={{color: config.css.fontColor.title, fontSize: config.css.fontSize.desc}}>{recommend.desc}</Text>
+              <Text numberOfLines={2} style={{marginTop: 5, marginBottom: 5, color: config.css.fontColor.desc, fontSize: config.css.fontSize.desc}}>{'共' + recommend.bookCount + '本书 | ' + recommend.collectorCount + '人收藏'}</Text>
             </View>
           </TouchableOpacity>
         )
