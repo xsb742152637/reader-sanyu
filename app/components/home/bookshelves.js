@@ -64,6 +64,7 @@ export default class Bookshelves extends Component {
         this.showAlert = false//是否显示调试信息
         this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
         this.isVaild = true;
+        this.showBannerAD = true;//是否显示插屏广告
     }
 
     componentDidMount() {
@@ -74,6 +75,9 @@ export default class Bookshelves extends Component {
             //更新提示
             request.get('http://www.sanyureader.cn/app/latest.json', null, (data) => {
                 console.log("componentDidMount, this.readerVersion", this.readerVersion)
+                if(data.showBannerAD != undefined && data.showBannerAD != null){
+                    this.showBannerAD = data.showBannerAD;
+                }
                 this.downloadUrl = data.downloadUrl;
                 this.downloadRequired = data.required;
                 this.downloadVersion = data.latest;
@@ -576,7 +580,8 @@ export default class Bookshelves extends Component {
                 name: 'readPlatform',
                 component: ReadPlatform,
                 params: {
-                    bookId: bookId
+                    bookId: bookId,
+                    showBannerAD: this.showBannerAD
                 }
             })
         }

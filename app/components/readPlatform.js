@@ -491,7 +491,8 @@ export default class ReadPlatform extends Component {
 
             // alert("当前位置："+scrollIndex+"\n当前章节："+(chapterNum+1)+"\n当前页："+chapterPage)
             try {
-                if ((this.state.chapterNum + 1) % 2 == 0 && chapterPage + 1 == totalPage && this.isShowAD) {
+                // alert(this.isShowAD+"++"+this.props.showBannerAD+"\n"+(this.state.chapterNum + 1)+"++"+(chapterPage + 1)+"++"+totalPage)
+                if ((this.state.chapterNum + 1) % 2 == 0 && chapterPage + 1 == totalPage && this.isShowAD && this.props.showBannerAD) {
                     NativeModules.RNAdModule.showAd('banner_ad');
                     if(this.showAlert){
                         alert((this.state.chapterNum + 1)+"："+((this.state.chapterNum + 1) % 2)+"\n"+(chapterPage + 1)+"=="+totalPage)
