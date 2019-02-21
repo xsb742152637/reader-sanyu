@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.axiamireader"
-    android:versionCode="13"
-    android:versionName="4.6.7">
+    android:versionCode="14"
+    android:versionName="4.6.8">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -27,9 +27,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/syreader"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:hardwareAccelerated="false"
-        android:largeHeap="true">
+        android:theme="@style/AppTheme">
         <meta-data android:name="android.max_aspect" android:value="2.4" />
         <!--<meta-data android:name="UMENG_CHANNEL" android:value="${UMENG_CHANNEL_VALUE}" />-->
 

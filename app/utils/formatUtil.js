@@ -136,8 +136,9 @@ export let parseDate = (date) => {
 }
 
 export let contentFormat = (content, font_size, line_height) => {
-  let fontCount = parseInt(Dimen.window.width / (font_size * PixelRatio.getFontScale()) - 1)
-  let fontLines = parseInt((Dimen.window.height - 115) / (line_height * PixelRatio.getFontScale()))
+  let fontCount = parseInt(Dimen.window.width / (font_size) - 1)
+  let fontLines = parseInt((Dimen.window.height - 115) / (line_height))
+    // alert(Dimen.window.width+"++"+Dimen.window.height+"\n"+font_size+"++"+line_height+"\n"+PixelRatio.getFontScale()+"++"+font_size * PixelRatio.getFontScale()+"++"+line_height * PixelRatio.getFontScale()+"\n"+fontCount+"++"+fontLines)
   const length = content.length
   let array = []
   let x = 0, y, m = 0
@@ -162,6 +163,7 @@ export let contentFormat = (content, font_size, line_height) => {
   }
   return array
 }
+
 export let cloneObj = (obj) => {
     let a = new Array();
     for(let i = 0 ; i < obj.length ; i++){

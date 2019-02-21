@@ -56,7 +56,7 @@ export default class Bookshelves extends Component {
             downloadDlg: false
         }
         this.timer = null;
-        this.readerVersion = '20190213'//最新版本
+        this.readerVersion = '20190221'//最新版本
         this.downloadVersion = ''//下载版本
         this.downloadUrl = ''//下载地址
         this.downloadRequired = false//是否强制更新，强制更新的话不能取消提示框

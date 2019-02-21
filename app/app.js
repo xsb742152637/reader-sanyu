@@ -14,6 +14,8 @@ import {
     ToastAndroid,
     InteractionManager,
     Linking,
+    Text,
+    TextInput,
     NativeModules
 } from 'react-native'
 import {Navigator} from 'react-native-deprecated-custom-components';
@@ -51,6 +53,10 @@ var storage = new Storage({
 global.storage = storage
 global.realm = new Realm({schema: schemaArray, schemaVersion: 7})
 global.hardback = 0
+
+//禁止app中的字体大小随系统字体大小的改变而改变
+TextInput.defaultProps = Object.assign({}, TextInput.defaultProps, {defaultProps: false});
+Text.defaultProps = Object.assign({}, Text.defaultProps, {allowFontScaling: false});
 
 export default class App extends Component {
     componentDidMount() {

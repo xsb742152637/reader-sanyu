@@ -317,10 +317,20 @@ export default class BookDetail extends Component {
   render() {
     return(
       <View style={styles.container}>
-        <ToolBar 
-          leftClick={this._back.bind(this)}
-          title='书籍详情'
-          rightIcon='ios-cloud-download-outline'/>
+        <View>
+          <View style={styles.listModalHeader}>
+            <Icon
+                name='ios-arrow-back-outline'
+                style={[styles.listModalSort, {marginLeft: 14}]}
+                size={35}
+                color={config.css.fontColor.white}
+                onPress={this._back.bind(this)}
+            />
+            <Text style={styles.listModalTitle}>{'书籍详情'}</Text>
+
+          </View>
+        </View>
+
         {this.state.bookDetail ?
           <ScrollView 
             style={styles.body}
@@ -451,6 +461,27 @@ const styles = StyleSheet.create({
     fontSize: config.css.fontSize.desc,
     color: config.css.fontColor.appMainColor,
   },
+    listModalHeader: {
+        paddingTop:25,
+        height: config.css.headerHeight,
+        backgroundColor: config.css.color.appMainColor,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomColor: config.css.color.line,
+        borderBottomWidth: 1,
+    },
+    listModalTitle: {
+        flex: 4,
+        color: config.css.fontColor.white,
+        fontSize: config.css.fontSize.appTitle,
+        fontWeight: 'bold',
+        justifyContent: "center",
+        textAlign: 'center'
+
+    },
+    listModalSort: {
+        color: config.css.fontColor.desc,
+    },
   button1: {
     flex: 1,
     flexDirection: 'row',
