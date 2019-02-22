@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     color: config.css.fontColor.appMainColor,
   },
     listModalHeader: {
-        paddingTop:25,
+        paddingTop:20,
         height: config.css.headerHeight,
         backgroundColor: config.css.color.appMainColor,
         flexDirection: 'row',

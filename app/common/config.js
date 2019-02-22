@@ -7,11 +7,13 @@
 'use strict'
 
 import {
-    Platform
+    Platform,
+    NativeModules
 } from 'react-native'
+const { StatusBarManager } = NativeModules;
 
-const STATUS_BAR_HEIGHT = (Platform.OS === 'ios' ? 20 : 24)
-const header_height = (Platform.OS === 'ios' ? 70 : 74)
+const STATUS_BAR_HEIGHT = (Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT)
+const header_height = (Platform.OS === 'ios' ? 70 : STATUS_BAR_HEIGHT + 50)
 
 module.exports = {
   header: {
