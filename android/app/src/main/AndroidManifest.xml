@@ -27,7 +27,8 @@
         android:allowBackup="true"
         android:icon="@mipmap/syreader"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:largeHeap="true">
         <meta-data android:name="android.max_aspect" android:value="2.4" />
         <!--<meta-data android:name="UMENG_CHANNEL" android:value="${UMENG_CHANNEL_VALUE}" />-->
 
