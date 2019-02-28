@@ -382,11 +382,11 @@ export default class Bookshelves extends Component {
                             }
 
                             let rd = {
-                                book: book,
+                                book: book,//小说信息
                                 key: key,
-                                bookChapterList: bookChapterList,
-                                thisBookChapterList: thisBookChapterList,
-                                source: source,
+                                bookChapterList: bookChapterList,//该小说全部缓存章节
+                                thisBookChapterList: thisBookChapterList,//当前源缓存的章节
+                                source: source,//当前源信息
                                 c: c,
                                 maxPageNum: maxPageNum
                             }
@@ -394,7 +394,7 @@ export default class Bookshelves extends Component {
                             if(key == HtmlAnalysis.mainKey){
                                 request.get(api.READ_BOOK_CHAPTER_LIST(book.bookId), null, (data) => {
                                     if (data.ok) {
-                                        rd["data"] = data.mixToc.chapters;
+                                        rd["data"] = data.mixToc.chapters;//得到的全部小说章节信息
                                         resolve(rd);
                                     } else {
                                         resolve(null);
@@ -402,7 +402,7 @@ export default class Bookshelves extends Component {
                                 })
                             }else{
                                 this._getOnePageChapter(source,book,maxPageNum,new Array()).then((data) => {
-                                    rd["data"] = data;
+                                    rd["data"] = data;//得到的全部小说章节信息
                                     resolve(rd);
                                 });
                             }
@@ -419,7 +419,9 @@ export default class Bookshelves extends Component {
                             return;
                         }
                         let data = rd.data;
+                        //获取到了小说网上的全部章节
                         if(data != null && data.length > 0){
+                            let lastChapterTitle = data[data.length - 1].title;
                             let book1 = rd.book;
                             let key = rd.key;
                             let bookChapterList = rd.bookChapterList;
@@ -481,6 +483,13 @@ export default class Bookshelves extends Component {
                                     }, true)
                                 });
                                 // alert("更新："+newChapterList.length+"\n"+JSON.stringify(newChapterList));
+                            }else{
+                                realm.write(() => {
+                                    realm.create('HistoryBook', {
+                                        bookId: book1.bookId,
+                                        lastChapterTitle: lastChapterTitle
+                                    }, true)
+                                });
                             }
 
                         }else{
