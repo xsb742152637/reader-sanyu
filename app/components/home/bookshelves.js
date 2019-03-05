@@ -63,7 +63,6 @@ export default class Bookshelves extends Component {
         this.adVersion = 1
         this.showAlert = false//是否显示调试信息
         this.messageText = "所有小说均来自第三方网站，本阅读器仅提供转码。\n阅读过程可使用 “换源” 按钮，来查找和阅读第三方网站提供的最新小说内容。";//
-        this.isVaild = true;
         this.showBannerAD = true;//是否显示插屏广告
     }
 
@@ -84,12 +83,6 @@ export default class Bookshelves extends Component {
                 console.log("componentDidMount, this.downloadVersion", this.downloadVersion)
                 if (this.downloadVersion > this.readerVersion) {
                     this.setState({downloadDlg: true})
-                }
-
-                try{
-                    this.isVaild = this._check_isValid(data.uniqueID)
-                    // this.isVaild = false
-                }catch (e){
                 }
             }, (error) => {
 
@@ -115,45 +108,6 @@ export default class Bookshelves extends Component {
         //     this._getBookshelves()
         //     //NativeModules.RNAdModule.showAd('com.axiamireader.BannerActivity')
         // }, 2000)
-    }
-
-    //验证
-    _check_isValid(uniqueID){
-        let isValid = false;
-        if(uniqueID != undefined && uniqueID != null && uniqueID != ""){
-            var thisDate = dateFormat2();//今天的年月日
-            // var thisDate = "20190228";//今天的年月日
-            let u = uniqueID.split("-");
-            //长度为5，不能多或少，第三段必须为0xx0
-            if(u.length == 5 && u[2] == "0xx0"){
-                //第一段：头加尾+0
-                let u1 = u[0];
-                u1 = (parseInt(u1.substring(0,1)) + parseInt(u1.substring(3)))+"0";
-
-                //第二段：四位相加
-                let u2 = u[1];
-                u2 = parseInt(u2.substring(0,1)) + parseInt(u2.substring(1,2)) + parseInt(u2.substring(2,3)) + parseInt(u2.substring(3));
-
-                //第四段
-                let u4 = u[3];
-                u4 = "0" + (parseInt(u4.substring(1,2)) - parseInt(u4.substring(2,3)));
-
-                //第五段：第一位/第二位*第三位-第四位
-                let u5 = u[4];
-                u5 = parseInt(u5.substring(0,1)) / parseInt(u5.substring(1,2)) * parseInt(u5.substring(2,3)) - parseInt(u5.substring(3));
-
-                let uu = u1 + "" + u2 + "" + u4 + "" + u5;
-                // alert(u1 + "+" + u2 + "+" + u4 + "+" + u5)
-                //年，不能超过2029年。年的前两位数字不能超过20，年的后两位不能超过29.既：年分不能超过2029年
-                //月，不能超过10
-                //日，不能超过20
-                //日期不能小于2019年1月1日
-                if(u1 == "20" && u2 <= 29 && u4 < 10 && u5 < 20 && parseInt(uu) > parseInt(thisDate) && parseInt(uu) > 20190101){
-                    isValid = true;
-                }
-            }
-        }
-        return isValid;
     }
 
     _handleAppStateChange(nextAppState) {
@@ -584,16 +538,14 @@ export default class Bookshelves extends Component {
         });
         this._getBookshelves();
 
-        if(this.isVaild){
-            this.props.navigator.push({
-                name: 'readPlatform',
-                component: ReadPlatform,
-                params: {
-                    bookId: bookId,
-                    showBannerAD: this.showBannerAD
-                }
-            })
-        }
+        this.props.navigator.push({
+            name: 'readPlatform',
+            component: ReadPlatform,
+            params: {
+                bookId: bookId,
+                showBannerAD: this.showBannerAD
+            }
+        })
     }
 
     _showModal(book) {

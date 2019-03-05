@@ -75,8 +75,8 @@ public class MainApplication extends Application implements ReactApplication {
          * 参数4:设备类型，UMConfigure.DEVICE_TYPE_PHONE为手机、UMConfigure.DEVICE_TYPE_BOX为盒子，默认为手机
          * 参数5:Push推送业务的secret
          */
-        RNUMConfigure.init(this, "5ba24b39b465f5f01100039b", "huawei", UMConfigure.DEVICE_TYPE_PHONE, "");
-        //RNUMConfigure.init(this, "5ba24b39b465f5f01100039b", getChannel(), UMConfigure.DEVICE_TYPE_PHONE, "");
+    //RNUMConfigure.init(this, "5ba24b39b465f5f01100039b", "huawei", UMConfigure.DEVICE_TYPE_PHONE, "");
+        RNUMConfigure.init(this, "5ba24b39b465f5f01100039b", getChannel(), UMConfigure.DEVICE_TYPE_PHONE, "");
         MobclickAgent.setSessionContinueMillis(1000);
         MobclickAgent.setScenarioType(this, MobclickAgent.EScenarioType.E_DUM_NORMAL);
     }
